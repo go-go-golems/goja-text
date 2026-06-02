@@ -35,11 +35,11 @@
 
 ## Phase 4: Native module and JavaScript runtime tests
 
-- [ ] 4.1 Implement `extract` NativeModule exports
-- [ ] 4.2 Implement namespace-aware TypeScript declarations with `RawDTS`
-- [ ] 4.3 Add runtime tests for `require("extract")`
-- [ ] 4.4 Add runtime tests for Markdown codeblocks, XML-like tags, raw JSON/YAML, frontmatter, `all`, and `validate`
-- [ ] 4.5 Confirm PascalCase Go-backed candidate fields from JavaScript and lowercase absence where relevant
+- [x] 4.1 Implement `extract` NativeModule exports
+- [x] 4.2 Implement namespace-aware TypeScript declarations with `RawDTS`
+- [x] 4.3 Add runtime tests for `require("extract")`
+- [x] 4.4 Add runtime tests for Markdown codeblocks, XML-like tags, raw JSON/YAML, frontmatter, `all`, and `validate`
+- [x] 4.5 Confirm PascalCase Go-backed candidate fields from JavaScript and lowercase absence where relevant
 
 ## Phase 5: xgoja integration and examples
 

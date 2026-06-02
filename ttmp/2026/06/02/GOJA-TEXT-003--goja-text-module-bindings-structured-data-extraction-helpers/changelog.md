@@ -57,3 +57,13 @@ Step 5: Implemented raw JSON/YAML recognition, sanitize-backed candidate validat
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/raw.go — Raw recognition
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/validate.go — Candidate validation
 
+
+## 2026-06-02
+
+Step 6: Implemented extract NativeModule, TypeScript declarations, and JavaScript runtime tests; go test ./... -count=1 passes.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/module.go — NativeModule
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/module_test.go — Runtime tests
+

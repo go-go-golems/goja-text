@@ -27,6 +27,10 @@ RelatedFiles:
       Note: YAML frontmatter extraction
     - Path: pkg/extract/markdown_fences.go
       Note: Markdown fenced code block extraction
+    - Path: pkg/extract/module.go
+      Note: NativeModule exports
+    - Path: pkg/extract/module_test.go
+      Note: JavaScript runtime tests
     - Path: pkg/extract/options_test.go
       Note: Options builder tests
     - Path: pkg/extract/positions.go
@@ -39,6 +43,8 @@ RelatedFiles:
       Note: Raw/validation/all tests
     - Path: pkg/extract/types.go
       Note: Candidate and options model
+    - Path: pkg/extract/typescript.go
+      Note: TypeScript declarations
     - Path: pkg/extract/validate.go
       Note: Sanitize-backed candidate validation
     - Path: pkg/extract/wrappers_test.go
@@ -51,6 +57,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -422,6 +429,75 @@ Wrappers are precise but not always present. Raw recognition lets callers handle
 
 - Review `pkg/extract/raw.go`, `validate.go`, and `all.go` together.
 - Check `raw_validate_test.go` for intended raw detection and overlap behavior.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+
+- Validation command: `go test ./... -count=1`
+
+---
+
+## Step 6: Implement Extract NativeModule and Runtime Tests
+
+Exposed the extractor package through `require("extract")` and added JavaScript runtime tests. The native module now exports options, wrapper extractors, raw structured recognition, frontmatter extraction, combined extraction, and candidate validation.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue implementation by wiring the domain extraction package into go-go-goja's NativeModule system.
+
+**Inferred user intent:** Make the extraction helpers available to JavaScript with the same Go-backed object pattern used by Markdown and sanitize.
+
+### What I did
+
+- Added `pkg/extract/module.go` implementing `modules.NativeModule`.
+- Added `pkg/extract/typescript.go` with namespace-aware `RawDTS` declarations.
+- Added `pkg/extract/module_test.go` runtime tests for:
+  - `require("extract")`
+  - `extract.options().Build()`
+  - `markdownCodeBlocks`
+  - `xmlTagged`
+  - `frontmatter`
+  - `rawStructured`
+  - `all`
+  - `validate`
+  - PascalCase candidate field access and lowercase absence
+- Ran `gofmt -w pkg/extract`.
+- Ran `go test ./... -count=1` successfully.
+
+### Why
+
+The domain functions need to be validated through the actual goja runtime because public behavior depends on Go-backed field and method projection.
+
+### What worked
+
+- The runtime tests confirm `ExtractionCandidate` fields are visible in JavaScript as `Kind`, `Format`, `Text`, etc.
+- `extract.validate(candidate)` works with candidates returned by `rawStructured`.
+
+### What didn't work
+
+- N/A; runtime tests passed on the first run.
+
+### What I learned
+
+- The flat `extract` module is simpler than the nested `sanitize` module because all operations share one candidate model and one options builder.
+
+### What was tricky to build
+
+- The module adapter must keep optional config handling simple. It accepts nil options for defaults, matching the underlying Go functions.
+
+### What warrants a second pair of eyes
+
+- Whether `CandidateValidationResult.Fixes`/`Issues` should stay `any` or become separate typed JSON/YAML validation result variants.
+
+### What should be done in the future
+
+- Wire `extract` into xgoja and add a file-backed demo script.
+
+### Code review instructions
+
+- Review `pkg/extract/module.go` and `pkg/extract/module_test.go` together.
 - Validate with `go test ./... -count=1`.
 
 ### Technical details
