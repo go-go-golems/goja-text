@@ -1,0 +1,105 @@
+{
+  "name": "goja-text",
+  "appName": "goja-text",
+  "target": {
+    "kind": "xgoja",
+    "output": "dist/goja-text"
+  },
+  "packages": [
+    {
+      "id": "goja-text",
+      "import": "github.com/go-go-golems/goja-text/pkg/xgoja/providers/text",
+      "register": "Register",
+      "replace": "../.."
+    },
+    {
+      "id": "go-go-goja-core",
+      "import": "github.com/go-go-golems/go-go-goja/pkg/xgoja/providers/core",
+      "register": "Register"
+    },
+    {
+      "id": "go-go-goja-host",
+      "import": "github.com/go-go-golems/go-go-goja/pkg/xgoja/providers/host",
+      "register": "Register"
+    }
+  ],
+  "runtimes": {
+    "main": {
+      "modules": [
+        {
+          "package": "goja-text",
+          "name": "markdown",
+          "as": "markdown"
+        },
+        {
+          "package": "goja-text",
+          "name": "sanitize",
+          "as": "sanitize"
+        },
+        {
+          "package": "goja-text",
+          "name": "extract",
+          "as": "extract"
+        },
+        {
+          "package": "go-go-goja-core",
+          "name": "path",
+          "as": "path"
+        },
+        {
+          "package": "go-go-goja-core",
+          "name": "yaml",
+          "as": "yaml"
+        },
+        {
+          "package": "go-go-goja-host",
+          "name": "fs",
+          "as": "fs",
+          "config": {
+            "allow": true
+          }
+        }
+      ]
+    }
+  },
+  "commands": {
+    "eval": {
+      "enabled": true,
+      "runtime": "main",
+      "name": "eval"
+    },
+    "run": {
+      "enabled": true,
+      "runtime": "main",
+      "name": "run"
+    },
+    "repl": {
+      "enabled": true,
+      "runtime": "main",
+      "name": "repl"
+    },
+    "jsverbs": {
+      "enabled": true,
+      "runtime": "main",
+      "name": "verbs",
+      "mount": "root"
+    }
+  },
+  "jsverbs": [
+    {
+      "id": "goja-text-bundled-verbs",
+      "path": "xgoja_embed/jsverbs/goja_text_bundled_verbs",
+      "embed": true
+    }
+  ],
+  "help": {
+    "sources": [
+      {
+        "id": "goja-text-runtime-api",
+        "embed": false,
+        "package": "goja-text",
+        "source": "runtime-api"
+      }
+    ]
+  }
+}

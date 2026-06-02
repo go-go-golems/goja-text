@@ -1,10 +1,12 @@
-.PHONY: gifs logcopter-generate logcopter-check
+.PHONY: gifs logcopter-generate logcopter-check test test-standalone generate-xgoja build-xgoja smoke-markdown smoke-sanitize smoke-extract smoke-verbs smoke check
 
 all: gifs
 
 VERSION=v0.1.14
 GORELEASER_ARGS ?= --skip=sign --snapshot --clean
 GORELEASER_TARGET ?= --single-target
+XGOJA_CMD_DIR ?= cmd/goja-text
+XGOJA_BINARY ?= ./dist/goja-text
 
 TAPES=$(wildcard doc/vhs/*tape)
 gifs: $(TAPES)
@@ -28,9 +30,38 @@ govulncheck:
 	govulncheck ./...
 
 test:
-	GOWORK=off go test ./...
+	go test ./... -count=1
 
-build:
+test-standalone:
+	GOWORK=off go test ./... -count=1
+
+generate-xgoja:
+	cd $(XGOJA_CMD_DIR) && GOWORK=off go generate
+
+build-xgoja: generate-xgoja
+	cd $(XGOJA_CMD_DIR) && GOWORK=off go build -o ../../$(XGOJA_BINARY) .
+
+smoke-markdown: build-xgoja
+	$(XGOJA_BINARY) run examples/js/markdown-demo.js
+
+smoke-sanitize: build-xgoja
+	$(XGOJA_BINARY) run examples/js/sanitize-demo.js
+
+smoke-extract: build-xgoja
+	$(XGOJA_BINARY) run examples/js/extract-demo.js
+
+smoke-verbs: build-xgoja
+	$(XGOJA_BINARY) help goja-text-markdown-user-guide >/dev/null
+	$(XGOJA_BINARY) examples tour --output json >/dev/null
+	$(XGOJA_BINARY) markdown toc examples/markdown/sample.md --output json >/dev/null
+	$(XGOJA_BINARY) sanitize json examples/json/broken.json --output json >/dev/null
+	$(XGOJA_BINARY) extract validate examples/text/structured-data-sample.md --output json >/dev/null
+
+smoke: smoke-markdown smoke-sanitize smoke-extract smoke-verbs
+
+check: test test-standalone build-xgoja smoke
+
+build: build-xgoja
 	GOWORK=off go generate ./...
 	GOWORK=off go build ./...
 
@@ -38,7 +69,7 @@ logcopter-generate:
 	GOWORK=off go generate ./...
 
 logcopter-check:
-	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.XXX -strip-prefix github.com/go-go-golems/XXX -check ./pkg/...
+	GOWORK=off go tool logcopter-gen -area-prefix go-go-golems.goja-text -strip-prefix github.com/go-go-golems/goja-text -check ./pkg/...
 
 goreleaser:
 	GOWORK=off goreleaser release $(GORELEASER_ARGS) $(GORELEASER_TARGET)
@@ -54,7 +85,7 @@ tag-patch:
 
 release:
 	git push origin --tags
-	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/XXX@$(shell svu current)
+	GOWORK=off GOPROXY=proxy.golang.org go list -m github.com/go-go-golems/goja-text@$(shell svu current)
 
 bump-go-go-golems:
 	@deps="$$(awk '/^require[[:space:]]+github\.com\/go-go-golems\// { print $$2 } /^[[:space:]]*github\.com\/go-go-golems\// { print $$1 }' go.mod | sort -u)"; \

@@ -1,0 +1,6 @@
+service:
+	name:my-app
+	port: 8080
+	tags:
+	  -web
+	  -backend
