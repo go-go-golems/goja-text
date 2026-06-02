@@ -7,7 +7,7 @@ toolchain go1.26.3
 require (
 	github.com/dop251/goja v0.0.0-20260311135729-065cd970411c
 	github.com/dop251/goja_nodejs v0.0.0-20250409162600-f7acab6894b0
-	github.com/go-go-golems/go-go-goja v0.7.3
+	github.com/go-go-golems/go-go-goja v0.7.4
 	github.com/go-go-golems/logcopter v0.1.0
 	github.com/go-go-golems/sanitize v0.0.2
 	github.com/yuin/goldmark v1.8.2
@@ -127,5 +127,3 @@ tool (
 	github.com/go-go-golems/go-go-goja/cmd/xgoja
 	github.com/go-go-golems/logcopter/cmd/logcopter-gen
 )
-
-replace github.com/go-go-golems/go-go-goja => ../go-go-goja

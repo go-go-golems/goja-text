@@ -6,12 +6,38 @@ before:
     - go mod tidy
     - go generate ./...
 
-# goja-text is currently a Go library plus xgoja provider/buildspec. The runnable
-# dist/goja-text binary is generated from xgoja.yaml rather than a checked-in
-# ./cmd package, so Goreleaser should not try to build a Go main package.
 builds:
-  - id: goja-text-library
-    skip: true
+  - id: goja-text-linux
+    dir: cmd/goja-text
+    env:
+      - CGO_ENABLED=1
+      - CC_linux_amd64=gcc
+      - CXX_linux_amd64=g++
+      - CC_linux_arm64=aarch64-linux-gnu-gcc
+      - CXX_linux_arm64=aarch64-linux-gnu-g++
+      - 'CC={{ index .Env (print "CC_" .Os "_" .Arch) }}'
+      - 'CXX={{ index .Env (print "CXX_" .Os "_" .Arch) }}'
+    main: .
+    binary: goja-text
+    goos:
+      - linux
+    goarch:
+      - amd64
+      - arm64
+  - id: goja-text-darwin
+    dir: cmd/goja-text
+    env:
+      - CGO_ENABLED=1
+    main: .
+    binary: goja-text
+    goos:
+      - darwin
+    goarch:
+      - amd64
+      - arm64
+
+checksum:
+  name_template: 'checksums.txt'
 
 snapshot:
   version_template: "{{ incpatch .Version }}-next"
@@ -23,6 +49,50 @@ changelog:
       - '^docs:'
       - '^test:'
 
-# modelines, feel free to remove those if you don't want/use them:
+signs:
+  - artifacts: checksum
+    args: [ "--batch", "-u", "{{ .Env.GPG_FINGERPRINT }}", "--output", "${signature}", "--detach-sign", "${artifact}" ]
+
+brews:
+  - name: goja-text
+    description: "goja-text provides Go-backed xgoja text modules and helper commands."
+    homepage: "https://github.com/go-go-golems/goja-text"
+    repository:
+      owner: go-go-golems
+      name: homebrew-go-go-go
+      token: "{{ .Env.TAP_GITHUB_TOKEN }}"
+
+nfpms:
+  - id: packages
+    vendor: GO GO GOLEMS
+    homepage: https://github.com/go-go-golems/goja-text
+    maintainer: Manuel Odendahl <wesen@ruinwesen.com>
+    description: |-
+      goja-text provides Go-backed xgoja text modules and helper commands for Markdown, JSON/YAML sanitization, and structured-data extraction.
+    license: MIT
+    formats:
+      - deb
+      - rpm
+    release: 1
+    section: default
+    priority: extra
+    deb:
+      lintian_overrides:
+        - statically-linked-binary
+        - changelog-file-missing-in-native-package
+
+publishers:
+  - name: fury.io
+    env:
+      - FURY_TOKEN={{ .Env.FURY_TOKEN }}
+    ids:
+      - packages
+    dir: "{{ dir .ArtifactPath }}"
+    cmd: >-
+      sh -c 'case "$1" in
+        *.deb|*.rpm) curl -F package=@"$1" "https://$FURY_TOKEN@push.fury.io/go-go-golems/" ;;
+        *) echo "skipping non-package artifact $1 for fury.io" ;;
+      esac' -- "{{ .ArtifactName }}"
+
 # yaml-language-server: $schema=https://goreleaser.com/static/schema.json
 # vim: set ts=2 sw=2 tw=0 fo=cnqoj

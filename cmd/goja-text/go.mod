@@ -3,7 +3,7 @@ module example.com/generated/goja-text
 go 1.26.1
 
 require (
-	github.com/go-go-golems/go-go-goja v0.7.3
+	github.com/go-go-golems/go-go-goja v0.7.4
 	github.com/go-go-golems/goja-text v0.0.0-00010101000000-000000000000
 )
 
@@ -138,8 +138,6 @@ require (
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
-
-replace github.com/go-go-golems/go-go-goja => ../../../go-go-goja
 
 replace github.com/go-go-golems/goja-text => ../..
 
