@@ -339,16 +339,25 @@ The new sanitize module will be added to the `goja-text` provider. No new provid
 - **Consequences:** JavaScript uses `result.Sanitized`, `issue.Rule`, `fix.Before`, etc. If lowercase JSON-style objects are needed later, an explicit adapter can be added.
 - **Status:** accepted
 
-### Decision 3: Mirror Go functional options as JavaScript options objects
+### Decision 3: Use Go-backed builder/config objects instead of raw options objects
 
-- **Context:** The sanitize library uses Go functional options (`WithMaxIterations`, `WithOnlyRules`, etc.). JavaScript does not have a direct equivalent.
+- **Context:** The sanitize library uses Go functional options (`WithMaxIterations`, `WithOnlyRules`, etc.). A plain JavaScript options object is convenient, but it makes unknown-option handling, rule-name validation, cross-field validation, and future runtime validation policies harder to control consistently. The user explicitly wants unknown-option behavior to be controllable and wants the Go side to provide more complex validation rules at runtime.
 - **Options considered:**
-  - Expose individual functions with positional parameters: `sanitize.yaml.sanitize(input, maxIterations, tabWidth, onlyRules, disabledRules)`. This is unwieldy and hard to extend.
-  - Expose a single options object: `sanitize.yaml.sanitize(input, {maxIterations: 5, tabWidth: 4, onlyRules: ["tab_indent"]})`. This mirrors the Go pattern closely and is idiomatic in JavaScript.
-  - Expose builder-pattern methods on a config object. This is powerful but adds complexity for a first implementation.
-- **Decision:** JavaScript options object with camelCase keys.
-- **Rationale:** An options object is the standard JavaScript pattern for configurable functions. It maps cleanly to the Go functional options: each key in the JS object corresponds to one Go `Option` function.
-- **Consequences:** The module loader must decode the JS options object into Go `Option` values. Unknown keys should be ignored or rejected based on a validation flag.
+  - Positional parameters such as `sanitize.yaml.sanitize(input, maxIterations, tabWidth, onlyRules, disabledRules)`. This is brittle and hard to extend.
+  - Plain options objects such as `sanitize.yaml.sanitize(input, {maxIterations: 5})`. This is familiar JavaScript, but every function must re-decode and re-validate the object. Unknown-key policy becomes an ad hoc per-call concern.
+  - Go-backed builder/config objects such as `sanitize.yaml.options().MaxIterations(5).TabWidth(4).RejectUnknownOptions().Build()`. This gives Go a durable place to enforce validation, preserve policy, and add richer runtime checks.
+- **Decision:** Expose Go-backed builder/config objects as the primary configuration API. Keep direct calls with no options for defaults. Do not make raw options objects the primary Phase 1 API.
+- **Rationale:** A builder object lets Go own validation semantics. It can reject unknown options, allow unknown options, collect unknown options for diagnostics, validate rule-name overlap, normalize rule arrays, and later support more complex policies without changing every sanitize/lint function signature. This follows the goja project preference for Go-backed domain objects when runtime validation matters.
+- **Consequences:** JavaScript callers use PascalCase builder methods because the builder is Go-backed: `MaxIterations`, `TabWidth`, `OnlyRules`, `DisabledRules`, `RejectUnknownOptions`, `AllowUnknownOptions`, `CollectUnknownOptions`, `Build`, and `Validate`. Tests must pin those method names. If a lowerCamel convenience wrapper is desired later, add it deliberately as a JS adapter.
+- **Status:** accepted
+
+### Decision 5: Pin sanitize to `v0.0.2` with a local workspace replace
+
+- **Context:** The sanitize repository is present locally and already has version history (`v0.0.2-5-gc142cca` in the current checkout). The goja-text module needs a stable required module version while still building against the workspace checkout during development.
+- **Options considered:** Use an unversioned local-only import, use a pseudo-version from the current commit, or require the pinned `v0.0.2` tag with `replace ../sanitize`.
+- **Decision:** Require `github.com/go-go-golems/sanitize v0.0.2` and add `replace github.com/go-go-golems/sanitize => ../sanitize` for this workspace.
+- **Rationale:** The pinned version records the intended dependency boundary. The replace keeps local development and xgoja generated builds using the checkout in this workspace.
+- **Consequences:** `go mod tidy` must retain the pinned require and local replace. xgoja generated builds must also be validated because temporary generated modules need local replacements to resolve workspace packages.
 - **Status:** accepted
 
 ### Decision 4: Return both original and sanitized state in Result
@@ -414,26 +423,47 @@ const rules = sanitize.json.rules();
 const examples = sanitize.json.examples();
 ```
 
-### Options object shape
+### Builder/config API shape
 
-Both YAML and JSON accept an options object:
+Both YAML and JSON expose a Go-backed options builder. Direct calls without a config use the sanitize library defaults. Calls with a config require a value produced by `Build()` so the Go side can validate and normalize options before they are used.
 
 ```js
-{
-  maxIterations: 10,           // number
-  onlyRules: ["tab_indent"],   // string[] or null
-  disabledRules: ["duplicate_key"], // string[] or null
-  // YAML only:
-  tabWidth: 2                  // number
-}
+const yamlConfig = sanitize.yaml.options()
+  .MaxIterations(5)
+  .TabWidth(4)
+  .OnlyRules("tab_indent", "missing_space_after_colon")
+  .RejectUnknownOptions()
+  .Build();
+
+const result = sanitize.yaml.sanitize(input, yamlConfig);
 ```
 
-All keys are optional. If omitted, defaults from the Go library apply:
+JSON uses the same pattern without `TabWidth`:
 
-- `maxIterations`: 10
-- `tabWidth`: 2 (YAML only)
-- `onlyRules`: null (all rules enabled)
-- `disabledRules`: null (no rules disabled)
+```js
+const jsonConfig = sanitize.json.options()
+  .MaxIterations(3)
+  .DisabledRules("duplicate_key")
+  .CollectUnknownOptions()
+  .Build();
+
+const result = sanitize.json.sanitize(input, jsonConfig);
+```
+
+The builder methods are intentionally PascalCase because the builder is a Go-backed object projected through goja:
+
+- `MaxIterations(n)` — positive integer, default 10
+- `TabWidth(n)` — YAML only; positive integer, default 2
+- `OnlyRules(...rules)` — restrict lint/fix to known rule names
+- `DisabledRules(...rules)` — disable known rule names
+- `RejectUnknownOptions()` — reject unknown keys when importing raw option objects; recommended default
+- `AllowUnknownOptions()` — ignore unknown keys when importing raw option objects
+- `CollectUnknownOptions()` — record unknown keys for diagnostics without failing immediately
+- `FromObject(obj)` — optional bridge for callers that receive plain JS options dynamically
+- `Validate()` — return a Go-backed validation result without building
+- `Build()` — return an immutable Go-backed config object or throw a validation error
+
+The initial implementation should support `Build()`-produced config objects as the primary path. `FromObject` can be implemented in Phase 1 if dynamic option import is needed for tests; otherwise it can be added in Phase 2. The important design rule is that all raw object decoding goes through the builder so unknown-option policy and cross-field validation are centralized.
 
 ### Result object shape
 
@@ -605,74 +635,69 @@ func init() {
 }
 ```
 
-**Step 1.3: Options decoding**
+**Step 1.3: Implement builder/config objects**
 
-Create a helper function `decodeYamlOptions(vm *goja.Runtime, value goja.Value) ([]yamlsanitize.Option, error)`:
+Create Go-backed builders and immutable config values. The builder owns all JavaScript-facing validation policy. Sanitizer functions accept either no config or a built config value. They should not decode arbitrary options objects independently.
+
+Core types:
 
 ```go
-func decodeYamlOptions(vm *goja.Runtime, value goja.Value) ([]yamlsanitize.Option, error) {
-    if goja.IsUndefined(value) || goja.IsNull(value) {
-        return nil, nil
-    }
-    obj := value.ToObject(vm)
-    if obj == nil {
-        return nil, fmt.Errorf("sanitize: expected options object")
-    }
+type UnknownOptionPolicy string
 
-    var opts []yamlsanitize.Option
+const (
+    UnknownOptionReject  UnknownOptionPolicy = "reject"
+    UnknownOptionAllow   UnknownOptionPolicy = "allow"
+    UnknownOptionCollect UnknownOptionPolicy = "collect"
+)
 
-    if v := obj.Get("maxIterations"); v != nil && !goja.IsUndefined(v) {
-        if n, ok := v.Export().(int64); ok && n > 0 {
-            opts = append(opts, yamlsanitize.WithMaxIterations(int(n)))
-        }
-    }
+type ValidationResult struct {
+    Valid   bool
+    Errors  []string
+    Unknown []string
+}
 
-    if v := obj.Get("tabWidth"); v != nil && !goja.IsUndefined(v) {
-        if n, ok := v.Export().(int64); ok && n > 0 {
-            opts = append(opts, yamlsanitize.WithTabWidth(int(n)))
-        }
-    }
+type YamlConfig struct {
+    MaxIterations int
+    TabWidth      int
+    OnlyRules     []string
+    DisabledRules []string
+    UnknownPolicy UnknownOptionPolicy
+    Unknown       []string
+}
 
-    if v := obj.Get("onlyRules"); v != nil && !goja.IsUndefined(v) {
-        if arr, ok := v.Export().([]any); ok && len(arr) > 0 {
-            rules := make([]string, len(arr))
-            for i, item := range arr {
-                s, ok := item.(string)
-                if !ok {
-                    return nil, fmt.Errorf("sanitize: onlyRules[%d] must be a string", i)
-                }
-                rules[i] = s
-            }
-            opts = append(opts, yamlsanitize.WithOnlyRules(rules...))
-        }
-    }
-
-    if v := obj.Get("disabledRules"); v != nil && !goja.IsUndefined(v) {
-        if arr, ok := v.Export().([]any); ok && len(arr) > 0 {
-            rules := make([]string, len(arr))
-            for i, item := range arr {
-                s, ok := item.(string)
-                if !ok {
-                    return nil, fmt.Errorf("sanitize: disabledRules[%d] must be a string", i)
-                }
-                rules[i] = s
-            }
-            opts = append(opts, yamlsanitize.WithDisabledRules(rules...))
-        }
-    }
-
-    return opts, nil
+type JsonConfig struct {
+    MaxIterations int
+    OnlyRules     []string
+    DisabledRules []string
+    UnknownPolicy UnknownOptionPolicy
+    Unknown       []string
 }
 ```
 
-A similar function `decodeJsonOptions` omits `tabWidth`.
+Builder methods should be chainable and Go-backed:
+
+```go
+func (b *YamlOptionsBuilder) MaxIterations(n int) *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) TabWidth(n int) *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) OnlyRules(rules ...string) *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) DisabledRules(rules ...string) *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) RejectUnknownOptions() *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) AllowUnknownOptions() *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) CollectUnknownOptions() *YamlOptionsBuilder
+func (b *YamlOptionsBuilder) Validate() ValidationResult
+func (b *YamlOptionsBuilder) Build() (*YamlConfig, error)
+func (c *YamlConfig) Options() []yamlsanitize.Option
+```
+
+The JSON builder mirrors this shape without `TabWidth`. `Build()` should validate positive integer settings, unknown option policy, rule names, and overlap between `OnlyRules` and `DisabledRules`. It should call the sanitize library's `ValidateRuleNames` by constructing the underlying options through `SanitizeWithOptions`/`LintWithOptions` or by directly using the library's validation helpers where available.
 
 **Step 1.4: Export functions**
 
 For each namespace, implement:
 
-- `sanitize(input string, opts map[string]any) (*Result, error)` — calls `SanitizeWithOptions`
-- `lint(input string, opts map[string]any) ([]LintIssue, error)` — calls `LintWithOptions`
+- `sanitize(input string, config *YamlConfig|*JsonConfig)` — calls `SanitizeWithOptions` with options produced by the built config
+- `lint(input string, config *YamlConfig|*JsonConfig)` — calls `LintWithOptions` with options produced by the built config
+- `options()` — returns a Go-backed options builder for the format
 - `parseTree(input string) (*ParseTreeResult, error)` — calls `ParseTree`
 - `rules() ([]RuleSpec, error)` — calls `RuleCatalog`
 - `examples() ([]Example, error)` — returns the built-in `Examples` var
@@ -933,9 +958,9 @@ goja-text/
 
 The sanitize library depends on tree-sitter grammars for YAML and JSON. These are C libraries with Go bindings. When the module is loaded in goja, the tree-sitter parsers are initialized. This should work in the same process, but the intern should verify that the generated xgoja binary can load and use tree-sitter without issues.
 
-### Risk 2: Options object shape evolution
+### Risk 2: Builder/config API evolution
 
-The sanitize library may add new options in the future. The JavaScript options object needs to be extensible. The current plan is to decode known keys and ignore unknown keys. If the library adds an option that conflicts with a JavaScript reserved word or an existing key, the mapping may need adjustment.
+The sanitize library may add new options in the future. A Go-backed builder gives us a controlled extension point: add a method, add validation, and keep existing built config objects stable. Raw JavaScript object import, if supported via `FromObject`, must route through the builder's unknown-option policy (`reject`, `allow`, or `collect`) so typos and future option additions are handled deliberately rather than silently.
 
 ### Risk 3: Result object size
 
@@ -973,7 +998,7 @@ The current API processes the entire input as a single string. For very large YA
 | --- | --- | --- |
 | Single `sanitize` module with `yaml`/`json` namespaces | accepted | Cleaner global namespace, mirrors conceptual tool |
 | Go-backed result structs with PascalCase fields | accepted | Type safety for Go validation, consistent with markdown module |
-| JS options object mirrors Go functional options | accepted | Idiomatic JavaScript API, extensible |
+| Go-backed builder/config objects mirror Go functional options | accepted | Go owns unknown-option policy and complex runtime validation |
 | Full Result with original + final state | accepted | Enables before/after comparison in JavaScript |
 | `parseTree` returns string + errors, not structured tree | accepted | Simplest mapping of existing library API |
 
@@ -983,9 +1008,10 @@ The current API processes the entire input as a single string. For very large YA
 
 ### Phase 1: Core module
 
-- [ ] Create `pkg/sanitize/types.go` with `ParseTreeResult`
-- [ ] Create `pkg/sanitize/module.go` with `NativeModule` implementation
-- [ ] Implement options decoding helpers for YAML and JSON
+- [ ] Phase 0: Add pinned sanitize dependency (`v0.0.2`) and local replace to `go.mod`
+- [ ] Create `pkg/sanitize/types.go` with `ParseTreeResult`, `ValidationResult`, config structs, and unknown-option policy types
+- [ ] Create `pkg/sanitize/options.go` with YAML/JSON builder implementations and validation
+- [ ] Create `pkg/sanitize/module.go` with `NativeModule` implementation and namespace wiring
 - [ ] Implement `yaml.sanitize`, `yaml.lint`, `yaml.parseTree`, `yaml.rules`, `yaml.examples`
 - [ ] Implement `json.sanitize`, `json.lint`, `json.parseTree`, `json.rules`, `json.examples`
 - [ ] Implement `TypeScriptModule()` with declarations
@@ -997,7 +1023,7 @@ The current API processes the entire input as a single string. For very large YA
 - [ ] Go-side tests in `pkg/sanitize/sanitize_test.go`
 - [ ] JavaScript runtime tests in `pkg/sanitize/module_test.go`
 - [ ] Edge-field regression probes (Result, LintIssue, ErrorNode, Fix, RuleSpec, Example)
-- [ ] Options decoding tests
+- [ ] Builder/config validation tests, including unknown-option policy tests
 - [ ] Error handling tests
 
 ### Phase 3: Integration

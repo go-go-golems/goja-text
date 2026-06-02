@@ -182,3 +182,73 @@ The primary plan was directionally good, but it contained several implementation
   - `/home/manuel/workspaces/2026-06-02/goja-text/go-go-goja/modules/exports.go`
   - `/home/manuel/workspaces/2026-06-02/goja-text/go-go-goja/modules/yaml/yaml.go`
   - `/home/manuel/workspaces/2026-06-02/goja-text/goja-text/go.mod`
+
+---
+
+## Step 3: Switch the Sanitize Plan to a Builder/Config Pattern
+
+Updated the primary GOJA-TEXT-002 design after the user clarified that unknown-option behavior must be more controllable and that Go should own more complex runtime validation rules. The design no longer treats raw JavaScript options objects as the primary API. Instead, YAML and JSON expose Go-backed builder/config objects whose methods encode validation policy and produce immutable config values for sanitize and lint calls.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Update the doc to use a builder pattern so that unknown otpion behavior is much more controllable and allows the go side to also provide more complex validation rules at runtime.
+sanitize should have a pinned version already.
+
+Update the doc with all the improvements, then add detailed tasks to the ticket, and implement stpe by step, keeping a diary and committing at appropriate intervals (including ticket documents0)."
+
+**Assistant interpretation:** Revise the sanitize design around a Go-backed builder/config API, add detailed implementation tasks, then begin stepwise implementation with diary updates and commits.
+
+**Inferred user intent:** Make the sanitize API more robust than one-shot options decoding, especially for unknown option policy and future Go-side validation.
+
+### What I did
+
+- Created a baseline commit for prior uncommitted ticket and markdown probe work before starting the new implementation sequence.
+- Checked the local sanitize repository version (`v0.0.2-5-gc142cca`) and chose the pinned `v0.0.2` dependency plus local workspace replace as the design target.
+- Updated the primary design document:
+  - replaced the raw JS options object decision with a Go-backed builder/config decision
+  - added a decision to pin sanitize to `v0.0.2` with `replace ../sanitize`
+  - described `sanitize.yaml.options()` and `sanitize.json.options()` builders
+  - added unknown option policies: reject, allow, collect
+  - updated implementation phases and checklist
+- Added detailed ticket tasks for dependency wiring, builder/config validation, native module implementation, and xgoja integration.
+
+### Why
+
+Plain options objects force each exported function to re-decode and re-validate untyped JavaScript values. A Go-backed builder centralizes validation and creates a durable extension point for rule-name checks, cross-field validation, unknown option policy, and future runtime constraints.
+
+### What worked
+
+- The builder pattern fits the project’s existing preference for Go-backed domain objects.
+- The sanitize library already validates rule names and overlapping rules, so the builder can reuse those semantics.
+- The pinned sanitize version has a clear local tag (`v0.0.2`) while local development can still use the workspace checkout through `replace`.
+
+### What didn't work
+
+- N/A — this step updated docs and tasks only.
+
+### What I learned
+
+- The sanitize repo is currently at `v0.0.2-5-gc142cca`, so depending on `v0.0.2` and replacing locally is a reasonable pinned-version workflow.
+
+### What was tricky to build
+
+- The tricky part was preserving JavaScript usability while making Go own validation. The resulting API accepts no-config calls for defaults, but uses built config objects for anything non-default.
+
+### What warrants a second pair of eyes
+
+- Whether JavaScript builder methods should remain PascalCase as Go-backed methods or whether a lowerCamel JS adapter should be added later.
+- Whether `FromObject(obj)` belongs in Phase 1 or should wait until a caller needs raw dynamic options.
+
+### What should be done in the future
+
+- Implement the builder/config types and tests before writing the module exports.
+
+### Code review instructions
+
+- Review Decision 3 and Decision 5 in the primary design document.
+- Review the new builder/config API section and the updated implementation checklist.
+
+### Technical details
+
+- Updated design doc: `design-doc/01-sanitize-native-module-design-and-implementation-guide.md`
+- Updated tasks: `tasks.md`
