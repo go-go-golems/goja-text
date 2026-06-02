@@ -1,0 +1,46 @@
+topics:
+    - slug: chat
+      description: Chat backend and frontend surfaces
+    - slug: backend
+      description: Backend services
+    - slug: websocket
+      description: WebSocket lifecycle & events
+    - slug: goja
+      description: dop251/goja JavaScript runtime for Go
+    - slug: text-algorithms
+      description: Text parsing, transformation, and analysis algorithms exposed as native goja modules
+    - slug: markdown
+      description: Markdown parsing and rendering module for goja
+    - slug: native-modules
+      description: Go-implemented modules registered via modules.NativeModule interface and loaded via goja_nodejs require()
+    - slug: goja-bindings
+      description: Go-to-JavaScript binding layer using goja runtime value conversion
+docTypes:
+    - slug: design-doc
+      description: Structured rationale and architecture notes
+    - slug: reference
+      description: Reference docs and API contracts
+    - slug: playbook
+      description: Operational procedures and QA/Smoke steps
+    - slug: index
+      description: Ticket landing page
+    - slug: skill
+      description: Skill documentation (what it's for and when to use it)
+intent:
+    - slug: long-term
+      description: Likely to persist
+    - slug: short-term
+      description: Short-term documentation for active work
+    - slug: throwaway
+      description: Temporary/experimental documentation
+status:
+    - slug: draft
+      description: Initial draft state
+    - slug: active
+      description: Active work in progress
+    - slug: review
+      description: Ready for review
+    - slug: complete
+      description: Work completed
+    - slug: archived
+      description: Archived/completed work

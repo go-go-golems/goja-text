@@ -469,7 +469,7 @@ Implemented the xgoja integration layer for `goja-text`. This milestone wraps th
 
 **Inferred user intent:** Finish the next vertical slice: use xgoja as the real harness for exercising the markdown module with filesystem access.
 
-**Commit (code):** pending — "Add xgoja provider and demo for markdown module"
+**Commit (code):** 9538024dda7332f74ce0d3b827d8499df75a8ec3 — "Add xgoja provider and markdown demo"
 
 ### What I did
 
