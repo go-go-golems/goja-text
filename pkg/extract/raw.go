@@ -23,7 +23,7 @@ func RawStructured(input string, options *ExtractOptions) ([]*ExtractionCandidat
 	var candidates []*ExtractionCandidate
 
 	if looksJSON(trimmed) {
-		confidence := 0.85
+		var confidence float64
 		var v any
 		if json.Unmarshal([]byte(trimmed), &v) == nil {
 			confidence = 0.98
@@ -55,9 +55,9 @@ func RawStructured(input string, options *ExtractOptions) ([]*ExtractionCandidat
 	return filterCandidates(candidates, options), nil
 }
 
-func trimSpan(input string) (trimmed string, start int, end int) {
-	start = 0
-	end = len(input)
+func trimSpan(input string) (string, int, int) {
+	start := 0
+	end := len(input)
 	for start < end {
 		switch input[start] {
 		case ' ', '\t', '\n', '\r':

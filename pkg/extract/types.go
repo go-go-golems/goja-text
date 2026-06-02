@@ -224,9 +224,9 @@ func filterCandidates(candidates []*ExtractionCandidate, options *ExtractOptions
 }
 
 func cloneCandidate(c *ExtractionCandidate) *ExtractionCandidate {
-	copy := *c
-	copy.Diagnostics = append([]string(nil), c.Diagnostics...)
-	return &copy
+	cloned := *c
+	cloned.Diagnostics = append([]string(nil), c.Diagnostics...)
+	return &cloned
 }
 
 func normalizeStrings(values []string) []string {

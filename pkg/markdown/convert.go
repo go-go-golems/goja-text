@@ -26,11 +26,11 @@ func ConvertAST(source []byte, n goldast.Node) *MarkdownNode {
 	case *goldast.FencedCodeBlock:
 		node.Language = string(v.Language(source))
 		if v.Info != nil {
-			node.Info = string(v.Info.Text(source))
+			node.Info = string(v.Info.Segment.Value(source))
 		}
-		node.Text = string(v.Text(source))
+		node.Text = string(v.Lines().Value(source))
 	case *goldast.CodeBlock:
-		node.Text = string(v.Text(source))
+		node.Text = string(v.Lines().Value(source))
 	case *goldast.Text:
 		node.Text = string(v.Value(source))
 	case *goldast.String:
@@ -51,11 +51,11 @@ func ConvertAST(source []byte, n goldast.Node) *MarkdownNode {
 			node.Marker = string(v.Marker)
 		}
 	case *goldast.HTMLBlock:
-		node.Raw = string(v.Text(source))
+		node.Raw = htmlBlockText(v, source)
 	case *goldast.RawHTML:
-		node.Raw = string(v.Text(source))
+		node.Raw = string(v.Segments.Value(source))
 	case *goldast.AutoLink:
-		node.Text = string(v.Text(source))
+		node.Text = string(v.Label(source))
 	}
 
 	for child := n.FirstChild(); child != nil; child = child.NextSibling() {
@@ -119,8 +119,16 @@ func sourcePosition(n goldast.Node, source []byte) [2]int {
 	return [2]int{line, col}
 }
 
-func byteOffsetLineColumn(source []byte, offset int) (line int, column int) {
-	line, column = 1, 1
+func htmlBlockText(node *goldast.HTMLBlock, source []byte) string {
+	ret := node.Lines().Value(source)
+	if node.HasClosure() {
+		ret = append(ret, node.ClosureLine.Value(source)...)
+	}
+	return string(ret)
+}
+
+func byteOffsetLineColumn(source []byte, offset int) (int, int) {
+	line, column := 1, 1
 	if offset <= 0 {
 		return line, column
 	}

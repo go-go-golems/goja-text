@@ -62,7 +62,8 @@ func MarkdownCodeBlocks(input string, options *ExtractOptions) ([]*ExtractionCan
 	return filterCandidates(candidates, options), nil
 }
 
-func openingFence(line string) (indent int, fenceChar byte, fenceLen int, info string, ok bool) {
+func openingFence(line string) (int, byte, int, string, bool) {
+	indent := 0
 	for indent < len(line) && line[indent] == ' ' {
 		indent++
 	}
@@ -77,7 +78,7 @@ func openingFence(line string) (indent int, fenceChar byte, fenceLen int, info s
 	for pos < len(line) && line[pos] == ch {
 		pos++
 	}
-	fenceLen = pos - indent
+	fenceLen := pos - indent
 	if fenceLen < 3 {
 		return 0, 0, 0, "", false
 	}

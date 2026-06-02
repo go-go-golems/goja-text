@@ -77,8 +77,6 @@ func splitSourceLines(source string) []sourceLine {
 	}
 	if start < len(source) {
 		lines = append(lines, sourceLine{Text: source[start:], StartByte: start, EndByte: len(source)})
-	} else if len(source) > 0 && source[len(source)-1] == '\n' {
-		// No synthetic empty line after final newline; source spans remain easier to reason about.
 	}
 	return lines
 }
