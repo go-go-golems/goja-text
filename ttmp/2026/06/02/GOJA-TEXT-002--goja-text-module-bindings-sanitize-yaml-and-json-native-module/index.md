@@ -1,26 +1,27 @@
 ---
-Title: 'Goja Text Module Bindings: Markdown Parser and Text Algorithm Native Modules'
-Ticket: GOJA-TEXT-001
-Status: complete
+Title: 'Goja Text Module Bindings: Sanitize YAML and JSON Native Module'
+Ticket: GOJA-TEXT-002
+Status: active
 Topics:
     - goja
-    - text-algorithms
-    - markdown
-    - native-modules
     - goja-bindings
+    - sanitize
+    - yaml
+    - json
+    - native-modules
+    - text-algorithms
 DocType: index
 Intent: long-term
 Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: ""
-LastUpdated: 2026-06-02T12:11:38.221250398-04:00
+LastUpdated: 2026-06-02T12:11:48.360988597-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
 
-
-# Goja Text Module Bindings: Markdown Parser and Text Algorithm Native Modules
+# Goja Text Module Bindings: Sanitize YAML and JSON Native Module
 
 ## Overview
 
@@ -38,10 +39,12 @@ Current status: **active**
 ## Topics
 
 - goja
-- text-algorithms
-- markdown
-- native-modules
 - goja-bindings
+- sanitize
+- yaml
+- json
+- native-modules
+- text-algorithms
 
 ## Tasks
 

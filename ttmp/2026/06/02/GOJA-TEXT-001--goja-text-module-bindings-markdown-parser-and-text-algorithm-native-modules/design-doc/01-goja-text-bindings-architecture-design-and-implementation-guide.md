@@ -75,6 +75,46 @@ We need a way to call high-performance Go text algorithms from JavaScript runnin
 
 ---
 
+## Decision Records
+
+### Decision 1: Use xgoja as the primary exercise harness
+
+- **Context:** The module needs to be tested from JavaScript, with optional `fs` access for loading Markdown files from disk, without modifying the `go-go-goja` binary directly.
+- **Options considered:** Hand-written `cmd/goja-text`, `goja-repl` with module flags, xgoja generated binary.
+- **Decision:** Use an xgoja-generated `goja-text` binary with a local text provider package and the xgoja host `fs` provider.
+- **Rationale:** xgoja gives `eval`, `run`, `repl`, and future `jsverbs` support for free, while keeping `go-go-goja` untouched and making host capabilities explicit in `xgoja.yaml`.
+- **Consequences:** The implementation must maintain `pkg/xgoja/providers/text`, `xgoja.yaml`, `replace: .` for the local provider, and an absolute `--xgoja-replace` path for local `go-go-goja` builds.
+- **Status:** accepted
+
+### Decision 2: Keep Markdown AST nodes as Go-backed objects
+
+- **Context:** The Markdown parser returns structured domain objects that JavaScript will pass back into Go APIs such as `walk`, `textContent`, and `validate`.
+- **Options considered:** Plain `map[string]any` / lowercase JS objects, JSON serialization, reflected Go structs.
+- **Decision:** `parse()` returns `*MarkdownNode` values projected into JavaScript by goja.
+- **Rationale:** Go-backed objects preserve runtime type information, enable Go-side validation, support builder-pattern APIs later, and produce better runtime errors when callers pass invalid values.
+- **Consequences:** JavaScript uses exported Go field names such as `node.Type`, `node.Children`, and `node.Level`. If lowercase JSON-style objects are needed later, they should be provided by an explicit adapter such as `toPlainObject(node)`.
+- **Status:** accepted
+
+### Decision 3: Provide `walk()` instead of one-off extraction exports
+
+- **Context:** Users will want to query headings, links, images, code blocks, outlines, and custom document structures.
+- **Options considered:** Go exports for each query (`extractHeadings`, `extractLinks`, ...), pure JS recursion over `Children`, Go-side `walk(root, visitor)` callback traversal.
+- **Decision:** Expose `walk(root, visitor, options?)` and `textContent(node)` as primitives; implement document-specific queries in JavaScript.
+- **Rationale:** `walk()` is composable and avoids growing a module API around every possible query. Keeping traversal in Go also lets Go validate node inputs and report precise callback/traversal errors.
+- **Consequences:** Examples and jsverbs should demonstrate query functions written in JavaScript with `node.Type` checks. No one-off heading/link extraction functions are module exports.
+- **Status:** accepted
+
+### Decision 4: Treat `validate()` as AST/runtime validation, not Markdown syntax validation
+
+- **Context:** Markdown parsers are permissive; many malformed-looking documents are valid CommonMark.
+- **Options considered:** Omit validation, return parser diagnostics, define validation as Go-backed AST invariant checking.
+- **Decision:** `validate(value)` validates parser input conversion or `*MarkdownNode` invariants, not general Markdown syntax correctness.
+- **Rationale:** This keeps validation meaningful and tied to the Go-backed object design.
+- **Consequences:** Semantic document checks such as missing image alt text or heading-level jumps should become future lint rules, not part of Phase 1 parser validation.
+- **Status:** accepted
+
+---
+
 ## Part 1: The goja Runtime — How Go and JavaScript Talk to Each Other
 
 ### What is goja?
@@ -464,44 +504,6 @@ The `replapi` package (`go-go-goja/pkg/replapi/`) is the high-level API that the
 - `engine.Factory` — creates runtimes
 - `replsession.Service` — manages live sessions
 - `repldb.Store` — optional SQLite persistence
-
-**File reference**: `go-go-goja/pkg/replapi/app.go`
-
-### What is goja-repl?
-
-The `goja-repl` command (`go-go-goja/cmd/goja-repl/`) is a full-featured JavaScript REPL with CLI, TUI, and JSON server modes. It is the primary tool for **interactive testing** of new modules.
-
-**File references**:
-- `go-go-goja/cmd/goja-repl/main.go` — entry point
-- `go-go-goja/cmd/goja-repl/root.go` — Cobra root, session management
-- `go-go-goja/cmd/goja-repl/cmd_eval.go` — `eval` command
-- `go-go-goja/cmd/goja-repl/cmd_bindings.go` — `bindings` command (inspect what's in scope)
-- `go-go-goja/cmd/goja-repl/cmd_run.go` — `run` command (execute a .js file)
-
-### How to Test a New Module in the REPL
-
-Once the markdown module is registered and the `goja-repl` binary is built with it, you can:
-
-```bash
-# Start TUI REPL with markdown module enabled
-go run ./cmd/goja-repl --enable-module markdown tui
-
-# Or run a script file
-go run ./cmd/goja-repl --enable-module markdown run test-markdown.js
-
-# Or evaluate a one-liner
-go run ./cmd/goja-repl eval --session-id test1 --source 'const m = require("markdown"); console.log(m.parse("# hi"))'
-```
-
-### The replapi.App Layer
-
-The `replapi` package (`go-go-goja/pkg/replapi/`) is the high-level API that the CLI, TUI, and JSON server all use. It wraps:
-
-- `engine.Factory` — creates runtimes
-- `replsession.Service` — manages live sessions
-- `repldb.Store` — optional SQLite persistence
-
-When you need to programmatically create a REPL with your module, you compose the engine factory with your module's middleware and pass it to `replapi.New()`.
 
 **File reference**: `go-go-goja/pkg/replapi/app.go`
 

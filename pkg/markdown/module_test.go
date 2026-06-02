@@ -45,6 +45,68 @@ func TestRequireMarkdownParseExposesGoFields(t *testing.T) {
 	}
 }
 
+func TestRequireMarkdownExposesGoldmarkEdgeFieldsToJS(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	ret, err := rt.Owner.Call(context.Background(), "markdown.parse.edgeFields", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		value, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			const ast = markdown.parse([
+				"![Alt *em* text](https://img.example/p.png \"Image Title\")",
+				"",
+				"~~~go title=\"demo\"",
+				"fmt.Println(1)",
+				"~~~",
+				"",
+			].join("\n"));
+			const seen = { image: null, fenced: null };
+			markdown.walk(ast, (node) => {
+				if (node.Type === "image") seen.image = {
+					Destination: node.Destination,
+					Title: node.Title,
+					Alt: node.Alt,
+					SourcePos0: node.SourcePos[0],
+					SourcePos1: node.SourcePos[1],
+				};
+				if (node.Type === "fencedCodeBlock") seen.fenced = {
+					Language: node.Language,
+					Info: node.Info,
+					TextContainsPrint: node.Text.includes("fmt.Println"),
+					SourcePos0: node.SourcePos[0],
+					SourcePos1: node.SourcePos[1],
+				};
+			});
+			seen;
+		`)
+		if runErr != nil {
+			return nil, runErr
+		}
+		return value.Export(), nil
+	})
+	if err != nil {
+		t.Fatalf("runtime call error = %v", err)
+	}
+
+	got, ok := ret.(map[string]any)
+	if !ok {
+		t.Fatalf("ret = %T, want map[string]any", ret)
+	}
+	image, ok := got["image"].(map[string]any)
+	if !ok {
+		t.Fatalf("image = %#v, want map", got["image"])
+	}
+	if image["Destination"] != "https://img.example/p.png" || image["Title"] != "Image Title" || image["Alt"] != "Alt em text" {
+		t.Fatalf("image fields = %#v", image)
+	}
+	fenced, ok := got["fenced"].(map[string]any)
+	if !ok {
+		t.Fatalf("fenced = %#v, want map", got["fenced"])
+	}
+	if fenced["Language"] != "go" || fenced["Info"] != "go title=\"demo\"" || fenced["TextContainsPrint"] != true {
+		t.Fatalf("fenced fields = %#v", fenced)
+	}
+}
+
 func TestRequireMarkdownWalkSupportsJSQueries(t *testing.T) {
 	rt := newMarkdownRuntime(t)
 

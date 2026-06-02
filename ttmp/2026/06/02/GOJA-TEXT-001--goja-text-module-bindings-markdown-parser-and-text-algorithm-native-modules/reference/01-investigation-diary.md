@@ -7,21 +7,25 @@ DocType: ""
 Intent: ""
 Owners: []
 RelatedFiles:
-    - Path: goja-text/README.md
+    - Path: README.md
       Note: usage
-    - Path: goja-text/examples/js/markdown-demo.js
+    - Path: examples/js/markdown-demo.js
       Note: filesystem-backed xgoja smoke script
-    - Path: goja-text/pkg/markdown/convert.go
+    - Path: pkg/markdown/convert.go
       Note: goldmark AST conversion and text extraction
-    - Path: goja-text/pkg/markdown/module.go
+    - Path: pkg/markdown/module.go
       Note: goja NativeModule exports including walk
-    - Path: goja-text/pkg/markdown/module_test.go
-      Note: runtime integration tests proving JS field access and walk queries
-    - Path: goja-text/pkg/markdown/types.go
+    - Path: pkg/markdown/module_test.go
+      Note: |-
+        runtime integration tests proving JS field access and walk queries
+        JavaScript-facing Go-backed AST field regression probes
+    - Path: pkg/markdown/parser_test.go
+      Note: Goldmark edge-field parser regression probes
+    - Path: pkg/markdown/types.go
       Note: Go-backed Markdown AST public shape
-    - Path: goja-text/pkg/xgoja/providers/text/text.go
+    - Path: pkg/xgoja/providers/text/text.go
       Note: xgoja provider wrapping markdown NativeModule
-    - Path: goja-text/xgoja.yaml
+    - Path: xgoja.yaml
       Note: xgoja generated binary spec
 ExternalSources: []
 Summary: ""
@@ -29,6 +33,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -562,3 +567,242 @@ go run ../go-go-goja/cmd/xgoja build \
 - xgoja build output: `dist/goja-text`
 - Demo script: `examples/js/markdown-demo.js`
 - Sample Markdown: `examples/markdown/sample.md`
+
+---
+
+## Step 7: Create Research Logbook
+
+Created a research logbook reference document that records which source files, ticket docs, workflow skills, and external/local documentation were useful, stale, misleading, or in need of updates. This gives future contributors a maintained source map instead of forcing them to reconstruct why each resource mattered.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Create a research logbook document in the ticket that allows us to keep track of which resources    
+ are useful / out of date / need updating .                                                          
+                                                                                                     
+ For all the documents and external resources you read, list:                                        
+                                                                                                     
+ - what you were researching                                                                         
+ - what you were looking for in this document in particular                                          
+ - why you chose it and what led you to it                                                           
+ - what you found useful in the document                                                              
+ - what you didn't find useful                                                                        
+ - what is out of date / what was wrong                                                              
+ - what would need updating.                                                                         
+                                                                                                     
+ Store in ticket and upload to remarkable."
+
+**Assistant interpretation:** Add a new ticket reference document that inventories research resources and explains usefulness, gaps, stale information, and update needs; then upload the updated document bundle to reMarkable.
+
+**Inferred user intent:** Preserve the research trail as a durable maintenance artifact so future implementers can tell which sources remain authoritative and which derived docs need cleanup.
+
+### What I did
+
+- Created `reference/02-research-logbook-sources-usefulness-and-update-needs.md`.
+- Logged workspace topology, native module files, engine files, goja reflection docs, xgoja build/provider files, jsverbs/repl files, goldmark dependency evidence, TypeScript declaration files, skill documents, and ticket docs.
+- For each resource, recorded:
+  - what was being researched
+  - what was being looked for
+  - why the resource was selected
+  - useful findings
+  - non-useful parts
+  - stale/wrong information
+  - required updates
+- Related the logbook to five key source files.
+
+### Why
+
+The ticket now has several design iterations and decisions. Without a logbook, future readers may not know which source files are still authoritative, which design assumptions were superseded, or which documentation should be updated before implementation continues.
+
+### What worked
+
+- The logbook clearly identifies the highest-value implementation sources: YAML module, uidsl Go-backed objects, xgoja core provider, host provider, xgoja generated go.mod behavior, and goja field-name mapper docs.
+- It also records known update needs, including `goja-text/go.mod`, duplicate goja-repl material, decision records, and goldmark AST verification.
+
+### What didn't work
+
+- The logbook had to summarize many resources after the fact, so some entries are grouped by related file families rather than every individual file read line-by-line.
+
+### What I learned
+
+- A research logbook is especially useful when a design has multiple reversals or superseding decisions, such as map-shaped AST vs Go-backed AST and custom CLI vs xgoja.
+- The logbook should be updated during implementation when new probes reveal which assumptions were correct or wrong.
+
+### What was tricky to build
+
+- The tricky part was distinguishing source-file staleness from derived-document staleness. Most repository source files are current; the stale/wrong pieces are usually assumptions in the ticket docs or missing guidance in skill documents.
+
+### What warrants a second pair of eyes
+
+- Whether the logbook should be expanded with exact line references for every source file after implementation stabilizes.
+- Whether skill-document update recommendations should become their own follow-up ticket.
+
+### What should be done in the future
+
+- Update the logbook whenever new research sources are read or when a resource becomes superseded.
+- Convert the decision-record skill updates into concrete edits if desired.
+
+### Code review instructions
+
+- Start with `reference/02-research-logbook-sources-usefulness-and-update-needs.md`.
+- Compare the "Known Update Needs" section with the current ticket tasks.
+- Verify that implementation resources still match current code after future changes.
+
+### Technical details
+
+- Logbook path: `goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/reference/02-research-logbook-sources-usefulness-and-update-needs.md`
+
+---
+
+## Step 8: Resolve Most Pressing Research Logbook Update Needs
+
+Reviewed the research logbook's known update needs against the current repository state and addressed the most pressing remaining documentation/process items. Several items in the logbook had already been resolved by parallel implementation work, so the main task was to make the logbook accurate and clean the primary design document.
+
+### Prompt Context
+
+**User prompt (verbatim):** "sorry, look at @goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/reference/02-research-logbook-sources-usefulness-and-update-needs.md  and look at the known update needs in there, we hvae done a parallel write up of all the sources we found, and we'd like to update whatever is most pressing. Look at what you think is worth addressing here."
+
+**Assistant interpretation:** Inspect the research logbook's Known Update Needs section, compare it with current repository state, and address the most valuable outstanding update(s).
+
+**Inferred user intent:** Keep the ticket documentation actionable and current after implementation progress, rather than letting stale research-log findings linger.
+
+### What I did
+
+- Checked current `goja-text/go.mod`, `xgoja.yaml`, markdown module files, examples, and tests against the logbook's known update needs.
+- Confirmed several items are already resolved in code:
+  - module path and dependencies
+  - `xgoja.yaml` provider `replace: .`
+  - runtime probe/tests for `node.Type`, `node.Children`, and `node.Level`
+  - Go-style TypeScript declarations
+  - xgoja build/demo validation
+- Removed duplicate `goja-repl` material from the primary design document.
+- Added explicit decision records to the primary design document for:
+  - xgoja as primary harness
+  - Go-backed AST objects
+  - `walk()` instead of one-off extraction exports
+  - `validate()` as AST/runtime validation
+- Updated the research logbook's Known Update Needs section into resolved vs still-worth-addressing categories.
+- Updated `ticket-research-docmgr-remarkable/references/writing-style.md` to include a Decision Records section.
+- Confirmed the main `ticket-research-docmgr-remarkable` skill and `go-go-goja-module-authoring` skill already contain decision-record guidance.
+
+### Why
+
+The most pressing risk was no longer implementation setup; it was stale documentation. The logbook still listed already-fixed items as open and the primary design doc had accumulated old material from prior revisions. Cleaning those makes the ticket more reliable for the next reader.
+
+### What worked
+
+- The current implementation already resolved most code-facing update needs.
+- The remaining high-value doc updates were small and direct.
+- Decision records now make the final architecture choices explicit instead of leaving them buried in prose.
+
+### What didn't work
+
+- Some broader skill updates were already present, likely from parallel updates, so there was less to patch than expected.
+
+### What I learned
+
+- Research logbooks need status updates after implementation catches up; otherwise they become stale even when the code is healthy.
+- Decision-record guidance belongs both in design docs and in the skills that create those design docs.
+
+### What was tricky to build
+
+- The tricky part was distinguishing genuinely open work from stale logbook items. I verified current files before editing so we didn't duplicate already-completed work.
+
+### What warrants a second pair of eyes
+
+- Whether the review document should be rewritten rather than kept as a historical critique with a superseding note.
+- Whether goldmark edge-field coverage is sufficient for the public AST contract.
+
+### What should be done in the future
+
+- Add more goldmark edge-case tests for image alt text, fenced code info, source positions, and extension nodes.
+- Opportunistically add decision-record reminders to other broad review/research skills.
+
+### Code review instructions
+
+- Review the top-level Decision Records section in the primary design doc.
+- Review the updated Known Update Needs section in the research logbook.
+- Confirm that the duplicate goja-repl section is gone.
+
+### Technical details
+
+- Primary design doc updated: `design-doc/01-goja-text-bindings-architecture-design-and-implementation-guide.md`
+- Research logbook updated: `reference/02-research-logbook-sources-usefulness-and-update-needs.md`
+- Skill reference updated: `/home/manuel/.pi/agent/skills/ticket-research-docmgr-remarkable/references/writing-style.md`
+
+---
+
+## Step 9: Add Goldmark Edge-Field Regression Probes
+
+Continued from the research-logbook cleanup by addressing the next most valuable open implementation risk: whether goldmark v1.8.2 exposes the edge fields the public `MarkdownNode` contract promises. I added executable Go and JavaScript-runtime probes so future parser changes cannot silently break image alt text, fenced-code info strings, raw HTML capture, or source-position behavior.
+
+### Prompt Context
+
+**User prompt (verbatim):** "continue"
+
+**Assistant interpretation:** Continue with the next highest-value unresolved item from the ticket/research-logbook work.
+
+**Inferred user intent:** Move beyond documentation cleanup into concrete validation of the remaining known implementation risks.
+
+### What I did
+
+- Added `TestParseCapturesGoldmarkEdgeFields` in `pkg/markdown/parser_test.go`.
+- Added `TestRequireMarkdownExposesGoldmarkEdgeFieldsToJS` in `pkg/markdown/module_test.go`.
+- Covered image `Destination`, `Title`, and plain-text `Alt` extraction.
+- Covered fenced code `Language`, full `Info`, `Text`, and source positions.
+- Covered indented code block text/source position.
+- Covered HTML block raw text and inline `rawHTML` nodes.
+- Verified the same key fields are visible through goja using PascalCase reflected Go fields.
+- Ran `gofmt -w pkg/markdown/parser_test.go pkg/markdown/module_test.go`.
+- Ran `go test ./... -count=1` successfully.
+- Updated the research logbook so goldmark core edge-field coverage is no longer listed as unaddressed.
+
+### Why
+
+The design depends on a stable public AST contract. Goldmark details such as image alt text, fenced code info strings, and node source positions are easy to assume incorrectly, so executable probes are better than prose-only documentation.
+
+### What worked
+
+- Goldmark v1.8.2 produced the expected core node fields.
+- `plainTextFromGoldmarkChildren` extracted image alt text across emphasis children as `Alt em text`.
+- `SourcePos` assertions for image, fenced code, and indented code blocks matched observed goldmark behavior.
+- Go-backed fields remained accessible from JavaScript through goja.
+
+### What didn't work
+
+- The first JS test draft embedded Markdown backtick fences inside a Go raw string, which broke compilation:
+  - `pkg/markdown/module_test.go:57:7: missing ',' in argument list`
+  - `pkg/markdown/module_test.go:57:18: illegal character U+005C '\'`
+- I fixed this by using tilde fences (`~~~`) in the JavaScript fixture, which still exercises goldmark fenced-code behavior without embedding backticks in the Go raw string.
+
+### What I learned
+
+- Core goldmark edge fields are now covered well enough for the Phase 1 parser contract.
+- Extension-node behavior should remain a separate future decision because `Parse` currently calls `goldmark.New()` without extensions.
+
+### What was tricky to build
+
+- The Go raw string / Markdown code-fence interaction was the main sharp edge. A raw string cannot contain any backtick byte, even if the backticks are intended as JavaScript string content. Tilde fences avoided escaping complexity while preserving the behavior under test.
+
+### What warrants a second pair of eyes
+
+- Whether the asserted `SourcePos` values should be treated as stable public contract or just regression probes for the current converter.
+- Whether extension support belongs in Phase 1 or should wait for an explicit parser-options design.
+
+### What should be done in the future
+
+- Decide whether to enable goldmark extensions.
+- If extensions are enabled, add tests for their node kinds and field mappings before documenting them as public AST contract.
+
+### Code review instructions
+
+- Start with `pkg/markdown/parser_test.go::TestParseCapturesGoldmarkEdgeFields` for Go-side conversion assertions.
+- Then review `pkg/markdown/module_test.go::TestRequireMarkdownExposesGoldmarkEdgeFieldsToJS` for JavaScript-facing projection behavior.
+- Validate with: `go test ./... -count=1` from `/home/manuel/workspaces/2026-06-02/goja-text/goja-text`.
+
+### Technical details
+
+- Modified tests:
+  - `/home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/markdown/parser_test.go`
+  - `/home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/markdown/module_test.go`
+- Validation command:
+  - `cd /home/manuel/workspaces/2026-06-02/goja-text/goja-text && go test ./... -count=1`

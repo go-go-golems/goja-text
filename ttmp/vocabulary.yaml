@@ -15,6 +15,14 @@ topics:
       description: Go-implemented modules registered via modules.NativeModule interface and loaded via goja_nodejs require()
     - slug: goja-bindings
       description: Go-to-JavaScript binding layer using goja runtime value conversion
+    - slug: json
+      description: JSON parsing and processing
+    - slug: sanitize
+      description: Text sanitization and linting
+    - slug: yaml
+      description: YAML parsing and processing
+    - slug: tree-sitter
+      description: Tree-sitter parsing library
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

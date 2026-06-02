@@ -81,3 +81,41 @@ Final validation passed: go test, GOWORK=off go test, xgoja build/eval/run smoke
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/changelog.md — Final validation and upload record
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/tasks.md — Final task completion bookkeeping
 
+
+## 2026-06-02
+
+Step 7: Added research logbook documenting all major resources read, usefulness, stale/wrong assumptions, and update needs; updated diary and related key evidence files.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/reference/02-research-logbook-sources-usefulness-and-update-needs.md — Research logbook source inventory
+
+
+## 2026-06-02
+
+Uploaded v5 bundle (design, review, diary, research logbook) to reMarkable at /ai/2026/06/02/GOJA-TEXT-001.
+
+
+## 2026-06-02
+
+Step 8: Resolved most pressing research-logbook update needs: cleaned duplicate goja-repl section, added decision records to primary design doc, updated logbook statuses, and added decision-record guidance to writing-style skill reference.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/reference/02-research-logbook-sources-usefulness-and-update-needs.md — Updated known update needs status
+
+
+## 2026-06-02
+
+Step 9: Added goldmark edge-field regression probes for image alt/title/destination, fenced code info/language/text, source positions, indented code, and raw HTML; validated with go test ./... -count=1.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/markdown/module_test.go — JS runtime edge-field coverage
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/markdown/parser_test.go — Parser edge-field coverage
+
+
+## 2026-06-02
+
+Ticket closed
+
