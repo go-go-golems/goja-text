@@ -1,14 +1,28 @@
 ---
-Title: "Investigation Diary"
+Title: Investigation Diary
 Ticket: GOJA-TEXT-002
-DocType: reference
+Status: ""
 Topics:
-  - goja
-  - goja-bindings
-  - sanitize
-  - yaml
-  - json
+    - goja
+    - goja-bindings
+    - sanitize
+    - yaml
+    - json
+DocType: reference
+Intent: ""
+Owners: []
+RelatedFiles:
+    - Path: go.mod
+      Note: Pinned sanitize v0.0.2 dependency
+    - Path: go.sum
+      Note: Dependency checksum updates
+ExternalSources: []
+Summary: ""
+LastUpdated: 0001-01-01T00:00:00Z
+WhatFor: ""
+WhenToUse: ""
 ---
+
 
 # Investigation Diary
 
@@ -252,3 +266,65 @@ Plain options objects force each exported function to re-decode and re-validate 
 
 - Updated design doc: `design-doc/01-sanitize-native-module-design-and-implementation-guide.md`
 - Updated tasks: `tasks.md`
+
+---
+
+## Step 4: Add the Pinned Sanitize Dependency
+
+Added `github.com/go-go-golems/sanitize v0.0.2` to `goja-text` without a local replace. This confirms the user's correction: the local sanitize checkout is useful as reference source, but goja-text can and should depend on the pinned published module for implementation.
+
+### Prompt Context
+
+**User prompt (verbatim):** "I wonder if we even need a local replace... we have go.work already, and in any case the local checkout is just for reference, we don't plan on working on it"
+
+**Assistant interpretation:** Reconsider the prior local-replace design and use the pinned sanitize dependency directly if it resolves.
+
+**Inferred user intent:** Keep goja-text's dependency story clean and reproducible rather than coupling it to a local sanitize checkout.
+
+### What I did
+
+- Verified `github.com/go-go-golems/sanitize@v0.0.2` resolves with `go list -m -json`.
+- Updated the design docs/tasks to remove the local replace requirement.
+- Ran `go get github.com/go-go-golems/sanitize@v0.0.2`.
+- Ran `go mod tidy`.
+- Ran `go test ./... -count=1` successfully.
+
+### Why
+
+The pinned module should be the dependency boundary. A local replace would make generated builds and CI less representative if we do not intend to modify sanitize itself.
+
+### What worked
+
+- `go get` added `github.com/go-go-golems/sanitize v0.0.2` cleanly.
+- The existing test suite still passes.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The sanitize tag `v0.0.2` is published and resolvable, so no local replace is needed.
+
+### What was tricky to build
+
+- The main subtlety was distinguishing workspace source discovery from module dependency policy. `go.work` helps local development, but it does not require every neighboring module to be replaced when the dependency is already published and pinned.
+
+### What warrants a second pair of eyes
+
+- Whether `GOWORK=off go test ./... -count=1` should be part of every sanitize implementation checkpoint.
+
+### What should be done in the future
+
+- Keep the sanitize dependency pinned unless implementation discovers a missing API that requires a newer release.
+
+### Code review instructions
+
+- Review `go.mod` and `go.sum` changes.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+
+- Command: `go get github.com/go-go-golems/sanitize@v0.0.2`
+- Command: `go mod tidy`
+- Command: `go test ./... -count=1`

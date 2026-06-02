@@ -47,3 +47,13 @@ Corrected sanitize dependency design: use published pinned github.com/go-go-gole
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/design-doc/01-sanitize-native-module-design-and-implementation-guide.md — Dependency decision corrected
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/tasks.md — Phase 0 task corrected
 
+
+## 2026-06-02
+
+Step 4: Added pinned github.com/go-go-golems/sanitize v0.0.2 dependency without local replace; ran go mod tidy and go test ./... -count=1 successfully.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/go.mod — Added pinned sanitize dependency
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/go.sum — Updated dependency checksums
+
