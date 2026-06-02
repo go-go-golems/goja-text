@@ -4,7 +4,7 @@
 
 - [x] Fix `goja-text/go.mod` module path to `github.com/go-go-golems/goja-text` and align Go version/toolchain with workspace expectations.
 - [x] Add local dependency requirements for `github.com/go-go-golems/go-go-goja`, `github.com/dop251/goja`, and `github.com/yuin/goldmark`.
-- [ ] Remove or rename template placeholder command package `cmd/XXX` if it conflicts with module identity.
+- [x] Remove or rename template placeholder command package `cmd/XXX` if it conflicts with module identity.
 
 ## Phase 1: Markdown domain model and parser
 
@@ -31,19 +31,19 @@
 - [x] Add JS integration tests proving `parse()` returns Go-backed objects accessible as `node.Type` / `node.Children`.
 - [x] Add JS integration tests proving heading/link-style queries can be implemented with `walk()`.
 - [x] Run `go test ./... -count=1` from `goja-text`.
-- [ ] Run `GOWORK=off go test ./... -count=1` from `goja-text` if the local module can resolve dependencies independently.
+- [x] Run `GOWORK=off go test ./... -count=1` from `goja-text` if the local module can resolve dependencies independently.
 
 ## Phase 4: xgoja provider and binary
 
-- [ ] Create `pkg/xgoja/providers/text/text.go` that wraps the markdown `NativeModule` into xgoja `providerapi.Module` entries.
-- [ ] Create `xgoja.yaml` with the local `goja-text` provider (`replace: .`), `go-go-goja-core`, and guarded `go-go-goja-host` `fs` access.
-- [ ] Build the generated binary with `go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace ../go-go-goja`.
-- [ ] Add `examples/js/markdown-demo.js` that reads a Markdown file using `require("fs")`, parses it, and walks headings/links using `walk()`.
-- [ ] Smoke-test `dist/goja-text eval`, `dist/goja-text run examples/js/markdown-demo.js`, and `dist/goja-text modules`.
+- [x] Create `pkg/xgoja/providers/text/text.go` that wraps the markdown `NativeModule` into xgoja `providerapi.Module` entries.
+- [x] Create `xgoja.yaml` with the local `goja-text` provider (`replace: .`), `go-go-goja-core`, and guarded `go-go-goja-host` `fs` access.
+- [x] Build the generated binary with `go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace ../go-go-goja`.
+- [x] Add `examples/js/markdown-demo.js` that reads a Markdown file using `require("fs")`, parses it, and walks headings/links using `walk()`.
+- [x] Smoke-test `dist/goja-text eval`, `dist/goja-text run examples/js/markdown-demo.js`, and `dist/goja-text modules`.
 
 ## Phase 5: Documentation and ticket upkeep
 
-- [ ] Update README with JS usage, Go embedding, xgoja build, and smoke-test examples.
+- [x] Update README with JS usage, Go embedding, xgoja build, and smoke-test examples.
 - [ ] Update the diary after each implementation step with commands, failures, commits, and validation results.
 - [ ] Update ticket changelog and relate modified files after each meaningful commit.
 - [ ] Run `docmgr doctor --ticket GOJA-TEXT-001 --stale-after 30` before final handoff.

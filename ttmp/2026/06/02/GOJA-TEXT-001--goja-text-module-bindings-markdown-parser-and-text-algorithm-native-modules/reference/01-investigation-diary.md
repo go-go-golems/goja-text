@@ -7,6 +7,10 @@ DocType: ""
 Intent: ""
 Owners: []
 RelatedFiles:
+    - Path: goja-text/README.md
+      Note: usage
+    - Path: goja-text/examples/js/markdown-demo.js
+      Note: filesystem-backed xgoja smoke script
     - Path: goja-text/pkg/markdown/convert.go
       Note: goldmark AST conversion and text extraction
     - Path: goja-text/pkg/markdown/module.go
@@ -15,12 +19,17 @@ RelatedFiles:
       Note: runtime integration tests proving JS field access and walk queries
     - Path: goja-text/pkg/markdown/types.go
       Note: Go-backed Markdown AST public shape
+    - Path: goja-text/pkg/xgoja/providers/text/text.go
+      Note: xgoja provider wrapping markdown NativeModule
+    - Path: goja-text/xgoja.yaml
+      Note: xgoja generated binary spec
 ExternalSources: []
 Summary: ""
 LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # Diary
@@ -355,7 +364,7 @@ Implemented the first working slice of the markdown native module. This mileston
 
 **Inferred user intent:** Move from planning to implementation while preserving reviewability: small commits, clear tasks, exact validation commands, and continuation-friendly diary entries.
 
-**Commit (code):** pending — "Implement markdown native module core"
+**Commit (code):** 370e2c5b19f18d0df305d04f10a6788a3fd76263 — "Implement markdown native module core"
 
 ### What I did
 
@@ -445,3 +454,111 @@ This implements the smallest useful vertical slice: Markdown can be parsed in Go
 
 - Validation command run: `go test ./... -count=1`
 - Result: passed for all current packages.
+
+---
+
+## Step 6: Add xgoja Provider, Demo Script, and Standalone Validation
+
+Implemented the xgoja integration layer for `goja-text`. This milestone wraps the markdown native module in an xgoja provider package, adds an `xgoja.yaml` spec with guarded host filesystem access, builds the generated `dist/goja-text` binary, and validates that JavaScript can read a Markdown file from disk and traverse it with `walk()`.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 5)
+
+**Assistant interpretation:** Continue implementing tasks one by one, committing at appropriate intervals and recording failures/validation in the diary.
+
+**Inferred user intent:** Finish the next vertical slice: use xgoja as the real harness for exercising the markdown module with filesystem access.
+
+**Commit (code):** pending — "Add xgoja provider and demo for markdown module"
+
+### What I did
+
+- Added `pkg/xgoja/providers/text/text.go`:
+  - registers provider package `goja-text`
+  - wraps the registered `markdown` `NativeModule` into `providerapi.Module`
+- Added `xgoja.yaml`:
+  - local `goja-text` provider with `replace: .`
+  - `go-go-goja-core` modules `path` and `yaml`
+  - guarded `go-go-goja-host` `fs` module with `allow: true`
+  - enabled generated `eval`, `run`, and `repl` commands
+- Added `examples/markdown/sample.md` test document.
+- Added `examples/js/markdown-demo.js`:
+  - reads `examples/markdown/sample.md` through `require("fs")`
+  - parses it with `require("markdown")`
+  - uses `walk()` to collect headings and links
+  - prints validation status
+- Removed placeholder `cmd/XXX/main.go` template command.
+- Replaced README template with focused docs for markdown usage, `walk`, xgoja build, smoke tests, Go embedding, and tests.
+- Ran local and standalone validation.
+
+### Why
+
+The project needs xgoja as the actual exercise harness. Unit tests prove module behavior, but the generated binary proves the full intended stack: provider registration, xgoja spec validation, host `fs` config, runtime construction, JS script execution, and Go-backed AST traversal from JavaScript.
+
+### What worked
+
+- `go test ./... -count=1` passes.
+- `GOWORK=off go test ./... -count=1` passes after adding missing sums with `GOWORK=off go mod tidy`.
+- xgoja build succeeds with an absolute `--xgoja-replace` path.
+- `./dist/goja-text eval '...'` returns `{"type":"document","text":"Hello"}`.
+- `./dist/goja-text run examples/js/markdown-demo.js` reads from disk and prints headings, links, and `Valid: true`.
+
+### What didn't work
+
+- First xgoja build attempt used a relative `--xgoja-replace ../go-go-goja`:
+
+```text
+go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace ../go-go-goja
+validated 13 check(s) for xgoja.yaml
+generated build workspace: /tmp/xgoja-build-1113161276
+Error: go mod tidy failed: exit status 1
+go: example.com/generated/goja-text imports
+	github.com/go-go-golems/go-go-goja/pkg/xgoja/app: github.com/go-go-golems/go-go-goja@v0.0.0: replacement directory ../go-go-goja does not exist
+```
+
+- Fix: reran with absolute path:
+
+```bash
+go run ../go-go-goja/cmd/xgoja build \
+  -f xgoja.yaml \
+  --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja
+```
+
+- `GOWORK=off go test ./... -count=1` initially failed with missing `go.sum` entries for transitive dependencies imported through local `go-go-goja` replace.
+- Fix: `GOWORK=off go mod tidy`, then reran tests successfully.
+
+### What I learned
+
+- xgoja's `--xgoja-replace` should be absolute in this workflow because the generated build workspace is under `/tmp`.
+- Package-level `replace: .` in `xgoja.yaml` correctly resolves the local goja-text provider relative to the spec directory.
+- Host `fs` access works as expected through xgoja config and is sufficient for disk-backed Markdown demo scripts.
+
+### What was tricky to build
+
+- The main ordering constraint was module resolution in two generated contexts: the `goja-text` module itself and the temporary xgoja build module. The local module needs a `go.mod` replace for tests; the generated xgoja module needs `xgoja.yaml` package `replace: .` plus an absolute `--xgoja-replace` for go-go-goja.
+
+### What warrants a second pair of eyes
+
+- Whether the generated binary should include `yaml` by default or keep the runtime narrower with only `markdown`, `path`, and `fs`.
+- Whether README should use a portable environment variable for the absolute `--xgoja-replace` path instead of the current machine-specific path.
+
+### What should be done in the future
+
+- Add jsverbs source once we have a real CLI command use case.
+- Consider adding Makefile targets for `build-xgoja`, `smoke-xgoja`, and `test`.
+
+### Code review instructions
+
+- Start with `xgoja.yaml` to understand the generated binary composition.
+- Then read `pkg/xgoja/providers/text/text.go` for provider wrapping.
+- Then run:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+  - `go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja`
+  - `./dist/goja-text run examples/js/markdown-demo.js`
+
+### Technical details
+
+- xgoja build output: `dist/goja-text`
+- Demo script: `examples/js/markdown-demo.js`
+- Sample Markdown: `examples/markdown/sample.md`

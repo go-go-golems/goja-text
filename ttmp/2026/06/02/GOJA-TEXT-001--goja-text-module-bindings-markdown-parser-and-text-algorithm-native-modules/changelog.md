@@ -61,3 +61,13 @@ Step 5: Implemented core markdown native module with Go-backed AST, parse/render
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/markdown/module.go — NativeModule implementation
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/markdown/module_test.go — Runtime integration coverage
 
+
+## 2026-06-02
+
+Step 6: Added xgoja provider/spec, demo markdown script using host fs, README docs, standalone GOWORK=off validation, and xgoja build/run smoke tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/xgoja/providers/text/text.go — provider registration
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/xgoja.yaml — xgoja build spec
+
