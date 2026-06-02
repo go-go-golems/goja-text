@@ -1,101 +1,111 @@
 # goja-text
 
-`goja-text` provides Go-backed text algorithm modules for [go-go-goja](../go-go-goja). The first module is `require("markdown")`, which parses Markdown with goldmark and exposes the parsed AST as Go-backed objects inside JavaScript.
+`goja-text` is a set of Go-backed text modules for [go-go-goja](../go-go-goja). It gives JavaScript scripts a practical way to parse Markdown, repair YAML and JSON, and extract structured-data snippets from larger documents while keeping the important domain logic in Go.
 
-## Markdown module
+The project is designed for automation that sits at the boundary between prose and structure. That boundary shows up often: a Markdown file contains headings and links; a model response contains fenced JSON; a human-edited YAML file is almost valid but needs repair before downstream validation. `goja-text` provides the primitives for those cases without forcing every script to reimplement parsers in JavaScript.
 
-The markdown module exports:
+## What the project provides
 
-- `parse(input)` — parse Markdown into a Go-backed `MarkdownNode` tree
-- `renderHTML(input)` — render Markdown to HTML
-- `walk(root, visitor)` — traverse a `MarkdownNode` tree with a JavaScript callback
-- `textContent(node)` — collect plain text from a node subtree
-- `validate(value)` — validate Markdown input or a Go-backed node tree
+The repository currently exposes three JavaScript modules:
 
-Parsed nodes expose exported Go field names in JavaScript:
+| Module | Purpose | Typical first call |
+| --- | --- | --- |
+| `markdown` | Parse Markdown, render HTML, walk a Go-backed Markdown AST, and collect text content. | `markdown.parse(input)` |
+| `sanitize` | Repair and inspect YAML or JSON syntax, with fix metadata and Go-backed option builders. | `sanitize.json.sanitize(input)` |
+| `extract` | Find structured-data candidates in Markdown, XML-like tags, frontmatter, or raw text. | `extract.all(input)` |
+
+These modules are available both to Go hosts using `go-go-goja` and to the generated `xgoja` binary described by `xgoja.yaml`.
+
+## Build the example xgoja binary
+
+From this repository directory:
+
+```bash
+go run ../go-go-goja/cmd/xgoja build \
+  -f xgoja.yaml \
+  --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja
+```
+
+The `--xgoja-replace` path must be absolute because xgoja builds the generated program in a temporary directory. The generated binary is written to `dist/goja-text`.
+
+The build includes:
+
+- `markdown`, `sanitize`, and `extract` from this repository.
+- Core `path` and `yaml` modules from go-go-goja.
+- Guarded host `fs` access for examples that read local files.
+- Provider-shipped Glazed help pages for every goja-text module.
+- Embedded jsverbs examples under `examples/jsverbs`.
+
+## Learn from the built-in help
+
+The generated binary includes user-facing Glazed help entries. They are written as a pair for each module: an API reference for quick lookup and a user guide for learning the intended workflow.
+
+```bash
+./dist/goja-text help goja-text-markdown-user-guide
+./dist/goja-text help goja-text-markdown-api-reference
+
+./dist/goja-text help goja-text-sanitize-user-guide
+./dist/goja-text help goja-text-sanitize-api-reference
+
+./dist/goja-text help goja-text-extract-user-guide
+./dist/goja-text help goja-text-extract-api-reference
+```
+
+The user guides include runnable examples, including `eval`, `run`, and `jsverbs` commands.
+
+## Markdown: parse once, query with walk
+
+The Markdown module uses goldmark in Go and exposes the parsed document as Go-backed `MarkdownNode` objects. JavaScript reads exported Go fields with PascalCase names.
 
 ```js
 const markdown = require("markdown");
-const ast = markdown.parse("# Hello\n\nSee [docs](https://example.com).");
 
+const ast = markdown.parse("# Hello\n\nSee [docs](https://example.com).");
 console.log(ast.Type);                  // "document"
 console.log(ast.Children[0].Type);       // "heading"
 console.log(ast.Children[0].Level);      // 1
 console.log(markdown.textContent(ast));  // "HelloSee docs."
 ```
 
-This is intentional: the project keeps domain AST values as Go-backed objects so Go module functions can validate them and report useful runtime errors when JavaScript passes invalid values back into Go.
-
-## Querying with `walk`
-
-The module does not export one-off helpers such as `extractHeadings` or `extractLinks`. Implement document-specific queries in JavaScript using `walk`:
+Use `walk()` for document-specific queries:
 
 ```js
 const headings = [];
-const links = [];
 
 markdown.walk(ast, (node, ctx) => {
   if (node.Type === "heading") {
     headings.push({
-      Level: node.Level,
-      Text: markdown.textContent(node),
-      Depth: ctx.Depth,
-    });
-  }
-  if (node.Type === "link") {
-    links.push({
-      Destination: node.Destination,
-      Text: markdown.textContent(node),
+      level: node.Level,
+      text: markdown.textContent(node),
+      depth: ctx.Depth,
     });
   }
 });
 ```
 
-Visitor return values:
+This is the central Markdown design choice. The Go API stays small and reliable, while JavaScript remains responsible for the question it wants to ask of the document.
 
-- `undefined` or `true`: continue normally
-- `false` or `"skip"`: skip this node's children
-- `"stop"`: stop traversal entirely
+## Sanitize: repair syntax before domain validation
 
-## Sanitize module
-
-The sanitize module exports YAML and JSON structured-text linting, repair, parse-tree inspection, rule catalogs, and examples from [`github.com/go-go-golems/sanitize`](https://github.com/go-go-golems/sanitize):
+The sanitize module exposes YAML and JSON namespaces backed by `github.com/go-go-golems/sanitize`.
 
 ```js
 const sanitize = require("sanitize");
 
-const yamlConfig = sanitize.yaml.options()
+const options = sanitize.json.options()
   .MaxIterations(5)
-  .TabWidth(2)
   .Build();
 
-const yamlResult = sanitize.yaml.sanitize("name:Alice\n", yamlConfig);
-console.log(yamlResult.Sanitized); // "name: Alice\n"
-console.log(yamlResult.Fixes[0].Rule);
-
-const jsonResult = sanitize.json.sanitize("~~~json\n{'ok': True,}\n~~~\n");
-console.log(jsonResult.StrictParseClean);
-console.log(jsonResult.Fixes.map((fix) => fix.Rule));
+const result = sanitize.json.sanitize("~~~json\n{'ok': True,}\n~~~\n", options);
+console.log(result.Sanitized);
+console.log(result.Fixes.map((fix) => fix.Rule));
 ```
 
-Configuration uses Go-backed builder/config objects rather than raw options objects as the primary API. Builder methods are exposed with Go method names in JavaScript:
+Options are Go-backed builders rather than loose JavaScript objects. That lets Go reject unknown option names, validate values, and report better runtime errors when scripts import dynamic configuration.
 
-- `MaxIterations(n)`
-- `TabWidth(n)` for YAML
-- `OnlyRules(...rules)`
-- `DisabledRules(...rules)`
-- `RejectUnknownOptions()`
-- `AllowUnknownOptions()`
-- `CollectUnknownOptions()`
-- `FromObject(obj)` for dynamic option imports
-- `Validate()`
-- `Build()`
+## Extract: find candidates before parsing values
 
-Unknown options are rejected by default when imported through `FromObject`. Use `CollectUnknownOptions()` when callers need diagnostics without failing immediately.
-
-## Extract module
-
-The extract module locates structured-data candidates inside larger text while preserving source spans and wrapper metadata:
+The extract module searches larger text for structured-data candidates. A candidate keeps the payload, the raw wrapper, source positions, format guesses, and confidence.
 
 ```js
 const extract = require("extract");
@@ -105,65 +115,70 @@ title: Demo
 ---
 
 ~~~json
-{\"ok\": true}
+{"ok": true}
 ~~~
-
-<yaml>name: Alice\n</yaml>
 `);
 
 for (const candidate of candidates) {
-  console.log(candidate.Kind, candidate.Format, candidate.StartRow, candidate.Text);
   const validation = extract.validate(candidate);
-  console.log(validation.Valid, validation.Sanitized);
+  console.log(candidate.Kind, candidate.Format, candidate.StartRow, validation.Valid);
 }
 ```
 
-Available helpers:
+Extraction deliberately returns evidence rather than trusted parsed values. Scripts can validate, rank, display, or reject candidates according to their own policy.
 
-- `options()` — create a Go-backed options builder
-- `markdownCodeBlocks(input, options?)`
-- `xmlTagged(input, options?)`
-- `rawStructured(input, options?)`
-- `frontmatter(input, options?)`
-- `all(input, options?)`
-- `validate(candidate, options?)`
+## Demo scripts
 
-Candidates are Go-backed objects with PascalCase fields such as `Kind`, `Format`, `Text`, `Raw`, `StartByte`, `StartRow`, `PayloadStartByte`, and `Confidence`.
-
-## xgoja binary
-
-The included `xgoja.yaml` builds a `dist/goja-text` binary with:
-
-- `markdown` from this repository
-- `sanitize` from this repository backed by `github.com/go-go-golems/sanitize v0.0.2`
-- `extract` from this repository
-- core modules `path` and `yaml`
-- guarded host `fs` access for reading files from disk
-
-Build from the `goja-text` module directory:
+The `examples/js` directory contains small scripts that use the host `fs` module to read fixtures from disk.
 
 ```bash
-go run ../go-go-goja/cmd/xgoja build \
-  -f xgoja.yaml \
-  --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja
-```
-
-The `--xgoja-replace` path must be absolute because xgoja builds in a temporary directory.
-
-Smoke tests:
-
-```bash
-./dist/goja-text modules --output json
-./dist/goja-text eval 'const md = require("markdown"); const ast = md.parse("# Hello"); JSON.stringify({type: ast.Type, text: md.textContent(ast)})'
-./dist/goja-text eval 'const s = require("sanitize"); JSON.stringify(s.yaml.sanitize("name:Alice\\n").Sanitized)'
 ./dist/goja-text run examples/js/markdown-demo.js
 ./dist/goja-text run examples/js/sanitize-demo.js
 ./dist/goja-text run examples/js/extract-demo.js
 ```
 
+## jsverbs examples
+
+The `examples/jsverbs` directory turns the same module patterns into Glazed commands. They are embedded into the generated binary by `xgoja.yaml`.
+
+```bash
+./dist/goja-text verbs list
+
+./dist/goja-text verbs markdown headings examples/markdown/sample.md
+./dist/goja-text verbs markdown links examples/markdown/sample.md
+./dist/goja-text verbs markdown summary examples/markdown/sample.md
+
+./dist/goja-text verbs sanitize yaml examples/yaml/broken.yaml
+./dist/goja-text verbs sanitize json examples/json/broken.json
+./dist/goja-text verbs sanitize rules json
+
+./dist/goja-text verbs extract list examples/text/structured-data-sample.md
+./dist/goja-text verbs extract validate examples/text/structured-data-sample.md
+./dist/goja-text verbs extract firstValid examples/text/structured-data-sample.md
+```
+
+Because jsverbs return structured values, Glazed can render the same command output in formats such as JSON, YAML, or tables.
+
+## Validation
+
+Use the repository Makefile for the normal validation path:
+
+```bash
+make check
+```
+
+The check target runs Go tests, builds the xgoja binary, and executes the smoke scripts for Markdown, sanitize, and extract.
+
+You can also run the test commands directly:
+
+```bash
+go test ./... -count=1
+GOWORK=off go test ./... -count=1
+```
+
 ## Go embedding
 
-A host Go program can blank-import this package so its `init()` registers the module, then use the go-go-goja engine:
+A Go host can blank-import the package that registers a module and then build a go-go-goja runtime that exposes it.
 
 ```go
 package main
@@ -181,6 +196,7 @@ func main() {
   ctx := context.Background()
   factory, err := engine.NewBuilder().UseModuleMiddleware(engine.MiddlewareOnly("markdown")).Build()
   if err != nil { panic(err) }
+
   rt, err := factory.NewRuntime(engine.WithStartupContext(ctx), engine.WithLifetimeContext(ctx))
   if err != nil { panic(err) }
   defer rt.Close(ctx)
@@ -195,9 +211,9 @@ func main() {
 }
 ```
 
-## Tests
+## Design principles
 
-```bash
-go test ./... -count=1
-GOWORK=off go test ./... -count=1
-```
+- Keep parsing, repair, and extraction semantics in Go when Go will later validate or consume the values.
+- Expose Go-backed domain objects to JavaScript rather than flattening everything into plain objects too early.
+- Use JavaScript for document-specific policies and queries, especially with primitives such as `markdown.walk()` and `extract.all()`.
+- Preserve evidence: source spans, wrapper metadata, fix lists, diagnostics, and confidence scores are part of the API because they make automation reviewable.

@@ -44,5 +44,14 @@ commands:
     enabled: true
     runtime: main
   jsverbs:
-    enabled: false
+    enabled: true
     runtime: main
+jsverbs:
+  - id: goja-text-examples
+    path: ./examples/jsverbs
+    embed: true
+help:
+  sources:
+    - id: goja-text-runtime-api
+      package: goja-text
+      source: runtime-api

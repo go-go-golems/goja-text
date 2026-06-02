@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-go-golems/goja-text/pkg/extract"
 	_ "github.com/go-go-golems/goja-text/pkg/markdown"
 	_ "github.com/go-go-golems/goja-text/pkg/sanitize"
+	helpdoc "github.com/go-go-golems/goja-text/pkg/xgoja/providers/text/doc"
 )
 
 const PackageID = "goja-text"
@@ -29,6 +30,12 @@ func Register(registry *providerapi.Registry) error {
 		}
 		entries = append(entries, nativeModuleEntry(mod))
 	}
+	entries = append(entries, providerapi.HelpSource{
+		Name:        "runtime-api",
+		Description: "goja-text Markdown, sanitize, and extract JavaScript API help pages",
+		FS:          helpdoc.FS(),
+		Root:        ".",
+	})
 	return registry.Package(PackageID, entries...)
 }
 
