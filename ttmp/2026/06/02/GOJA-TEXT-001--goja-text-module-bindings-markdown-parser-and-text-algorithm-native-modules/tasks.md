@@ -46,5 +46,5 @@
 - [x] Update README with JS usage, Go embedding, xgoja build, and smoke-test examples.
 - [ ] Update the diary after each implementation step with commands, failures, commits, and validation results.
 - [ ] Update ticket changelog and relate modified files after each meaningful commit.
-- [ ] Run `docmgr doctor --ticket GOJA-TEXT-001 --stale-after 30` before final handoff.
+- [x] Run `docmgr doctor --ticket GOJA-TEXT-001 --stale-after 30` before final handoff.
 - [ ] Upload final design/diary bundle to reMarkable after implementation milestones.

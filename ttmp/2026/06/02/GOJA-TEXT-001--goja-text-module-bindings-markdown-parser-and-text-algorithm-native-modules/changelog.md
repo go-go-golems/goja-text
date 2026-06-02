@@ -71,3 +71,13 @@ Step 6: Added xgoja provider/spec, demo markdown script using host fs, README do
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/xgoja/providers/text/text.go — provider registration
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/xgoja.yaml — xgoja build spec
 
+
+## 2026-06-02
+
+Final validation passed: go test, GOWORK=off go test, xgoja build/eval/run smoke tests, docmgr doctor, and reMarkable upload v5.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/changelog.md — Final validation and upload record
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-001--goja-text-module-bindings-markdown-parser-and-text-algorithm-native-modules/tasks.md — Final task completion bookkeeping
+
