@@ -519,3 +519,63 @@ Unit tests prove the module works inside a go-go-goja runtime. The generated xgo
 
 - Build command: `go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja`
 - Demo command: `./dist/goja-text run examples/js/sanitize-demo.js`
+
+---
+
+## Step 7: Finalize Ticket Docs and Upload v3 Bundle
+
+Finalized the GOJA-TEXT-002 ticket documentation after implementing the sanitize native module and xgoja integration. Uploaded a v3 reMarkable bundle containing the updated primary design, the review document, and the current implementation diary.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Complete the documentation and delivery loop after implementation checkpoints pass.
+
+**Inferred user intent:** Keep code, ticket docs, and reMarkable delivery synchronized.
+
+### What I did
+
+- Uploaded `GOJA-TEXT-002 Sanitize Native Module Design Guide v3` to `/ai/2026/06/02/GOJA-TEXT-002`.
+- Removed the placeholder `Add tasks here` task line.
+- Marked the final documentation/upload task complete.
+- Ran `docmgr doctor --ticket GOJA-TEXT-002 --stale-after 30`.
+
+### Why
+
+The ticket now has implementation, tests, xgoja validation, README updates, diary entries, and reMarkable delivery. The bookkeeping should reflect that state.
+
+### What worked
+
+- reMarkable dry-run and upload both succeeded.
+- The cloud listing shows v1, v2, and v3 bundles.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Uploading after each major design/implementation revision keeps the reMarkable copy useful as an offline review artifact.
+
+### What was tricky to build
+
+- N/A for this bookkeeping step.
+
+### What warrants a second pair of eyes
+
+- Whether to close GOJA-TEXT-002 immediately or leave it active for follow-up refinements such as Makefile targets.
+
+### What should be done in the future
+
+- Consider adding Makefile targets for the validation commands.
+
+### Code review instructions
+
+- Check the v3 bundle contents if reviewing from reMarkable.
+- Check the ticket tasks and changelog if reviewing in the repository.
+
+### Technical details
+
+- reMarkable path: `/ai/2026/06/02/GOJA-TEXT-002`
+- Bundle name: `GOJA-TEXT-002 Sanitize Native Module Design Guide v3`
