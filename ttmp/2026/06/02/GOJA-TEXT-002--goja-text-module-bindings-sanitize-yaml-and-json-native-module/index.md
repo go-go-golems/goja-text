@@ -1,7 +1,7 @@
 ---
 Title: 'Goja Text Module Bindings: Sanitize YAML and JSON Native Module'
 Ticket: GOJA-TEXT-002
-Status: active
+Status: complete
 Topics:
     - goja
     - goja-bindings
@@ -16,10 +16,11 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: ""
-LastUpdated: 2026-06-02T12:11:48.360988597-04:00
+LastUpdated: 2026-06-02T13:25:32.964243218-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 # Goja Text Module Bindings: Sanitize YAML and JSON Native Module
 
