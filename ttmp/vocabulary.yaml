@@ -23,6 +23,12 @@ topics:
       description: YAML parsing and processing
     - slug: tree-sitter
       description: Tree-sitter parsing library
+    - slug: extraction
+      description: Extracting structured payloads and spans from text
+    - slug: structured-data
+      description: Structured data payloads such as JSON, YAML, XML, and frontmatter
+    - slug: xml
+      description: XML and XML-like tagged text
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
