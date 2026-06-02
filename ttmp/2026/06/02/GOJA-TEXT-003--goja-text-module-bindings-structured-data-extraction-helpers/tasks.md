@@ -3,16 +3,16 @@
 ## Phase 0: Planning and scaffolding
 
 - [x] 0.1 Create detailed phase/task checklist for GOJA-TEXT-003
-- [ ] 0.2 Create `pkg/extract` package skeleton
-- [ ] 0.3 Add package-level docs explaining extraction vs parsing vs sanitizing
+- [x] 0.2 Create `pkg/extract` package skeleton
+- [x] 0.3 Add package-level docs explaining extraction vs parsing vs sanitizing
 
 ## Phase 1: Source positions, candidate types, and options
 
-- [ ] 1.1 Implement byte-offset to row/column line index helpers
-- [ ] 1.2 Add tests for line index behavior, including EOF and multiline offsets
-- [ ] 1.3 Define `ExtractionCandidate`, `ExtractOptions`, `ExtractOptionsBuilder`, and validation result types
-- [ ] 1.4 Implement builder methods: `Formats`, `Tags`, `Extractors`, `IncludeDiagnostics`, `InferFormat`, `MinConfidence`, `MaxCandidates`, `Validate`, `Build`
-- [ ] 1.5 Add unit tests for options builder validation and defaults
+- [x] 1.1 Implement byte-offset to row/column line index helpers
+- [x] 1.2 Add tests for line index behavior, including EOF and multiline offsets
+- [x] 1.3 Define `ExtractionCandidate`, `ExtractOptions`, `ExtractOptionsBuilder`, and validation result types
+- [x] 1.4 Implement builder methods: `Formats`, `Tags`, `Extractors`, `IncludeDiagnostics`, `InferFormat`, `MinConfidence`, `MaxCandidates`, `Validate`, `Build`
+- [x] 1.5 Add unit tests for options builder validation and defaults
 
 ## Phase 2: Wrapper extractors
 

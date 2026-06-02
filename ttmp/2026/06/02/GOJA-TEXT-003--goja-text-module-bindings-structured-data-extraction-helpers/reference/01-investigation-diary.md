@@ -1,23 +1,39 @@
 ---
-Title: "Investigation Diary"
+Title: Investigation Diary
 Ticket: GOJA-TEXT-003
 Status: active
 Topics:
-  - goja
-  - goja-bindings
-  - text-algorithms
-  - native-modules
-  - markdown
-  - json
-  - yaml
-  - structured-data
-  - xml
-  - extraction
+    - goja
+    - goja-bindings
+    - text-algorithms
+    - native-modules
+    - markdown
+    - json
+    - yaml
+    - structured-data
+    - xml
+    - extraction
 DocType: reference
-Intent: "Chronological diary for structured-data extraction helper design and implementation"
+Intent: Chronological diary for structured-data extraction helper design and implementation
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: pkg/extract/doc.go
+      Note: Package-level extraction documentation
+    - Path: pkg/extract/options_test.go
+      Note: Options builder tests
+    - Path: pkg/extract/positions.go
+      Note: Source position infrastructure
+    - Path: pkg/extract/positions_test.go
+      Note: Line index tests
+    - Path: pkg/extract/types.go
+      Note: Candidate and options model
+ExternalSources: []
+Summary: ""
+LastUpdated: 0001-01-01T00:00:00Z
+WhatFor: ""
+WhenToUse: ""
 ---
+
 
 # Investigation Diary
 
@@ -168,3 +184,78 @@ The initial task list was useful but too coarse for step-by-step implementation.
 ### Technical details
 
 - Updated file: `tasks.md`
+
+---
+
+## Step 3: Implement Extract Package Skeleton, Source Positions, Candidate Types, and Options
+
+Implemented the first code slice for `pkg/extract`: package documentation, source-position helpers, candidate/config types, a Go-backed options builder, and unit tests. This creates the foundation all extractors will use to report byte spans, row/column spans, allowed formats, enabled extractors, confidence thresholds, and candidate limits.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the detailed task plan by implementing the first phase and committing after validation.
+
+**Inferred user intent:** Build the extraction module in reviewable layers, starting with reusable infrastructure rather than jumping directly into parser logic.
+
+### What I did
+
+- Added `pkg/extract/doc.go` to document extraction vs parsing/sanitizing.
+- Added `pkg/extract/positions.go` with:
+  - `lineIndex`
+  - byte offset to row/column conversion
+  - source line splitting with byte offsets
+  - span population helper
+- Added `pkg/extract/types.go` with:
+  - `ExtractionCandidate`
+  - `ExtractOptions`
+  - `ExtractOptionsBuilder`
+  - `CandidateValidationResult`
+  - option filtering helpers
+- Added tests:
+  - `positions_test.go`
+  - `options_test.go`
+- Ran `gofmt -w pkg/extract`.
+- Ran `go test ./... -count=1` successfully.
+
+### Why
+
+Every extractor needs reliable source spans and a shared candidate representation. Implementing these first prevents each extractor from inventing its own position and filtering logic.
+
+### What worked
+
+- The line index and option builder tests pass.
+- The builder defaults are explicit and include default XML-like tags and default extractors.
+
+### What didn't work
+
+- The first option-builder test failed because extractor names were normalized to lowercase while `knownExtractor` expected camelCase. I fixed this by using lowercase canonical extractor keys internally.
+- One line-index test expected offset `11` to still be on the previous line; for `alpha\nbeta\ngamma`, offset `11` is the start of `gamma`, so the correct position is row 2 column 0.
+
+### What I learned
+
+- Canonical internal extractor IDs should be lowercase (`markdowncodeblocks`, `xmltagged`, `rawstructured`) even if public function names use camelCase.
+- Byte-offset row/column behavior at newline boundaries should be pinned early because all span tests depend on it.
+
+### What was tricky to build
+
+- The line-index helper uses byte columns, not rune columns. This matches source byte spans and tree-sitter-style positions better than visual columns, but it should be documented if UTF-8 display columns ever matter.
+
+### What warrants a second pair of eyes
+
+- Whether public `Extractors(...)` should accept camelCase names and normalize them more intentionally instead of simply lowercasing all input.
+
+### What should be done in the future
+
+- Implement Markdown fenced code block extraction next.
+
+### Code review instructions
+
+- Start with `pkg/extract/types.go` to understand the public candidate/config model.
+- Then review `pkg/extract/positions.go` for span semantics.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+
+- Validation command: `go test ./... -count=1`
