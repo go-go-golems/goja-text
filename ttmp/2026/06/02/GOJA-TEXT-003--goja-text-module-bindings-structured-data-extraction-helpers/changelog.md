@@ -35,3 +35,14 @@ Step 3: Implemented extract package skeleton, source-position helpers, candidate
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/positions.go — Line index and span helpers
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/types.go — Candidate/options types
 
+
+## 2026-06-02
+
+Step 4: Implemented Markdown fenced code block, XML-like tag, and YAML frontmatter extractors with wrapper tests; go test ./... -count=1 passes.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/frontmatter.go — Frontmatter extraction
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/markdown_fences.go — Markdown fence extraction
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/xml_tags.go — XML-like tag extraction
+

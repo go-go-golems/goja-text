@@ -16,12 +16,12 @@
 
 ## Phase 2: Wrapper extractors
 
-- [ ] 2.1 Implement Markdown fenced code block extraction for backtick and tilde fences
-- [ ] 2.2 Add Markdown fence tests for language/info strings, payload spans, unterminated blocks, and multiple blocks
-- [ ] 2.3 Implement XML-like tag wrapper extraction with default and caller-provided tags
-- [ ] 2.4 Add XML-like tag tests for multiline payloads, attributes, multiple tags, and missing close tags
-- [ ] 2.5 Implement YAML frontmatter extraction
-- [ ] 2.6 Add frontmatter tests for valid frontmatter, missing close delimiter, and non-frontmatter Markdown
+- [x] 2.1 Implement Markdown fenced code block extraction for backtick and tilde fences
+- [x] 2.2 Add Markdown fence tests for language/info strings, payload spans, unterminated blocks, and multiple blocks
+- [x] 2.3 Implement XML-like tag wrapper extraction with default and caller-provided tags
+- [x] 2.4 Add XML-like tag tests for multiline payloads, attributes, multiple tags, and missing close tags
+- [x] 2.5 Implement YAML frontmatter extraction
+- [x] 2.6 Add frontmatter tests for valid frontmatter, missing close delimiter, and non-frontmatter Markdown
 
 ## Phase 3: Raw structured recognition and validation
 

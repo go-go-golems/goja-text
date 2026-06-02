@@ -19,6 +19,12 @@ Owners: []
 RelatedFiles:
     - Path: pkg/extract/doc.go
       Note: Package-level extraction documentation
+    - Path: pkg/extract/format.go
+      Note: Format inference helpers
+    - Path: pkg/extract/frontmatter.go
+      Note: YAML frontmatter extraction
+    - Path: pkg/extract/markdown_fences.go
+      Note: Markdown fenced code block extraction
     - Path: pkg/extract/options_test.go
       Note: Options builder tests
     - Path: pkg/extract/positions.go
@@ -27,12 +33,17 @@ RelatedFiles:
       Note: Line index tests
     - Path: pkg/extract/types.go
       Note: Candidate and options model
+    - Path: pkg/extract/wrappers_test.go
+      Note: Wrapper extractor tests
+    - Path: pkg/extract/xml_tags.go
+      Note: XML-like tag wrapper extraction
 ExternalSources: []
 Summary: ""
 LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # Investigation Diary
@@ -254,6 +265,79 @@ Every extractor needs reliable source spans and a shared candidate representatio
 
 - Start with `pkg/extract/types.go` to understand the public candidate/config model.
 - Then review `pkg/extract/positions.go` for span semantics.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+
+- Validation command: `go test ./... -count=1`
+
+---
+
+## Step 4: Implement Wrapper Extractors
+
+Implemented the first payload extractors: Markdown fenced code blocks, XML-like tag wrappers, and YAML frontmatter. These extractors return Go-backed `ExtractionCandidate` values with raw wrapper text, payload text, byte spans, row/column spans, inferred format, wrapper kind, label, and optional diagnostics.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue implementing the GOJA-TEXT-003 phases in order and commit after validation.
+
+**Inferred user intent:** Build deterministic structured-data location helpers before adding parsing or validation behavior.
+
+### What I did
+
+- Added `pkg/extract/format.go` for label/payload format inference.
+- Added `pkg/extract/markdown_fences.go`:
+  - supports backtick and tilde fences
+  - captures info string, language label, payload text, raw wrapper text, and spans
+  - reports unterminated fence diagnostics when requested
+- Added `pkg/extract/xml_tags.go`:
+  - extracts simple same-name XML-like wrappers
+  - supports default/caller-provided tags and attributes in opening tags
+  - reports missing close tag diagnostics when requested
+- Added `pkg/extract/frontmatter.go`:
+  - extracts leading YAML frontmatter delimited by `---`
+  - reports missing close delimiter diagnostics when requested
+- Added `pkg/extract/wrappers_test.go`.
+- Ran `gofmt -w pkg/extract`.
+- Ran `go test ./... -count=1` successfully.
+
+### Why
+
+These wrapper-based extractors are the lowest-false-positive extraction layer. They identify explicit source wrappers before raw JSON/YAML heuristics attempt to infer structure from unwrapped text.
+
+### What worked
+
+- Markdown code block extraction handles both backtick and tilde fences.
+- XML-like tag extraction handles attributes and multiline payloads.
+- Frontmatter extraction preserves wrapper delimiters in `Raw` and payload-only text in `Text`.
+
+### What didn't work
+
+- N/A; tests passed after adding the missing payload-format inference helper.
+
+### What I learned
+
+- The extractors need a clear distinction between wrapper span and payload span. This is why `Raw` and `Text`, plus `StartByte`/`PayloadStartByte`, are both necessary.
+
+### What was tricky to build
+
+- XML-like extraction needed to avoid claiming full XML behavior. The implementation is intentionally simple same-name tag matching with attributes preserved as raw opening-tag info.
+
+### What warrants a second pair of eyes
+
+- Whether missing-close XML tags should emit partial candidates only when diagnostics are enabled, as currently implemented.
+- Whether Markdown fence indentation should exactly match CommonMark or remain a pragmatic subset.
+
+### What should be done in the future
+
+- Implement raw JSON/YAML recognition and sanitize-backed validation next.
+
+### Code review instructions
+
+- Start with `pkg/extract/markdown_fences.go`, then `xml_tags.go`, then `frontmatter.go`.
+- Check tests in `pkg/extract/wrappers_test.go`.
 - Validate with `go test ./... -count=1`.
 
 ### Technical details
