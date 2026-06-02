@@ -14,3 +14,13 @@ Step 1: Created structured-data extraction ticket and intern-facing design guide
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/design-doc/01-structured-data-extraction-helpers-design-and-implementation-guide.md — Primary design guide
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/reference/01-investigation-diary.md — Initial diary
 
+
+## 2026-06-02
+
+Step 2: Expanded GOJA-TEXT-003 into detailed phased implementation tasks and marked planning checklist task complete.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/reference/01-investigation-diary.md — Planning diary entry
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/tasks.md — Detailed phase/task checklist
+

@@ -107,3 +107,64 @@ Structured data appears in many wrappers inside text. The Markdown and sanitize 
 
 - Ticket path: `ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/`
 - Design doc: `design-doc/01-structured-data-extraction-helpers-design-and-implementation-guide.md`
+
+---
+
+## Step 2: Expand GOJA-TEXT-003 into Detailed Implementation Phases
+
+Converted the initial high-level task list into detailed implementation phases. The ticket now has explicit tasks for planning, source-position infrastructure, candidate/options types, wrapper extractors, raw JSON/YAML recognition, sanitize-backed validation, native module wiring, xgoja integration, examples, README updates, validation commands, and reMarkable delivery.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Now add a detailed set of phases + tasks for each phase to the ticket, then work on them one by one, committing at appropriate intervals, and keeping a detailed log."
+
+**Assistant interpretation:** Replace the coarse GOJA-TEXT-003 task list with phase-level and subtask-level checkboxes, then proceed through implementation with commits and diary updates.
+
+**Inferred user intent:** Make the implementation process reviewable and resumable, not a single large untracked coding pass.
+
+### What I did
+
+- Rewrote `tasks.md` with six phases:
+  - planning and scaffolding
+  - source positions, candidate types, and options
+  - wrapper extractors
+  - raw structured recognition and validation
+  - native module and JavaScript runtime tests
+  - xgoja integration, docs, validation, and delivery
+- Marked task 0.1 complete.
+
+### Why
+
+The initial task list was useful but too coarse for step-by-step implementation. Detailed phases make commit boundaries and diary entries clearer.
+
+### What worked
+
+- The task list now maps directly to implementable files and validation checkpoints.
+
+### What didn't work
+
+- N/A — planning step only.
+
+### What I learned
+
+- The extraction work has enough surface area that separate commits for positions/types, wrapper extractors, raw/validation, and xgoja integration will make review easier.
+
+### What was tricky to build
+
+- The task split needed to keep extraction concerns separate from goja module wiring so domain logic can be tested independently.
+
+### What warrants a second pair of eyes
+
+- Whether raw YAML recognition should be implemented before or after wrapper extraction; the current plan puts it after wrapper extraction to reduce false-positive risk.
+
+### What should be done in the future
+
+- Implement Phase 1 next: line index helpers, candidate types, and options builder.
+
+### Code review instructions
+
+- Review `tasks.md` for implementation sequencing.
+
+### Technical details
+
+- Updated file: `tasks.md`
