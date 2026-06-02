@@ -37,3 +37,13 @@ Step 3: Updated the primary design to use Go-backed sanitize builder/config obje
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/design-doc/01-sanitize-native-module-design-and-implementation-guide.md — Builder/config design update
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/tasks.md — Expanded implementation tasks
 
+
+## 2026-06-02
+
+Corrected sanitize dependency design: use published pinned github.com/go-go-golems/sanitize v0.0.2 without a local replace; keep local checkout as reference material only.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/design-doc/01-sanitize-native-module-design-and-implementation-guide.md — Dependency decision corrected
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/tasks.md — Phase 0 task corrected
+

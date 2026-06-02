@@ -351,13 +351,13 @@ The new sanitize module will be added to the `goja-text` provider. No new provid
 - **Consequences:** JavaScript callers use PascalCase builder methods because the builder is Go-backed: `MaxIterations`, `TabWidth`, `OnlyRules`, `DisabledRules`, `RejectUnknownOptions`, `AllowUnknownOptions`, `CollectUnknownOptions`, `Build`, and `Validate`. Tests must pin those method names. If a lowerCamel convenience wrapper is desired later, add it deliberately as a JS adapter.
 - **Status:** accepted
 
-### Decision 5: Pin sanitize to `v0.0.2` with a local workspace replace
+### Decision 5: Pin sanitize to `v0.0.2` without a local replace
 
-- **Context:** The sanitize repository is present locally and already has version history (`v0.0.2-5-gc142cca` in the current checkout). The goja-text module needs a stable required module version while still building against the workspace checkout during development.
-- **Options considered:** Use an unversioned local-only import, use a pseudo-version from the current commit, or require the pinned `v0.0.2` tag with `replace ../sanitize`.
-- **Decision:** Require `github.com/go-go-golems/sanitize v0.0.2` and add `replace github.com/go-go-golems/sanitize => ../sanitize` for this workspace.
-- **Rationale:** The pinned version records the intended dependency boundary. The replace keeps local development and xgoja generated builds using the checkout in this workspace.
-- **Consequences:** `go mod tidy` must retain the pinned require and local replace. xgoja generated builds must also be validated because temporary generated modules need local replacements to resolve workspace packages.
+- **Context:** The sanitize repository is present locally for source inspection, and the module tag `github.com/go-go-golems/sanitize@v0.0.2` resolves as a published dependency. The local checkout is reference material for this task, not a library we plan to modify.
+- **Options considered:** Use an unversioned local-only import, use a pseudo-version from the local checkout, require `v0.0.2` with a local replace, or require only the published pinned `v0.0.2` version.
+- **Decision:** Require `github.com/go-go-golems/sanitize v0.0.2` without a local replace.
+- **Rationale:** The pinned module version records the dependency boundary and keeps xgoja generated builds reproducible outside this workspace. `go.work` is enough for local workspace awareness when needed, but the goja-text module should not depend on a local sanitize checkout if we are not editing sanitize.
+- **Consequences:** `go mod tidy` should add `github.com/go-go-golems/sanitize v0.0.2` and its transitive dependencies. xgoja generated builds should resolve sanitize from the module proxy/GitHub. The only local replacement still required during development is the existing xgoja replacement for the local `go-go-goja` checkout, because this workspace is actively using that local basis.
 - **Status:** accepted
 
 ### Decision 4: Return both original and sanitized state in Result
@@ -1008,7 +1008,7 @@ The current API processes the entire input as a single string. For very large YA
 
 ### Phase 1: Core module
 
-- [ ] Phase 0: Add pinned sanitize dependency (`v0.0.2`) and local replace to `go.mod`
+- [ ] Phase 0: Add pinned sanitize dependency (`v0.0.2`) to `go.mod` without a local replace
 - [ ] Create `pkg/sanitize/types.go` with `ParseTreeResult`, `ValidationResult`, config structs, and unknown-option policy types
 - [ ] Create `pkg/sanitize/options.go` with YAML/JSON builder implementations and validation
 - [ ] Create `pkg/sanitize/module.go` with `NativeModule` implementation and namespace wiring

@@ -144,7 +144,7 @@ The primary plan was directionally good, but it contained several implementation
 
 - The review found concrete, file-backed issues rather than vague criticism.
 - The strongest correction is the `SetExport` issue: dotted names are literal properties, not nested paths.
-- The review also captures a missing Phase 0 for `go.mod` dependency wiring and local `replace` setup.
+- The review also captures a missing Phase 0 for `go.mod` dependency wiring against the pinned published module.
 
 ### What didn't work
 
@@ -203,10 +203,10 @@ Update the doc with all the improvements, then add detailed tasks to the ticket,
 ### What I did
 
 - Created a baseline commit for prior uncommitted ticket and markdown probe work before starting the new implementation sequence.
-- Checked the local sanitize repository version (`v0.0.2-5-gc142cca`) and chose the pinned `v0.0.2` dependency plus local workspace replace as the design target.
+- Checked the local sanitize repository version (`v0.0.2-5-gc142cca`) and chose the pinned `v0.0.2` dependency without a local replace as the design target.
 - Updated the primary design document:
   - replaced the raw JS options object decision with a Go-backed builder/config decision
-  - added a decision to pin sanitize to `v0.0.2` with `replace ../sanitize`
+  - added a decision to pin sanitize to `v0.0.2` without `replace ../sanitize`
   - described `sanitize.yaml.options()` and `sanitize.json.options()` builders
   - added unknown option policies: reject, allow, collect
   - updated implementation phases and checklist
@@ -220,7 +220,7 @@ Plain options objects force each exported function to re-decode and re-validate 
 
 - The builder pattern fits the project’s existing preference for Go-backed domain objects.
 - The sanitize library already validates rule names and overlapping rules, so the builder can reuse those semantics.
-- The pinned sanitize version has a clear local tag (`v0.0.2`) while local development can still use the workspace checkout through `replace`.
+- The pinned sanitize version resolves as a published module, so local development should use the dependency normally while the local checkout remains reference material.
 
 ### What didn't work
 
@@ -228,7 +228,7 @@ Plain options objects force each exported function to re-decode and re-validate 
 
 ### What I learned
 
-- The sanitize repo is currently at `v0.0.2-5-gc142cca`, so depending on `v0.0.2` and replacing locally is a reasonable pinned-version workflow.
+- The sanitize repo is currently at `v0.0.2-5-gc142cca`, so depending on the published `v0.0.2` module without a local replace is the cleaner pinned-version workflow.
 
 ### What was tricky to build
 
