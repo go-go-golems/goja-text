@@ -79,3 +79,13 @@ Step 7: Wired extract into xgoja, added demo fixture/script, README docs, smoke-
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/xgoja/providers/text/text.go — Provider wiring
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/xgoja.yaml — xgoja module entry
 
+
+## 2026-06-02
+
+Step 8: Uploaded GOJA-TEXT-003 Structured Data Extraction Design Guide v2 to reMarkable and marked upload task complete.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/reference/01-investigation-diary.md — Upload diary entry
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-003--goja-text-module-bindings-structured-data-extraction-helpers/tasks.md — Upload task status
+

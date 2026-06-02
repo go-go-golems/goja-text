@@ -590,3 +590,61 @@ The generated xgoja binary is the user-facing exercise harness. The extract modu
 ### Technical details
 
 - Validation command: `make check`
+
+---
+
+## Step 8: Upload Updated GOJA-TEXT-003 Bundle
+
+Uploaded the updated GOJA-TEXT-003 document bundle after implementing the extract module, xgoja integration, examples, README updates, and validation targets. The v2 bundle includes the original design guide and the updated diary containing implementation steps.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Complete the delivery step for the implemented ticket state.
+
+**Inferred user intent:** Keep the reMarkable copy synchronized with the ticket's current implementation and diary.
+
+### What I did
+
+- Uploaded `GOJA-TEXT-003 Structured Data Extraction Design Guide v2` to `/ai/2026/06/02/GOJA-TEXT-003`.
+- Verified the reMarkable folder listing shows v1 and v2.
+- Marked the upload task complete.
+
+### Why
+
+The original v1 bundle contained only the initial design. The v2 bundle captures the implemented state and chronological diary.
+
+### What worked
+
+- Dry-run and upload both succeeded.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The design guide remains useful as the conceptual reference, while the diary now captures implementation-specific behavior and caveats such as overlap handling.
+
+### What was tricky to build
+
+- N/A for this upload step.
+
+### What warrants a second pair of eyes
+
+- Whether a separate implementation report should be added after code review.
+
+### What should be done in the future
+
+- Consider a research logbook for GOJA-TEXT-003 if additional sources are consulted.
+
+### Code review instructions
+
+- Use the v2 reMarkable bundle for offline review.
+- Use `make check` for local validation.
+
+### Technical details
+
+- reMarkable path: `/ai/2026/06/02/GOJA-TEXT-003`
+- Bundle name: `GOJA-TEXT-003 Structured Data Extraction Design Guide v2`

@@ -59,4 +59,4 @@
 - [x] 6.5 Update diary and changelog after each implementation phase
 - [x] 6.6 Relate modified files to ticket docs
 - [x] 6.7 Run `docmgr doctor --ticket GOJA-TEXT-003 --stale-after 30`
-- [ ] 6.8 Upload updated bundle to reMarkable
+- [x] 6.8 Upload updated bundle to reMarkable
