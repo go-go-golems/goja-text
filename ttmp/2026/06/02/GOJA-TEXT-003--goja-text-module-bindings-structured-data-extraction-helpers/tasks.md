@@ -25,13 +25,13 @@
 
 ## Phase 3: Raw structured recognition and validation
 
-- [ ] 3.1 Implement raw JSON recognition using strict JSON parse and sanitize-backed repair checks
-- [ ] 3.2 Implement conservative raw YAML recognition with false-positive avoidance
-- [ ] 3.3 Add raw structured tests for strict JSON, repairable JSON, simple YAML, prose false positives, and empty input
-- [ ] 3.4 Implement sanitize-backed `Validate(candidate, options)` for JSON and YAML candidates
-- [ ] 3.5 Add validation tests for valid, repaired, invalid, and unknown-format candidates
-- [ ] 3.6 Implement `All(input, options)` to merge selected extractors in source order
-- [ ] 3.7 Add combined extraction tests with overlapping Markdown/XML/raw payloads
+- [x] 3.1 Implement raw JSON recognition using strict JSON parse and sanitize-backed repair checks
+- [x] 3.2 Implement conservative raw YAML recognition with false-positive avoidance
+- [x] 3.3 Add raw structured tests for strict JSON, repairable JSON, simple YAML, prose false positives, and empty input
+- [x] 3.4 Implement sanitize-backed `Validate(candidate, options)` for JSON and YAML candidates
+- [x] 3.5 Add validation tests for valid, repaired, invalid, and unknown-format candidates
+- [x] 3.6 Implement `All(input, options)` to merge selected extractors in source order
+- [x] 3.7 Add combined extraction tests with overlapping Markdown/XML/raw payloads
 
 ## Phase 4: Native module and JavaScript runtime tests
 

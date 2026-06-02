@@ -17,6 +17,8 @@ DocType: reference
 Intent: Chronological diary for structured-data extraction helper design and implementation
 Owners: []
 RelatedFiles:
+    - Path: pkg/extract/all.go
+      Note: Combined extraction
     - Path: pkg/extract/doc.go
       Note: Package-level extraction documentation
     - Path: pkg/extract/format.go
@@ -31,8 +33,14 @@ RelatedFiles:
       Note: Source position infrastructure
     - Path: pkg/extract/positions_test.go
       Note: Line index tests
+    - Path: pkg/extract/raw.go
+      Note: Raw JSON/YAML recognition
+    - Path: pkg/extract/raw_validate_test.go
+      Note: Raw/validation/all tests
     - Path: pkg/extract/types.go
       Note: Candidate and options model
+    - Path: pkg/extract/validate.go
+      Note: Sanitize-backed candidate validation
     - Path: pkg/extract/wrappers_test.go
       Note: Wrapper extractor tests
     - Path: pkg/extract/xml_tags.go
@@ -43,6 +51,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -338,6 +347,81 @@ These wrapper-based extractors are the lowest-false-positive extraction layer. T
 
 - Start with `pkg/extract/markdown_fences.go`, then `xml_tags.go`, then `frontmatter.go`.
 - Check tests in `pkg/extract/wrappers_test.go`.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+
+- Validation command: `go test ./... -count=1`
+
+---
+
+## Step 5: Implement Raw Structured Recognition, Validation, and Combined Extraction
+
+Implemented raw JSON/YAML recognition, sanitize-backed candidate validation, and the combined `All` extraction path. This adds the first layer that can infer structure without explicit Markdown fences, XML-like tags, or frontmatter wrappers.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Continue the phased implementation after wrapper extraction passed tests.
+
+**Inferred user intent:** Add validation-aware extraction behavior while keeping raw detection conservative.
+
+### What I did
+
+- Added `pkg/extract/raw.go`:
+  - strict JSON recognition with `encoding/json`
+  - repairable JSON recognition through `jsonsanitize.Sanitize`
+  - conservative YAML recognition requiring multiple mapping/list indicators
+- Added `pkg/extract/validate.go`:
+  - JSON candidate validation/repair
+  - YAML candidate validation/repair
+  - minimal XML-like wrapper validation
+  - unknown-format errors
+- Added `pkg/extract/all.go`:
+  - runs enabled extractors
+  - merges candidates in source order
+  - applies option filtering
+- Added `pkg/extract/raw_validate_test.go` covering strict JSON, repairable JSON, YAML, prose false positives, validation, and combined extraction.
+- Ran `gofmt -w pkg/extract`.
+- Ran `go test ./... -count=1` successfully.
+
+### Why
+
+Wrappers are precise but not always present. Raw recognition lets callers handle whole-input JSON/YAML payloads, while sanitize-backed validation gives candidates a deterministic validity/repair signal.
+
+### What worked
+
+- Strict JSON candidates receive high confidence.
+- Repairable JSON candidates are recognized with lower confidence.
+- Simple YAML blocks are recognized, while one-colon prose is rejected.
+- `Validate` repairs malformed JSON/YAML candidates through the sanitize library.
+
+### What didn't work
+
+- The first `All` test assumed the Markdown code block would be the second candidate. Raw YAML recognition also emitted a whole-document YAML-like candidate before the Markdown block because it starts earlier. I changed the test to assert required candidates are present while only requiring frontmatter to be first.
+
+### What I learned
+
+- Combined extraction can legitimately return overlapping candidates. The design's choice to keep overlaps in Phase 1 was correct; tests should not assume a single non-overlapping sequence.
+
+### What was tricky to build
+
+- Raw YAML recognition needed false-positive avoidance. The implementation requires at least two mapping-like lines or a mapping plus list-like line before attempting sanitize-backed acceptance.
+
+### What warrants a second pair of eyes
+
+- Whether whole-document raw YAML candidates should be suppressed when stronger wrapper candidates exist.
+- Whether candidate confidence values should be documented as stable or treated as heuristic.
+
+### What should be done in the future
+
+- Implement the `extract` NativeModule and runtime tests next.
+
+### Code review instructions
+
+- Review `pkg/extract/raw.go`, `validate.go`, and `all.go` together.
+- Check `raw_validate_test.go` for intended raw detection and overlap behavior.
 - Validate with `go test ./... -count=1`.
 
 ### Technical details

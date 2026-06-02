@@ -46,3 +46,14 @@ Step 4: Implemented Markdown fenced code block, XML-like tag, and YAML frontmatt
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/markdown_fences.go — Markdown fence extraction
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/xml_tags.go — XML-like tag extraction
 
+
+## 2026-06-02
+
+Step 5: Implemented raw JSON/YAML recognition, sanitize-backed candidate validation, and combined All extraction with tests; go test ./... -count=1 passes.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/all.go — Combined extraction
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/raw.go — Raw recognition
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/validate.go — Candidate validation
+
