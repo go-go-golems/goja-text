@@ -19,6 +19,9 @@ runtimes:
       - package: goja-text
         name: sanitize
         as: sanitize
+      - package: goja-text
+        name: extract
+        as: extract
       - package: go-go-goja-core
         name: path
         as: path

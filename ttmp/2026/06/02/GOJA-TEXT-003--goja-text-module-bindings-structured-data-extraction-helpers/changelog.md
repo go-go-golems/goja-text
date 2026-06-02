@@ -67,3 +67,15 @@ Step 6: Implemented extract NativeModule, TypeScript declarations, and JavaScrip
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/module.go — NativeModule
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/extract/module_test.go — Runtime tests
 
+
+## 2026-06-02
+
+Step 7: Wired extract into xgoja, added demo fixture/script, README docs, smoke-extract target, and validated with go test, GOWORK=off go test, and make check.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/README.md — Documentation
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/examples/js/extract-demo.js — Smoke demo
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/xgoja/providers/text/text.go — Provider wiring
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/xgoja.yaml — xgoja module entry
+

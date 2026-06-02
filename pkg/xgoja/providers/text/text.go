@@ -6,6 +6,7 @@ import (
 	"github.com/dop251/goja_nodejs/require"
 	"github.com/go-go-golems/go-go-goja/modules"
 	"github.com/go-go-golems/go-go-goja/pkg/xgoja/providerapi"
+	_ "github.com/go-go-golems/goja-text/pkg/extract"
 	_ "github.com/go-go-golems/goja-text/pkg/markdown"
 	_ "github.com/go-go-golems/goja-text/pkg/sanitize"
 )
@@ -15,6 +16,7 @@ const PackageID = "goja-text"
 var textModuleNames = []string{
 	"markdown",
 	"sanitize",
+	"extract",
 }
 
 // Register exposes goja-text modules as xgoja provider modules.

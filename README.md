@@ -93,12 +93,50 @@ Configuration uses Go-backed builder/config objects rather than raw options obje
 
 Unknown options are rejected by default when imported through `FromObject`. Use `CollectUnknownOptions()` when callers need diagnostics without failing immediately.
 
+## Extract module
+
+The extract module locates structured-data candidates inside larger text while preserving source spans and wrapper metadata:
+
+```js
+const extract = require("extract");
+
+const candidates = extract.all(`---
+title: Demo
+---
+
+~~~json
+{\"ok\": true}
+~~~
+
+<yaml>name: Alice\n</yaml>
+`);
+
+for (const candidate of candidates) {
+  console.log(candidate.Kind, candidate.Format, candidate.StartRow, candidate.Text);
+  const validation = extract.validate(candidate);
+  console.log(validation.Valid, validation.Sanitized);
+}
+```
+
+Available helpers:
+
+- `options()` — create a Go-backed options builder
+- `markdownCodeBlocks(input, options?)`
+- `xmlTagged(input, options?)`
+- `rawStructured(input, options?)`
+- `frontmatter(input, options?)`
+- `all(input, options?)`
+- `validate(candidate, options?)`
+
+Candidates are Go-backed objects with PascalCase fields such as `Kind`, `Format`, `Text`, `Raw`, `StartByte`, `StartRow`, `PayloadStartByte`, and `Confidence`.
+
 ## xgoja binary
 
 The included `xgoja.yaml` builds a `dist/goja-text` binary with:
 
 - `markdown` from this repository
 - `sanitize` from this repository backed by `github.com/go-go-golems/sanitize v0.0.2`
+- `extract` from this repository
 - core modules `path` and `yaml`
 - guarded host `fs` access for reading files from disk
 
@@ -120,6 +158,7 @@ Smoke tests:
 ./dist/goja-text eval 'const s = require("sanitize"); JSON.stringify(s.yaml.sanitize("name:Alice\\n").Sanitized)'
 ./dist/goja-text run examples/js/markdown-demo.js
 ./dist/goja-text run examples/js/sanitize-demo.js
+./dist/goja-text run examples/js/extract-demo.js
 ```
 
 ## Go embedding

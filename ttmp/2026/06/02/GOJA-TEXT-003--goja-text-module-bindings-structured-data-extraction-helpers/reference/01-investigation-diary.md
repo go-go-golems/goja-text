@@ -17,6 +17,14 @@ DocType: reference
 Intent: Chronological diary for structured-data extraction helper design and implementation
 Owners: []
 RelatedFiles:
+    - Path: Makefile
+      Note: smoke-extract and check targets
+    - Path: README.md
+      Note: extract user documentation
+    - Path: examples/js/extract-demo.js
+      Note: extract smoke script
+    - Path: examples/text/structured-data-sample.md
+      Note: extract demo fixture
     - Path: pkg/extract/all.go
       Note: Combined extraction
     - Path: pkg/extract/doc.go
@@ -51,12 +59,17 @@ RelatedFiles:
       Note: Wrapper extractor tests
     - Path: pkg/extract/xml_tags.go
       Note: XML-like tag wrapper extraction
+    - Path: pkg/xgoja/providers/text/text.go
+      Note: xgoja provider wiring for extract
+    - Path: xgoja.yaml
+      Note: extract module runtime entry
 ExternalSources: []
 Summary: ""
 LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -503,3 +516,77 @@ The domain functions need to be validated through the actual goja runtime becaus
 ### Technical details
 
 - Validation command: `go test ./... -count=1`
+
+---
+
+## Step 7: Wire Extract into xgoja, Add Demo, README, and Full Validation
+
+Integrated `extract` into the generated goja-text binary and added a file-backed demo. The `make check` target now runs normal tests, standalone tests, xgoja build, Markdown smoke, sanitize smoke, and extract smoke.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Finish the implementation path with xgoja integration, examples, README updates, and full validation.
+
+**Inferred user intent:** Make the structured-data extraction helpers usable through the same generated binary as Markdown and sanitize.
+
+### What I did
+
+- Updated `pkg/xgoja/providers/text/text.go`:
+  - blank-imported `pkg/extract`
+  - added `extract` to `textModuleNames`
+- Updated `xgoja.yaml` to include `extract` in the `main` runtime.
+- Added `examples/text/structured-data-sample.md`.
+- Added `examples/js/extract-demo.js`.
+- Updated `Makefile`:
+  - added `smoke-extract`
+  - included it in `smoke`
+- Updated `README.md` with extract usage and xgoja smoke command.
+- Ran validation:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+  - `make check`
+
+### Why
+
+The generated xgoja binary is the user-facing exercise harness. The extract module is not complete until it can be loaded through `require("extract")` in that binary and run against a real text file from disk.
+
+### What worked
+
+- All tests passed in normal and standalone modes.
+- xgoja build passed.
+- Markdown, sanitize, and extract smoke scripts all passed.
+- `extract-demo.js` returned frontmatter, raw YAML-like whole-document candidate, Markdown JSON code block, and XML-tagged YAML candidates.
+
+### What didn't work
+
+- N/A. The demo reveals one expected Phase 1 behavior: `extract.all` keeps overlapping/whole-document raw candidates rather than suppressing them when more specific wrapper candidates exist.
+
+### What I learned
+
+- The overlap policy is visible in real demo output. Keeping all candidates is useful for transparency, but future work may want a `PreferWrapped` or `SuppressOverlaps` option.
+
+### What was tricky to build
+
+- The demo validates a realistic mixed document and shows why provenance fields matter: `Kind`, `Wrapper`, `Label`, and `StartRow` make it clear where each payload came from.
+
+### What warrants a second pair of eyes
+
+- Whether raw whole-document YAML candidates should be emitted by default when a Markdown document contains frontmatter and other wrappers.
+- Whether `extract.validate` should return typed `JsonValidationResult` / `YamlValidationResult` instead of `Fixes` and `Issues` as `any`.
+
+### What should be done in the future
+
+- Add an overlap policy option if callers find the current keep-all behavior too noisy.
+- Consider TOML/JSON frontmatter support after YAML frontmatter stabilizes.
+
+### Code review instructions
+
+- Run `make check`.
+- Inspect `examples/js/extract-demo.js` and its output.
+- Review provider and `xgoja.yaml` wiring.
+
+### Technical details
+
+- Validation command: `make check`

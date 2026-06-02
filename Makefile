@@ -45,7 +45,10 @@ smoke-markdown: build-xgoja
 smoke-sanitize: build-xgoja
 	$(XGOJA_BINARY) run examples/js/sanitize-demo.js
 
-smoke: smoke-markdown smoke-sanitize
+smoke-extract: build-xgoja
+	$(XGOJA_BINARY) run examples/js/extract-demo.js
+
+smoke: smoke-markdown smoke-sanitize smoke-extract
 
 check: test test-standalone build-xgoja smoke
 

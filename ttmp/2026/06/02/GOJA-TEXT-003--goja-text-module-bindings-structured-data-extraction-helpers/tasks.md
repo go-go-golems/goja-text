@@ -43,20 +43,20 @@
 
 ## Phase 5: xgoja integration and examples
 
-- [ ] 5.1 Blank-import `pkg/extract` in the xgoja text provider
-- [ ] 5.2 Add `extract` to `textModuleNames`
-- [ ] 5.3 Add `extract` to `xgoja.yaml`
-- [ ] 5.4 Add `examples/text/structured-data-sample.md`
-- [ ] 5.5 Add `examples/js/extract-demo.js`
-- [ ] 5.6 Add `smoke-extract` to the Makefile and include it in `smoke`
+- [x] 5.1 Blank-import `pkg/extract` in the xgoja text provider
+- [x] 5.2 Add `extract` to `textModuleNames`
+- [x] 5.3 Add `extract` to `xgoja.yaml`
+- [x] 5.4 Add `examples/text/structured-data-sample.md`
+- [x] 5.5 Add `examples/js/extract-demo.js`
+- [x] 5.6 Add `smoke-extract` to the Makefile and include it in `smoke`
 
 ## Phase 6: Documentation, validation, and delivery
 
-- [ ] 6.1 Update README with extract module examples
-- [ ] 6.2 Run `go test ./... -count=1`
-- [ ] 6.3 Run `GOWORK=off go test ./... -count=1`
-- [ ] 6.4 Run `make check`
-- [ ] 6.5 Update diary and changelog after each implementation phase
-- [ ] 6.6 Relate modified files to ticket docs
-- [ ] 6.7 Run `docmgr doctor --ticket GOJA-TEXT-003 --stale-after 30`
+- [x] 6.1 Update README with extract module examples
+- [x] 6.2 Run `go test ./... -count=1`
+- [x] 6.3 Run `GOWORK=off go test ./... -count=1`
+- [x] 6.4 Run `make check`
+- [x] 6.5 Update diary and changelog after each implementation phase
+- [x] 6.6 Relate modified files to ticket docs
+- [x] 6.7 Run `docmgr doctor --ticket GOJA-TEXT-003 --stale-after 30`
 - [ ] 6.8 Upload updated bundle to reMarkable
