@@ -68,3 +68,15 @@ Step 5: Implemented core sanitize builder/config layer and NativeModule namespac
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/module_test.go — Runtime tests
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/options.go — Builder/config validation
 
+
+## 2026-06-02
+
+Step 6: Wired sanitize into xgoja provider and xgoja.yaml, added fixtures/demo/README docs, validated go test, GOWORK=off go test, xgoja build, eval smoke, and sanitize demo.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/README.md — Documentation
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/examples/js/sanitize-demo.js — Smoke demo
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/xgoja/providers/text/text.go — Provider wiring
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/xgoja.yaml — xgoja module entry
+

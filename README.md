@@ -57,11 +57,48 @@ Visitor return values:
 - `false` or `"skip"`: skip this node's children
 - `"stop"`: stop traversal entirely
 
+## Sanitize module
+
+The sanitize module exports YAML and JSON structured-text linting, repair, parse-tree inspection, rule catalogs, and examples from [`github.com/go-go-golems/sanitize`](https://github.com/go-go-golems/sanitize):
+
+```js
+const sanitize = require("sanitize");
+
+const yamlConfig = sanitize.yaml.options()
+  .MaxIterations(5)
+  .TabWidth(2)
+  .Build();
+
+const yamlResult = sanitize.yaml.sanitize("name:Alice\n", yamlConfig);
+console.log(yamlResult.Sanitized); // "name: Alice\n"
+console.log(yamlResult.Fixes[0].Rule);
+
+const jsonResult = sanitize.json.sanitize("~~~json\n{'ok': True,}\n~~~\n");
+console.log(jsonResult.StrictParseClean);
+console.log(jsonResult.Fixes.map((fix) => fix.Rule));
+```
+
+Configuration uses Go-backed builder/config objects rather than raw options objects as the primary API. Builder methods are exposed with Go method names in JavaScript:
+
+- `MaxIterations(n)`
+- `TabWidth(n)` for YAML
+- `OnlyRules(...rules)`
+- `DisabledRules(...rules)`
+- `RejectUnknownOptions()`
+- `AllowUnknownOptions()`
+- `CollectUnknownOptions()`
+- `FromObject(obj)` for dynamic option imports
+- `Validate()`
+- `Build()`
+
+Unknown options are rejected by default when imported through `FromObject`. Use `CollectUnknownOptions()` when callers need diagnostics without failing immediately.
+
 ## xgoja binary
 
 The included `xgoja.yaml` builds a `dist/goja-text` binary with:
 
 - `markdown` from this repository
+- `sanitize` from this repository backed by `github.com/go-go-golems/sanitize v0.0.2`
 - core modules `path` and `yaml`
 - guarded host `fs` access for reading files from disk
 
@@ -80,7 +117,9 @@ Smoke tests:
 ```bash
 ./dist/goja-text modules --output json
 ./dist/goja-text eval 'const md = require("markdown"); const ast = md.parse("# Hello"); JSON.stringify({type: ast.Type, text: md.textContent(ast)})'
+./dist/goja-text eval 'const s = require("sanitize"); JSON.stringify(s.yaml.sanitize("name:Alice\\n").Sanitized)'
 ./dist/goja-text run examples/js/markdown-demo.js
+./dist/goja-text run examples/js/sanitize-demo.js
 ```
 
 ## Go embedding

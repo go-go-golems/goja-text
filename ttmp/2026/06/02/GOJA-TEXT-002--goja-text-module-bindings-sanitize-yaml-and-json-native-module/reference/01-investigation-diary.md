@@ -12,6 +12,10 @@ DocType: reference
 Intent: ""
 Owners: []
 RelatedFiles:
+    - Path: README.md
+      Note: User-facing sanitize documentation
+    - Path: examples/js/sanitize-demo.js
+      Note: Generated binary smoke script
     - Path: go.mod
       Note: Pinned sanitize v0.0.2 dependency
     - Path: go.sum
@@ -28,12 +32,17 @@ RelatedFiles:
       Note: Sanitize config/result wrapper types
     - Path: pkg/sanitize/typescript.go
       Note: Namespace-aware TypeScript declarations
+    - Path: pkg/xgoja/providers/text/text.go
+      Note: Provider registration for sanitize
+    - Path: xgoja.yaml
+      Note: xgoja runtime module entry for sanitize
 ExternalSources: []
 Summary: ""
 LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -430,3 +439,83 @@ The builder/config layer makes unknown-option behavior explicit and keeps comple
 
 - Validation command: `go test ./... -count=1`
 - New package: `/home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize`
+
+---
+
+## Step 6: Wire Sanitize into xgoja and Validate the Generated Binary
+
+Integrated the new `sanitize` module into the goja-text xgoja provider and generated binary. This step proves the full intended runtime path: provider registration, xgoja spec loading, generated build workspace dependency resolution, host `fs` access, JavaScript script execution, builder/config usage, YAML repair, JSON repair, strict JSON validation, and rule catalog access.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Continue stepwise implementation after the core module passed package-level runtime tests.
+
+**Inferred user intent:** Validate the feature in the actual generated xgoja binary, not only unit tests.
+
+### What I did
+
+- Updated `pkg/xgoja/providers/text/text.go`:
+  - blank-imported `pkg/sanitize`
+  - added `sanitize` to `textModuleNames`
+- Updated `xgoja.yaml` to include the `sanitize` module in the `main` runtime.
+- Added fixtures:
+  - `examples/yaml/broken.yaml`
+  - `examples/json/broken.json`
+- Added `examples/js/sanitize-demo.js` using `fs`, `sanitize.yaml.options()`, `sanitize.yaml.sanitize`, `sanitize.json.options()`, `sanitize.json.sanitize`, `rules`, and `strictParse`.
+- Updated `README.md` with sanitize module usage, builder/config examples, and smoke commands.
+- Re-added the pinned `github.com/go-go-golems/sanitize v0.0.2` dependency after discovering it was absent from `go.mod` when running `GOWORK=off`.
+- Ran validation:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+  - `go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja`
+  - `./dist/goja-text eval 'const s = require("sanitize"); JSON.stringify({yaml:s.yaml.sanitize("name:Alice\\n").Sanitized, rules:s.json.rules().length})'`
+  - `./dist/goja-text run examples/js/sanitize-demo.js`
+
+### Why
+
+Unit tests prove the module works inside a go-go-goja runtime. The generated xgoja binary proves the project can actually ship and exercise the module with the same composition users will run: local goja-text provider, core modules, host filesystem access, and generated commands.
+
+### What worked
+
+- `GOWORK=off go test ./... -count=1` passes with the pinned sanitize dependency and no local replace.
+- xgoja generated build succeeds.
+- The eval smoke test returns `{"yaml":"name: Alice\\n","rules":15}`.
+- The demo script sanitizes the broken YAML fixture to clean YAML and the broken JSON fixture to strict JSON.
+
+### What didn't work
+
+- `GOWORK=off go test ./... -count=1` initially failed because `go.mod` did not contain the sanitize requirement:
+  - `pkg/sanitize/module.go:8:2: no required module provides package github.com/go-go-golems/sanitize/pkg/json`
+  - `pkg/sanitize/module.go:9:2: no required module provides package github.com/go-go-golems/sanitize/pkg/yaml`
+- Fix: reran `go get github.com/go-go-golems/sanitize@v0.0.2` and `go mod tidy`, then reran `GOWORK=off go test ./... -count=1` successfully.
+
+### What I learned
+
+- Normal workspace tests can pass while `GOWORK=off` catches missing direct dependencies. This should remain a checkpoint for goja-text modules.
+- xgoja generated builds resolve the pinned sanitize module normally; no sanitize local replace is required.
+
+### What was tricky to build
+
+- The generated binary has two local-resolution contexts: goja-text itself and the xgoja temporary module. The pinned sanitize dependency works normally, while the local `go-go-goja` basis still needs the absolute `--xgoja-replace` path.
+
+### What warrants a second pair of eyes
+
+- Whether the demo fixture should use a smaller JSON example or keep the combined wrapper/single-quote/python-literal/trailing-comma case.
+- Whether `AllowUnknownOptions` should be documented as advanced/rare to avoid weakening validation in normal callers.
+
+### What should be done in the future
+
+- Consider adding Makefile targets for `test`, `test-standalone`, `build-xgoja`, and `smoke-xgoja`.
+
+### Code review instructions
+
+- Review `pkg/xgoja/providers/text/text.go` and `xgoja.yaml` first.
+- Then run `./dist/goja-text run examples/js/sanitize-demo.js` after building xgoja.
+- Confirm `README.md` matches the tested commands.
+
+### Technical details
+
+- Build command: `go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja`
+- Demo command: `./dist/goja-text run examples/js/sanitize-demo.js`

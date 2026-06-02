@@ -16,6 +16,9 @@ runtimes:
       - package: goja-text
         name: markdown
         as: markdown
+      - package: goja-text
+        name: sanitize
+        as: sanitize
       - package: go-go-goja-core
         name: path
         as: path
