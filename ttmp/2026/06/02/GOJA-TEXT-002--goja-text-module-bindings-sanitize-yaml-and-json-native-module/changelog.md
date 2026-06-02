@@ -57,3 +57,14 @@ Step 4: Added pinned github.com/go-go-golems/sanitize v0.0.2 dependency without 
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/go.mod — Added pinned sanitize dependency
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/go.sum — Updated dependency checksums
 
+
+## 2026-06-02
+
+Step 5: Implemented core sanitize builder/config layer and NativeModule namespaces with tests; go test ./... -count=1 passes.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/module.go — Native module exports
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/module_test.go — Runtime tests
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/options.go — Builder/config validation
+

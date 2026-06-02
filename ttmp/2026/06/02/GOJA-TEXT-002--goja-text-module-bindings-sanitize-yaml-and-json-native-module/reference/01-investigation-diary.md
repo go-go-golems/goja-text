@@ -16,12 +16,25 @@ RelatedFiles:
       Note: Pinned sanitize v0.0.2 dependency
     - Path: go.sum
       Note: Dependency checksum updates
+    - Path: pkg/sanitize/module.go
+      Note: Native module namespace exports
+    - Path: pkg/sanitize/module_test.go
+      Note: JavaScript runtime integration tests
+    - Path: pkg/sanitize/options.go
+      Note: Builder/config validation implementation
+    - Path: pkg/sanitize/options_test.go
+      Note: Builder validation tests
+    - Path: pkg/sanitize/types.go
+      Note: Sanitize config/result wrapper types
+    - Path: pkg/sanitize/typescript.go
+      Note: Namespace-aware TypeScript declarations
 ExternalSources: []
 Summary: ""
 LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 # Investigation Diary
@@ -328,3 +341,92 @@ The pinned module should be the dependency boundary. A local replace would make 
 - Command: `go get github.com/go-go-golems/sanitize@v0.0.2`
 - Command: `go mod tidy`
 - Command: `go test ./... -count=1`
+
+---
+
+## Step 5: Implement Core Sanitize Builder and Native Module
+
+Implemented the first working sanitize module slice. The new `pkg/sanitize` package exposes Go-backed YAML and JSON option builders, immutable config objects, validation results, parse-tree result wrappers, a strict JSON parse result, TypeScript declarations, and the `require("sanitize")` native module with `yaml` and `json` namespaces.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 3)
+
+**Assistant interpretation:** Continue the builder-pattern implementation step by step after correcting the dependency policy.
+
+**Inferred user intent:** Move from design into implementation while preserving validation-focused Go-backed configuration semantics.
+
+### What I did
+
+- Added `pkg/sanitize/types.go`:
+  - `UnknownOptionPolicy`
+  - `ValidationResult`
+  - `YamlConfig`
+  - `JsonConfig`
+  - parse-tree result wrappers
+  - `StrictParseResult`
+- Added `pkg/sanitize/options.go`:
+  - `YamlOptionsBuilder`
+  - `JsonOptionsBuilder`
+  - unknown-option policies: reject, allow, collect
+  - `FromObject`, `Validate`, and `Build`
+  - rule-name and overlap validation
+  - numeric and string-array option helpers
+- Added `pkg/sanitize/module.go`:
+  - `modules.NativeModule` implementation
+  - `sanitize.yaml` namespace
+  - `sanitize.json` namespace
+  - `json.strictParse(input)`
+- Added `pkg/sanitize/typescript.go` with namespace-aware `RawDTS` declarations.
+- Added `pkg/sanitize/options_test.go` for builder validation.
+- Added `pkg/sanitize/module_test.go` for JavaScript runtime integration.
+- Ran `gofmt -w pkg/sanitize`.
+- Ran `go test ./... -count=1` successfully.
+
+### Why
+
+The builder/config layer makes unknown-option behavior explicit and keeps complex validation on the Go side. The native module then accepts either defaults or built config objects instead of repeatedly decoding raw JavaScript option maps.
+
+### What worked
+
+- Go-backed builder methods are callable from JavaScript using PascalCase method names.
+- Built config objects expose PascalCase fields such as `MaxIterations`, `TabWidth`, `UnknownPolicy`, and `Unknown`.
+- The runtime tests prove YAML sanitizing, JSON sanitizing, strict JSON parsing, metadata access, parse-tree access, and unknown-option collection.
+- `go test ./... -count=1` passes.
+
+### What didn't work
+
+- The first JSON runtime test embedded Markdown backtick fences inside a Go raw string again, which caused a compile error. I changed the test fixture to tilde fences (`~~~json`) to preserve fenced-wrapper behavior without breaking the Go raw string.
+- The first unknown-option runtime test expected `collected.Unknown` to export back to Go as `[]any`. It exported as a Go-backed slice representation instead. I changed the test to assert JavaScript-visible behavior: `collected.Unknown[0]` and `collected.Unknown.length`.
+
+### What I learned
+
+- Go-backed slices are usable from JavaScript by index and length, but their exported Go representation in tests may not be a plain `[]any`.
+- The builder pattern is compatible with goja method projection and supports the desired validation flow.
+
+### What was tricky to build
+
+- Optional config arguments had to remain easy to call from JavaScript. The implementation uses `*YamlConfig`/`*JsonConfig`; nil config means defaults.
+- Unknown-option behavior needed to be controllable without weakening validation. The builder defaults to reject, can collect unknowns for diagnostics, or allow them explicitly.
+
+### What warrants a second pair of eyes
+
+- Whether `AllowUnknownOptions` should be retained in Phase 1 or deferred to avoid permissive behavior.
+- Whether builder method names should stay PascalCase or receive lowerCamel JS wrapper aliases later.
+
+### What should be done in the future
+
+- Wire the module into the xgoja provider and generated binary.
+- Add README examples after the xgoja smoke path is validated.
+
+### Code review instructions
+
+- Start with `pkg/sanitize/options.go` for builder validation semantics.
+- Then review `pkg/sanitize/module.go` for namespace wiring and exported functions.
+- Then review `pkg/sanitize/module_test.go` for JavaScript-visible API behavior.
+- Validate with `go test ./... -count=1`.
+
+### Technical details
+
+- Validation command: `go test ./... -count=1`
+- New package: `/home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize`
