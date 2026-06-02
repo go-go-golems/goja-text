@@ -90,3 +90,14 @@ Step 7: Uploaded GOJA-TEXT-002 Sanitize Native Module Design Guide v3 to reMarka
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/reference/01-investigation-diary.md — Final upload diary entry
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/tasks.md — Final task status
 
+
+## 2026-06-02
+
+Step 8: Added sanitize research logbook covering source usefulness, stale assumptions, update needs, and current source authority; related key implementation and reference files.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/module.go — Native module authority
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/options.go — Builder/config authority
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/reference/02-research-logbook-sanitize-sources-usefulness-and-update-needs.md — Research logbook
+

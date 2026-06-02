@@ -579,3 +579,90 @@ The ticket now has implementation, tests, xgoja validation, README updates, diar
 
 - reMarkable path: `/ai/2026/06/02/GOJA-TEXT-002`
 - Bundle name: `GOJA-TEXT-002 Sanitize Native Module Design Guide v3`
+
+---
+
+## Step 8: Create Sanitize Research Logbook
+
+Created a dedicated research logbook for GOJA-TEXT-002 that records which sanitize, goja-text, go-go-goja, ticket, and validation resources shaped the implementation. The logbook distinguishes source authority, usefulness, stale assumptions, and update needs so future work does not need to reconstruct the research trail.
+
+### Prompt Context
+
+**User prompt (verbatim):** "actually before we do that, let's write a research log for the sanitize work.
+
+ Create a research logbook document in the ticket that allows us to keep track of which resources    
+ are useful / out of date / need updating .                                                          
+                                                                                                     
+ For all the documents and external resources you read, list:                                        
+                                                                                                     
+ - what you were researching                                                                         
+ - what you were looking for in this document in particular                                          
+ - why you chose it
+ - how you found the resource itself
+ - what you found useful in the document                                                             
+ - what you didn't find useful                                                                       
+ - what is out of date / what was wrong                                                              
+ - what would need updating.                                                                         
+                                                                                                     
+ Store in ticket and upload to remarkable."
+
+**Assistant interpretation:** Pause the Makefile/close/new-ticket sequence and create a source-by-source research logbook for the sanitize work, then upload it to reMarkable.
+
+**Inferred user intent:** Preserve the research trail for future maintainers before closing or moving on from GOJA-TEXT-002.
+
+### What I did
+
+- Created `reference/02-research-logbook-sanitize-sources-usefulness-and-update-needs.md`.
+- Documented workspace/ticket sources, sanitize library sources, go-go-goja/goja-text binding sources, implemented files, and validation commands.
+- For each resource, recorded:
+  - what was being researched
+  - what was being looked for
+  - why the resource was selected
+  - how the resource was found
+  - what was useful
+  - what was not useful
+  - what was out of date or wrong
+  - what would need updating
+- Added a quick-reference table of current source authority.
+- Added known update needs, including Makefile targets and a superseding note for the review doc's local-replace recommendation.
+- Related the logbook to key implementation and reference files.
+
+### Why
+
+The sanitize ticket involved several corrected assumptions: local replace vs pinned dependency, raw options object vs builder/config API, dotted `SetExport` names vs explicit namespace objects, and strict JSON parse exposure. A research logbook makes those corrections discoverable.
+
+### What worked
+
+- The logbook now clearly distinguishes the local sanitize checkout as reference material from the pinned `v0.0.2` module dependency.
+- It records which files are authoritative for public API, builder validation, xgoja composition, and upstream sanitize behavior.
+
+### What didn't work
+
+- N/A — documentation step only.
+
+### What I learned
+
+- Research logs are especially useful after implementation because they can mark which planning assumptions were superseded by code and validation.
+
+### What was tricky to build
+
+- The tricky part was not over-listing every file in sanitize while still recording enough source evidence for future maintainers. The logbook groups implementation authority by package/file role.
+
+### What warrants a second pair of eyes
+
+- Whether the review document should receive an explicit superseding note about local replace before ticket closure.
+
+### What should be done in the future
+
+- Add Makefile targets for repeated validation.
+- Update this logbook if sanitize is upgraded beyond `v0.0.2`.
+
+### Code review instructions
+
+- Start with the quick-reference authority table.
+- Then read the known update needs at the end.
+- Cross-check any claims about dependency behavior against `go.mod` and `go list -m -json github.com/go-go-golems/sanitize@v0.0.2`.
+
+### Technical details
+
+- Logbook path: `reference/02-research-logbook-sanitize-sources-usefulness-and-update-needs.md`
