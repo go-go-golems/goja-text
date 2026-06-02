@@ -94,6 +94,7 @@ Common fields include:
 - `Title` — link or image title.
 - `Alt` — image alternate text.
 - `Language`, `Info` — fenced-code metadata.
-- `StartLine`, `StartColumn`, `EndLine`, `EndColumn` — source-position fields when goldmark exposes them.
+- `StartLine`, `StartColumn` — 1-indexed source position for the node start when goldmark exposes it.
+- `SourcePos` — compatibility/detail field containing the same `[line, column]` pair.
 
 Prefer checking `node.Type` and then reading the fields that are meaningful for that type.

@@ -8,23 +8,27 @@ import (
 
 // ExtractionCandidate describes one structured-data payload candidate found in text.
 type ExtractionCandidate struct {
-	Kind             string   `json:"kind"`
-	Format           string   `json:"format"`
-	Text             string   `json:"text"`
-	Raw              string   `json:"raw"`
-	Wrapper          string   `json:"wrapper"`
-	Label            string   `json:"label,omitempty"`
-	Info             string   `json:"info,omitempty"`
-	StartByte        int      `json:"startByte"`
-	EndByte          int      `json:"endByte"`
-	StartRow         int      `json:"startRow"`
-	StartCol         int      `json:"startCol"`
-	EndRow           int      `json:"endRow"`
-	EndCol           int      `json:"endCol"`
-	PayloadStartByte int      `json:"payloadStartByte"`
-	PayloadEndByte   int      `json:"payloadEndByte"`
-	Confidence       float64  `json:"confidence"`
-	Diagnostics      []string `json:"diagnostics,omitempty"`
+	Kind               string   `json:"kind"`
+	Format             string   `json:"format"`
+	Text               string   `json:"text"`
+	Raw                string   `json:"raw"`
+	Wrapper            string   `json:"wrapper"`
+	Label              string   `json:"label,omitempty"`
+	Info               string   `json:"info,omitempty"`
+	StartByte          int      `json:"startByte"`
+	EndByte            int      `json:"endByte"`
+	StartRow           int      `json:"startRow"`
+	StartColumn        int      `json:"startColumn"`
+	EndRow             int      `json:"endRow"`
+	EndColumn          int      `json:"endColumn"`
+	PayloadStartByte   int      `json:"payloadStartByte"`
+	PayloadEndByte     int      `json:"payloadEndByte"`
+	PayloadStartRow    int      `json:"payloadStartRow"`
+	PayloadStartColumn int      `json:"payloadStartColumn"`
+	PayloadEndRow      int      `json:"payloadEndRow"`
+	PayloadEndColumn   int      `json:"payloadEndColumn"`
+	Confidence         float64  `json:"confidence"`
+	Diagnostics        []string `json:"diagnostics,omitempty"`
 }
 
 // ExtractOptions configures extractor behavior.

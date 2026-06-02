@@ -79,6 +79,9 @@ func TestParseCapturesGoldmarkEdgeFields(t *testing.T) {
 	if image.SourcePos != [2]int{3, 1} {
 		t.Fatalf("image.SourcePos = %#v, want [3 1]", image.SourcePos)
 	}
+	if image.StartLine != 3 || image.StartColumn != 1 {
+		t.Fatalf("image start = %d:%d, want 3:1", image.StartLine, image.StartColumn)
+	}
 
 	fenced := firstNode(root, "fencedCodeBlock")
 	if fenced == nil {
@@ -90,6 +93,9 @@ func TestParseCapturesGoldmarkEdgeFields(t *testing.T) {
 	if fenced.SourcePos != [2]int{5, 1} {
 		t.Fatalf("fenced.SourcePos = %#v, want [5 1]", fenced.SourcePos)
 	}
+	if fenced.StartLine != 5 || fenced.StartColumn != 1 {
+		t.Fatalf("fenced start = %d:%d, want 5:1", fenced.StartLine, fenced.StartColumn)
+	}
 
 	code := firstNode(root, "codeBlock")
 	if code == nil || !strings.Contains(code.Text, "indented code") {
@@ -97,6 +103,9 @@ func TestParseCapturesGoldmarkEdgeFields(t *testing.T) {
 	}
 	if code.SourcePos != [2]int{9, 5} {
 		t.Fatalf("code.SourcePos = %#v, want [9 5]", code.SourcePos)
+	}
+	if code.StartLine != 9 || code.StartColumn != 5 {
+		t.Fatalf("code start = %d:%d, want 9:5", code.StartLine, code.StartColumn)
 	}
 
 	htmlBlock := firstNode(root, "htmlBlock")

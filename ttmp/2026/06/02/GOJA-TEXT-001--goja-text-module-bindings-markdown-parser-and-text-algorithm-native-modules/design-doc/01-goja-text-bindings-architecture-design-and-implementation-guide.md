@@ -765,7 +765,9 @@ type MarkdownNode struct {
     Marker      string          `json:"marker,omitempty"`
     Info        string          `json:"info,omitempty"`
     Raw         string          `json:"raw,omitempty"`
-    SourcePos   [2]int          `json:"sourcePos,omitempty"` // [line, col] of node start
+    StartLine   int             `json:"startLine,omitempty"`
+    StartColumn int             `json:"startColumn,omitempty"`
+    SourcePos   [2]int          `json:"sourcePos,omitempty"` // compatibility/detail [line, col] of node start
 }
 ```
 
@@ -924,6 +926,8 @@ func (m) TypeScriptModule() *spec.Module {
             "  Marker?: string;",
             "  Info?: string;",
             "  Raw?: string;",
+            "  StartLine?: number;",
+            "  StartColumn?: number;",
             "  SourcePos?: [number, number];",
             "}",
             "export interface WalkContext {",
@@ -1530,7 +1534,7 @@ js> headings
 
 ### Open Questions
 
-1. **Should `MarkdownNode.SourcePos` use 1-indexed lines** (editor convention) or 0-indexed? Leaning toward 1-indexed for human familiarity.
+1. **Source positions are 1-indexed for Markdown nodes.** Public callers should prefer `StartLine` and `StartColumn`; `SourcePos` remains as a compatibility/detail pair with the same values.
 2. **Should inline formatting nodes** (emphasis, strong, code span) be included in the default `parse()` output, or should there be a `parse({inlineDetail: true})` option? Leaning toward always including them — the tree is small enough.
 3. **How to handle frontmatter** (YAML/TOML headers)? goldmark supports this via extensions. Should we enable it by default or make it opt-in?
 4. ~~Should the module live in `go-go-goja/modules/markdown/` or `goja-text/pkg/markdown/`?~~ **Resolved**: `goja-text/pkg/markdown/` with an xgoja provider in `goja-text/pkg/xgoja/providers/text/`. This keeps go-go-goja untouched.

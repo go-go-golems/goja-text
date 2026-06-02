@@ -14,19 +14,27 @@ The repository currently exposes three JavaScript modules:
 | `sanitize` | Repair and inspect YAML or JSON syntax, with fix metadata and Go-backed option builders. | `sanitize.json.sanitize(input)` |
 | `extract` | Find structured-data candidates in Markdown, XML-like tags, frontmatter, or raw text. | `extract.all(input)` |
 
-These modules are available both to Go hosts using `go-go-goja` and to the generated `xgoja` binary described by `xgoja.yaml`.
+These modules are available both to Go hosts using `go-go-goja` and to the generated `xgoja` binary described by `cmd/goja-text/xgoja.yaml`.
 
 ## Build the example xgoja binary
+
+The `cmd/goja-text` directory is a committed generated xgoja command module. It contains the canonical `xgoja.yaml`, the bundled JavaScript verbs, generated `main.go`, embedded assets under `xgoja_embed/`, and its own `go.mod`/`go.sum` so the binary can be rebuilt without a temporary generation workspace.
 
 From this repository directory:
 
 ```bash
-go run ../go-go-goja/cmd/xgoja build \
-  -f xgoja.yaml \
-  --xgoja-replace /home/manuel/workspaces/2026-06-02/goja-text/go-go-goja
+make build-xgoja
 ```
 
-The `--xgoja-replace` path must be absolute because xgoja builds the generated program in a temporary directory. The generated binary is written to `dist/goja-text`.
+For development after editing `cmd/goja-text/xgoja.yaml` or files under `cmd/goja-text/jsverbs`, regenerate the checked-in scaffold directly:
+
+```bash
+cd cmd/goja-text
+GOWORK=off go generate
+GOWORK=off go build -o ../../dist/goja-text .
+```
+
+The `go:generate` directive uses `go tool xgoja build --work-dir . --dry-run` to refresh the generated files in place, then runs a small post-generation normalizer and `go mod tidy`. The generated binary is written to `dist/goja-text` by the Makefile.
 
 The build includes:
 
@@ -34,7 +42,7 @@ The build includes:
 - Core `path` and `yaml` modules from go-go-goja.
 - Guarded host `fs` access for examples that read local files.
 - Provider-shipped Glazed help pages for every goja-text module.
-- Embedded jsverbs examples under `examples/jsverbs`.
+- Embedded jsverbs examples and practical commands under `cmd/goja-text/jsverbs`.
 
 ## Learn from the built-in help
 
@@ -51,7 +59,7 @@ The generated binary includes user-facing Glazed help entries. They are written 
 ./dist/goja-text help goja-text-extract-api-reference
 ```
 
-The user guides include runnable examples, including `eval`, `run`, and `jsverbs` commands.
+The user guides include runnable examples, including `eval`, `run`, and bundled root-mounted JavaScript verb commands.
 
 ## Markdown: parse once, query with walk
 
@@ -137,24 +145,28 @@ The `examples/js` directory contains small scripts that use the host `fs` module
 ./dist/goja-text run examples/js/extract-demo.js
 ```
 
-## jsverbs examples
+## Bundled verbs
 
-The `examples/jsverbs` directory turns the same module patterns into Glazed commands. They are embedded into the generated binary by `xgoja.yaml`.
+The `cmd/goja-text/jsverbs` directory turns the same module patterns into Glazed commands. They are embedded into the generated binary by `cmd/goja-text/xgoja.yaml` and mounted at the generated root command with `commands.jsverbs.mount: root`, so the final binary can teach and exercise itself without reading verb files from disk or requiring an extra `verbs` prefix.
 
 ```bash
-./dist/goja-text verbs list
+./dist/goja-text --help
+./dist/goja-text examples tour
+./dist/goja-text examples fixtures
 
-./dist/goja-text verbs markdown headings examples/markdown/sample.md
-./dist/goja-text verbs markdown links examples/markdown/sample.md
-./dist/goja-text verbs markdown summary examples/markdown/sample.md
+./dist/goja-text markdown toc examples/markdown/sample.md
+./dist/goja-text markdown links examples/markdown/sample.md
+./dist/goja-text markdown summary examples/markdown/sample.md
 
-./dist/goja-text verbs sanitize yaml examples/yaml/broken.yaml
-./dist/goja-text verbs sanitize json examples/json/broken.json
-./dist/goja-text verbs sanitize rules json
+./dist/goja-text sanitize yaml examples/yaml/broken.yaml
+./dist/goja-text sanitize json examples/json/broken.json
+./dist/goja-text sanitize lintJson examples/json/broken.json
+./dist/goja-text sanitize rules json
 
-./dist/goja-text verbs extract list examples/text/structured-data-sample.md
-./dist/goja-text verbs extract validate examples/text/structured-data-sample.md
-./dist/goja-text verbs extract firstValid examples/text/structured-data-sample.md
+./dist/goja-text extract list examples/text/structured-data-sample.md
+./dist/goja-text extract validate examples/text/structured-data-sample.md
+./dist/goja-text extract firstValid examples/text/structured-data-sample.md
+./dist/goja-text extract markdownBlocks examples/text/structured-data-sample.md
 ```
 
 Because jsverbs return structured values, Glazed can render the same command output in formats such as JSON, YAML, or tables.

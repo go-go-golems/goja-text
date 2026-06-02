@@ -1,23 +1,19 @@
-module github.com/go-go-golems/goja-text
+module example.com/generated/goja-text
 
 go 1.26.1
 
-toolchain go1.26.3
-
 require (
-	github.com/dop251/goja v0.0.0-20260311135729-065cd970411c
-	github.com/dop251/goja_nodejs v0.0.0-20250409162600-f7acab6894b0
 	github.com/go-go-golems/go-go-goja v0.7.3
-	github.com/go-go-golems/logcopter v0.1.0
-	github.com/go-go-golems/sanitize v0.0.2
-	github.com/yuin/goldmark v1.8.2
+	github.com/go-go-golems/goja-text v0.0.0-00010101000000-000000000000
 )
 
 require (
+	charm.land/lipgloss/v2 v2.0.0-beta.3.0.20260210014823-2f36a2f1ba17 // indirect
 	github.com/BurntSushi/toml v1.3.2 // indirect
 	github.com/Masterminds/goutils v1.1.1 // indirect
 	github.com/Masterminds/semver v1.5.0 // indirect
 	github.com/Masterminds/sprig v2.22.0+incompatible // indirect
+	github.com/ThreeDotsLabs/watermill v1.5.1 // indirect
 	github.com/adrg/frontmatter v0.2.0 // indirect
 	github.com/alecthomas/chroma/v2 v2.16.0 // indirect
 	github.com/araddon/dateparse v0.0.0-20210429162001-6b43995a97de // indirect
@@ -34,27 +30,40 @@ require (
 	github.com/charmbracelet/colorprofile v0.4.1 // indirect
 	github.com/charmbracelet/glamour v0.10.0 // indirect
 	github.com/charmbracelet/lipgloss v1.1.1-0.20250404203927-76690c660834 // indirect
+	github.com/charmbracelet/ultraviolet v0.0.0-20251205161215-1948445e3318 // indirect
 	github.com/charmbracelet/x/ansi v0.11.6 // indirect
 	github.com/charmbracelet/x/cellbuf v0.0.15 // indirect
 	github.com/charmbracelet/x/exp/slice v0.0.0-20250327172914-2fdc97757edf // indirect
 	github.com/charmbracelet/x/term v0.2.2 // indirect
+	github.com/charmbracelet/x/termios v0.1.1 // indirect
+	github.com/charmbracelet/x/windows v0.2.2 // indirect
 	github.com/clipperhouse/displaywidth v0.9.0 // indirect
 	github.com/clipperhouse/stringish v0.1.1 // indirect
 	github.com/clipperhouse/uax29/v2 v2.5.0 // indirect
 	github.com/dlclark/regexp2 v1.11.5 // indirect
 	github.com/dop251/base64dec v0.0.0-20231022112746-c6c9f9a96217 // indirect
+	github.com/dop251/goja v0.0.0-20260311135729-065cd970411c // indirect
+	github.com/dop251/goja_nodejs v0.0.0-20250409162600-f7acab6894b0 // indirect
 	github.com/erikgeiser/coninput v0.0.0-20211004153227-1c3628e74d0f // indirect
+	github.com/fatih/color v1.16.0 // indirect
+	github.com/go-go-golems/bobatea v0.1.5 // indirect
+	github.com/go-go-golems/geppetto v0.11.7 // indirect
 	github.com/go-go-golems/glazed v1.3.5 // indirect
+	github.com/go-go-golems/logcopter v0.1.0 // indirect
+	github.com/go-go-golems/sanitize v0.0.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect
 	github.com/go-openapi/errors v0.22.0 // indirect
 	github.com/go-openapi/strfmt v0.23.0 // indirect
 	github.com/go-sourcemap/sourcemap v2.1.4+incompatible // indirect
+	github.com/golang/protobuf v1.5.4 // indirect
 	github.com/google/pprof v0.0.0-20241029153458-d1b30febd7db // indirect
 	github.com/google/uuid v1.6.0 // indirect
 	github.com/gorilla/css v1.0.1 // indirect
 	github.com/hashicorp/errwrap v1.1.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
+	github.com/hashicorp/go-hclog v1.6.3 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
+	github.com/hashicorp/go-plugin v1.7.0 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.7 // indirect
 	github.com/hashicorp/go-rootcerts v1.0.2 // indirect
 	github.com/hashicorp/go-secure-stdlib/parseutil v0.1.6 // indirect
@@ -62,13 +71,16 @@ require (
 	github.com/hashicorp/go-sockaddr v1.0.2 // indirect
 	github.com/hashicorp/hcl v1.0.1-vault-7 // indirect
 	github.com/hashicorp/vault/api v1.20.0 // indirect
+	github.com/hashicorp/yamux v0.1.2 // indirect
 	github.com/huandu/xstrings v1.5.0 // indirect
 	github.com/imdario/mergo v0.3.16 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
+	github.com/invopop/jsonschema v0.13.0 // indirect
 	github.com/itchyny/gojq v0.12.12 // indirect
 	github.com/itchyny/timefmt-go v0.1.5 // indirect
 	github.com/jedib0t/go-pretty v4.3.0+incompatible // indirect
 	github.com/kopoli/go-terminal-size v0.0.0-20170219200355-5c97524c8b54 // indirect
+	github.com/lithammer/shortuuid/v3 v3.0.7 // indirect
 	github.com/lucasb-eyer/go-colorful v1.3.0 // indirect
 	github.com/mailru/easyjson v0.9.0 // indirect
 	github.com/mattn/go-colorable v0.1.14 // indirect
@@ -86,6 +98,7 @@ require (
 	github.com/muesli/cancelreader v0.2.2 // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
+	github.com/oklog/run v1.1.0 // indirect
 	github.com/oklog/ulid v1.3.1 // indirect
 	github.com/pkg/errors v0.9.1 // indirect
 	github.com/richardlehane/mscfb v1.0.4 // indirect
@@ -100,6 +113,7 @@ require (
 	github.com/tj/go-naturaldate v1.3.0 // indirect
 	github.com/tree-sitter-grammars/tree-sitter-yaml v0.7.2 // indirect
 	github.com/tree-sitter/go-tree-sitter v0.25.0 // indirect
+	github.com/tree-sitter/tree-sitter-javascript v0.25.0 // indirect
 	github.com/tree-sitter/tree-sitter-json v0.24.8 // indirect
 	github.com/ugorji/go/codec v1.3.0 // indirect
 	github.com/wk8/go-ordered-map/v2 v2.1.8 // indirect
@@ -107,25 +121,26 @@ require (
 	github.com/xuri/efp v0.0.1 // indirect
 	github.com/xuri/excelize/v2 v2.10.0 // indirect
 	github.com/xuri/nfp v0.0.2-0.20250530014748-2ddeb826f9a9 // indirect
+	github.com/yuin/goldmark v1.8.2 // indirect
 	github.com/yuin/goldmark-emoji v1.0.5 // indirect
 	go.mongodb.org/mongo-driver v1.14.0 // indirect
 	golang.org/x/crypto v0.51.0 // indirect
-	golang.org/x/mod v0.36.0 // indirect
 	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/sys v0.45.0 // indirect
 	golang.org/x/term v0.43.0 // indirect
 	golang.org/x/text v0.37.0 // indirect
 	golang.org/x/time v0.15.0 // indirect
-	golang.org/x/tools v0.45.0 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20260311181403-84a4fc48630c // indirect
+	google.golang.org/grpc v1.80.0 // indirect
+	google.golang.org/protobuf v1.36.11 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
-tool (
-	github.com/go-go-golems/go-go-goja/cmd/xgoja
-	github.com/go-go-golems/logcopter/cmd/logcopter-gen
-)
+replace github.com/go-go-golems/go-go-goja => ../../../go-go-goja
 
-replace github.com/go-go-golems/go-go-goja => ../go-go-goja
+replace github.com/go-go-golems/goja-text => ../..
+
+tool github.com/go-go-golems/go-go-goja/cmd/xgoja

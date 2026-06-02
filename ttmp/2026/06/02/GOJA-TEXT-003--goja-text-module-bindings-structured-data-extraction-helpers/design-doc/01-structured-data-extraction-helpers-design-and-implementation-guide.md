@@ -208,11 +208,15 @@ interface ExtractionCandidate {
   StartByte: number;
   EndByte: number;
   StartRow: number;          // 0-indexed
-  StartCol: number;
+  StartColumn: number;
   EndRow: number;
-  EndCol: number;
+  EndColumn: number;
   PayloadStartByte: number;
   PayloadEndByte: number;
+  PayloadStartRow: number;
+  PayloadStartColumn: number;
+  PayloadEndRow: number;
+  PayloadEndColumn: number;
   Confidence: number;        // 0.0..1.0 deterministic heuristic score
   Diagnostics?: string[];
 }

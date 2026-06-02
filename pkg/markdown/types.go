@@ -18,6 +18,8 @@ type MarkdownNode struct {
 	Marker      string          `json:"marker,omitempty"`
 	Info        string          `json:"info,omitempty"`
 	Raw         string          `json:"raw,omitempty"`
+	StartLine   int             `json:"startLine,omitempty"`
+	StartColumn int             `json:"startColumn,omitempty"`
 	SourcePos   [2]int          `json:"sourcePos,omitempty"`
 }
 

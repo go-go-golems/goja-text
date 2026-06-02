@@ -65,6 +65,8 @@ func TestRequireMarkdownExposesGoldmarkEdgeFieldsToJS(t *testing.T) {
 					Destination: node.Destination,
 					Title: node.Title,
 					Alt: node.Alt,
+					StartLine: node.StartLine,
+					StartColumn: node.StartColumn,
 					SourcePos0: node.SourcePos[0],
 					SourcePos1: node.SourcePos[1],
 				};
@@ -72,6 +74,8 @@ func TestRequireMarkdownExposesGoldmarkEdgeFieldsToJS(t *testing.T) {
 					Language: node.Language,
 					Info: node.Info,
 					TextContainsPrint: node.Text.includes("fmt.Println"),
+					StartLine: node.StartLine,
+					StartColumn: node.StartColumn,
 					SourcePos0: node.SourcePos[0],
 					SourcePos1: node.SourcePos[1],
 				};
@@ -98,12 +102,18 @@ func TestRequireMarkdownExposesGoldmarkEdgeFieldsToJS(t *testing.T) {
 	if image["Destination"] != "https://img.example/p.png" || image["Title"] != "Image Title" || image["Alt"] != "Alt em text" {
 		t.Fatalf("image fields = %#v", image)
 	}
+	if image["StartLine"] != int64(1) || image["StartColumn"] != int64(1) {
+		t.Fatalf("image source fields = %#v, want 1:1", image)
+	}
 	fenced, ok := got["fenced"].(map[string]any)
 	if !ok {
 		t.Fatalf("fenced = %#v, want map", got["fenced"])
 	}
 	if fenced["Language"] != "go" || fenced["Info"] != "go title=\"demo\"" || fenced["TextContainsPrint"] != true {
 		t.Fatalf("fenced fields = %#v", fenced)
+	}
+	if fenced["StartLine"] != int64(3) || fenced["StartColumn"] != int64(1) {
+		t.Fatalf("fenced source fields = %#v, want 3:1", fenced)
 	}
 }
 

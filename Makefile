@@ -1,12 +1,11 @@
-.PHONY: gifs logcopter-generate logcopter-check test test-standalone build-xgoja smoke-markdown smoke-sanitize smoke check
+.PHONY: gifs logcopter-generate logcopter-check test test-standalone generate-xgoja build-xgoja smoke-markdown smoke-sanitize smoke-extract smoke-verbs smoke check
 
 all: gifs
 
 VERSION=v0.1.14
 GORELEASER_ARGS ?= --skip=sign --snapshot --clean
 GORELEASER_TARGET ?= --single-target
-WORKSPACE_ROOT := $(abspath ..)
-XGOJA_REPLACE ?= $(WORKSPACE_ROOT)/go-go-goja
+XGOJA_CMD_DIR ?= cmd/goja-text
 XGOJA_BINARY ?= ./dist/goja-text
 
 TAPES=$(wildcard doc/vhs/*tape)
@@ -36,8 +35,11 @@ test:
 test-standalone:
 	GOWORK=off go test ./... -count=1
 
-build-xgoja:
-	go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace $(XGOJA_REPLACE)
+generate-xgoja:
+	cd $(XGOJA_CMD_DIR) && GOWORK=off go generate
+
+build-xgoja: generate-xgoja
+	cd $(XGOJA_CMD_DIR) && GOWORK=off go build -o ../../$(XGOJA_BINARY) .
 
 smoke-markdown: build-xgoja
 	$(XGOJA_BINARY) run examples/js/markdown-demo.js
@@ -48,11 +50,18 @@ smoke-sanitize: build-xgoja
 smoke-extract: build-xgoja
 	$(XGOJA_BINARY) run examples/js/extract-demo.js
 
-smoke: smoke-markdown smoke-sanitize smoke-extract
+smoke-verbs: build-xgoja
+	$(XGOJA_BINARY) help goja-text-markdown-user-guide >/dev/null
+	$(XGOJA_BINARY) examples tour --output json >/dev/null
+	$(XGOJA_BINARY) markdown toc examples/markdown/sample.md --output json >/dev/null
+	$(XGOJA_BINARY) sanitize json examples/json/broken.json --output json >/dev/null
+	$(XGOJA_BINARY) extract validate examples/text/structured-data-sample.md --output json >/dev/null
+
+smoke: smoke-markdown smoke-sanitize smoke-extract smoke-verbs
 
 check: test test-standalone build-xgoja smoke
 
-build:
+build: build-xgoja
 	GOWORK=off go generate ./...
 	GOWORK=off go build ./...
 

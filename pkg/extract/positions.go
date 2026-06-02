@@ -50,10 +50,16 @@ func (li lineIndex) fillSpan(candidate *ExtractionCandidate, start, end, payload
 	candidate.PayloadEndByte = payloadEnd
 	sp := li.position(start)
 	ep := li.position(end)
+	psp := li.position(payloadStart)
+	pep := li.position(payloadEnd)
 	candidate.StartRow = sp.Row
-	candidate.StartCol = sp.Col
+	candidate.StartColumn = sp.Col
 	candidate.EndRow = ep.Row
-	candidate.EndCol = ep.Col
+	candidate.EndColumn = ep.Col
+	candidate.PayloadStartRow = psp.Row
+	candidate.PayloadStartColumn = psp.Col
+	candidate.PayloadEndRow = pep.Row
+	candidate.PayloadEndColumn = pep.Col
 }
 
 type sourceLine struct {

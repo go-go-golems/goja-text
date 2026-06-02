@@ -10,7 +10,9 @@ Topics:
 Commands:
 - goja-text eval
 - goja-text run
-- goja-text verbs
+- goja-text markdown
+- goja-text sanitize
+- goja-text extract
 Flags: []
 IsTopLevel: false
 IsTemplate: false
@@ -105,11 +107,11 @@ HTML is an output format. The AST is the document model. Keeping that distinctio
 
 ## Running the included examples
 
-The repository includes a conventional demo script and a jsverbs command source. The demo is useful when you want to see console-oriented JavaScript. The jsverb is useful when you want Glazed to render structured rows.
+The repository includes a conventional demo script and a root-mounted JavaScript verb command source. The demo is useful when you want to see console-oriented JavaScript. The jsverb is useful when you want Glazed to render structured rows.
 
 ```bash
 ./dist/goja-text run examples/js/markdown-demo.js
-./dist/goja-text verbs markdown headings examples/markdown/sample.md
+./dist/goja-text markdown headings examples/markdown/sample.md
 ```
 
 The `markdown headings` verb reads a file with the host `fs` module, parses it, walks the AST, and returns rows containing heading level, text, and source depth. That is the same pattern shown above, packaged as a command.

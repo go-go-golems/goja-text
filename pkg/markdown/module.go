@@ -49,6 +49,8 @@ func (module) TypeScriptModule() *spec.Module {
 			"  Marker?: string;",
 			"  Info?: string;",
 			"  Raw?: string;",
+			"  StartLine?: number;",
+			"  StartColumn?: number;",
 			"  SourcePos?: [number, number];",
 			"}",
 			"export interface WalkContext {",

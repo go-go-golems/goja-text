@@ -29,6 +29,14 @@ topics:
       description: Structured data payloads such as JSON, YAML, XML, and frontmatter
     - slug: xml
       description: XML and XML-like tagged text
+    - slug: xgoja
+      description: xgoja generated Goja binary build system
+    - slug: jsverbs
+      description: JavaScript verbs exposed as Glazed/Cobra commands
+    - slug: cli
+      description: Command-line interface design and behavior
+    - slug: buildspec
+      description: Declarative build specification files
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes

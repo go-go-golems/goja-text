@@ -11,7 +11,9 @@ Topics:
 Commands:
 - goja-text eval
 - goja-text run
-- goja-text verbs
+- goja-text markdown
+- goja-text sanitize
+- goja-text extract
 Flags: []
 IsTopLevel: false
 IsTemplate: false
@@ -100,14 +102,14 @@ The demo script reads intentionally broken files and prints the repaired text an
 ./dist/goja-text run examples/js/sanitize-demo.js
 ```
 
-The jsverbs examples expose the same behavior as structured commands:
+The bundled root-mounted JavaScript verbs expose the same behavior as structured commands:
 
 ```bash
-./dist/goja-text verbs sanitize yaml examples/yaml/broken.yaml
-./dist/goja-text verbs sanitize json examples/json/broken.json
+./dist/goja-text sanitize yaml examples/yaml/broken.yaml
+./dist/goja-text sanitize json examples/json/broken.json
 ```
 
-Because jsverbs return structured values, the same command can be rendered as JSON, YAML, or a table by Glazed output flags.
+Because JavaScript verbs return structured values, the same command can be rendered as JSON, YAML, or a table by Glazed output flags.
 
 ## Key points
 

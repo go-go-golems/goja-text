@@ -13,9 +13,12 @@ func ConvertAST(source []byte, n goldast.Node) *MarkdownNode {
 		return nil
 	}
 
+	sourcePos := sourcePosition(n, source)
 	node := &MarkdownNode{
-		Type:      nodeType(n),
-		SourcePos: sourcePosition(n, source),
+		Type:        nodeType(n),
+		StartLine:   sourcePos[0],
+		StartColumn: sourcePos[1],
+		SourcePos:   sourcePos,
 	}
 
 	switch v := n.(type) {

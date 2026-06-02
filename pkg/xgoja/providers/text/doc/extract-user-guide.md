@@ -10,7 +10,9 @@ Topics:
 Commands:
 - goja-text eval
 - goja-text run
-- goja-text verbs
+- goja-text markdown
+- goja-text sanitize
+- goja-text extract
 Flags: []
 IsTopLevel: false
 IsTemplate: false
@@ -109,11 +111,11 @@ The demo script reads a sample Markdown document and prints the discovered candi
 ./dist/goja-text run examples/js/extract-demo.js
 ```
 
-The jsverbs examples turn extraction into reusable commands:
+The bundled root-mounted JavaScript verbs turn extraction into reusable commands:
 
 ```bash
-./dist/goja-text verbs extract list examples/text/structured-data-sample.md
-./dist/goja-text verbs extract validate examples/text/structured-data-sample.md
+./dist/goja-text extract list examples/text/structured-data-sample.md
+./dist/goja-text extract validate examples/text/structured-data-sample.md
 ```
 
 These verbs are a useful starting point for automation because they return structured rows rather than prose output.
