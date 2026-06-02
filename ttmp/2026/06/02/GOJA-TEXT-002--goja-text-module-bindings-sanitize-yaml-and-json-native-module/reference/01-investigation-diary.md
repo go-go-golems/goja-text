@@ -12,6 +12,8 @@ DocType: reference
 Intent: ""
 Owners: []
 RelatedFiles:
+    - Path: Makefile
+      Note: Repeatable validation targets for GOJA-TEXT-002
     - Path: README.md
       Note: User-facing sanitize documentation
     - Path: examples/js/sanitize-demo.js
@@ -42,6 +44,7 @@ LastUpdated: 0001-01-01T00:00:00Z
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 
 
@@ -666,3 +669,79 @@ The sanitize ticket involved several corrected assumptions: local replace vs pin
 ### Technical details
 
 - Logbook path: `reference/02-research-logbook-sanitize-sources-usefulness-and-update-needs.md`
+
+---
+
+## Step 9: Add Makefile Validation Targets and Prepare Ticket Closure
+
+Added Makefile targets that wrap the validation commands used throughout GOJA-TEXT-001 and GOJA-TEXT-002. The new `make check` target runs normal tests, standalone `GOWORK=off` tests, an xgoja generated build, and both Markdown and sanitize smoke scripts.
+
+### Prompt Context
+
+**User prompt (verbatim):** "do it. then close the ticket.
+
+Then open a new ticket where we are going to provide helpers for extracting structured data from text:
+
+- codeblocks from markdown
+- xml tag wrapped 
+- recognizing raw json / yaml
+- other suggestions you might have.
+
+Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Assistant interpretation:** First add the Makefile validation targets discussed previously, then close GOJA-TEXT-002, then create a new ticket for structured-data extraction helpers.
+
+**Inferred user intent:** Finish the sanitize ticket cleanly with repeatable validation before starting the next design ticket.
+
+### What I did
+
+- Updated `Makefile` with:
+  - `test`
+  - `test-standalone`
+  - `build-xgoja`
+  - `smoke-markdown`
+  - `smoke-sanitize`
+  - `smoke`
+  - `check`
+- Used `WORKSPACE_ROOT`, `XGOJA_REPLACE`, and `XGOJA_BINARY` variables so the xgoja replace path is derived from the repo location.
+- Ran `make check` successfully.
+- Updated the research logbook to mark Makefile targets as resolved.
+- Marked the final GOJA-TEXT-002 phase task complete.
+
+### Why
+
+The same validation commands were being copied manually. Encoding them in Makefile targets makes future commits and reviews less error-prone.
+
+### What worked
+
+- `make check` passed end-to-end.
+- Both generated-binary smoke scripts ran successfully.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- Wrapping the absolute xgoja replace path in `XGOJA_REPLACE ?= $(WORKSPACE_ROOT)/go-go-goja` keeps the command reproducible without hardcoding the full path in every invocation.
+
+### What was tricky to build
+
+- The existing Makefile already had a `test` target using `GOWORK=off`. I split validation explicitly: `test` now uses normal workspace mode and `test-standalone` uses `GOWORK=off`.
+
+### What warrants a second pair of eyes
+
+- Whether CI should call `make check` or a narrower subset.
+
+### What should be done in the future
+
+- Reuse the same Makefile pattern for future goja-text modules.
+
+### Code review instructions
+
+- Review the Makefile target definitions.
+- Validate with `make check` from `/home/manuel/workspaces/2026-06-02/goja-text/goja-text`.
+
+### Technical details
+
+- Validation command: `make check`

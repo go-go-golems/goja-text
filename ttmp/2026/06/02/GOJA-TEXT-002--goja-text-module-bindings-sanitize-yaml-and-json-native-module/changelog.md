@@ -101,3 +101,13 @@ Step 8: Added sanitize research logbook covering source usefulness, stale assump
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/pkg/sanitize/options.go — Builder/config authority
 - /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/reference/02-research-logbook-sanitize-sources-usefulness-and-update-needs.md — Research logbook
 
+
+## 2026-06-02
+
+Step 9: Added Makefile validation targets for tests, standalone tests, xgoja build, Markdown smoke, sanitize smoke, and make check; make check passed.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/Makefile — Validation targets
+- /home/manuel/workspaces/2026-06-02/goja-text/goja-text/ttmp/2026/06/02/GOJA-TEXT-002--goja-text-module-bindings-sanitize-yaml-and-json-native-module/reference/02-research-logbook-sanitize-sources-usefulness-and-update-needs.md — Makefile update status
+

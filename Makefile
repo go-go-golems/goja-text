@@ -1,10 +1,13 @@
-.PHONY: gifs logcopter-generate logcopter-check
+.PHONY: gifs logcopter-generate logcopter-check test test-standalone build-xgoja smoke-markdown smoke-sanitize smoke check
 
 all: gifs
 
 VERSION=v0.1.14
 GORELEASER_ARGS ?= --skip=sign --snapshot --clean
 GORELEASER_TARGET ?= --single-target
+WORKSPACE_ROOT := $(abspath ..)
+XGOJA_REPLACE ?= $(WORKSPACE_ROOT)/go-go-goja
+XGOJA_BINARY ?= ./dist/goja-text
 
 TAPES=$(wildcard doc/vhs/*tape)
 gifs: $(TAPES)
@@ -28,7 +31,23 @@ govulncheck:
 	govulncheck ./...
 
 test:
-	GOWORK=off go test ./...
+	go test ./... -count=1
+
+test-standalone:
+	GOWORK=off go test ./... -count=1
+
+build-xgoja:
+	go run ../go-go-goja/cmd/xgoja build -f xgoja.yaml --xgoja-replace $(XGOJA_REPLACE)
+
+smoke-markdown: build-xgoja
+	$(XGOJA_BINARY) run examples/js/markdown-demo.js
+
+smoke-sanitize: build-xgoja
+	$(XGOJA_BINARY) run examples/js/sanitize-demo.js
+
+smoke: smoke-markdown smoke-sanitize
+
+check: test test-standalone build-xgoja smoke
 
 build:
 	GOWORK=off go generate ./...

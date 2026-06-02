@@ -563,7 +563,7 @@ This logbook records both pre-implementation planning sources and implementation
 
 ### Still worth addressing
 
-- 🟠 **Add Makefile targets** for `test`, `test-standalone`, `build-xgoja`, `smoke-markdown`, `smoke-sanitize`, and `check` so future validation does not require copying long commands.
+- ✅ **Makefile validation targets were added** for `test`, `test-standalone`, `build-xgoja`, `smoke-markdown`, `smoke-sanitize`, `smoke`, and `check`; `make check` passed.
 - 🟡 **Update the review document with a superseding note** that local sanitize replace is no longer recommended.
 - 🟡 **Decide whether `AllowUnknownOptions` should be documented as advanced/rare** to avoid callers using it casually.
 - 🟡 **Consider assertion-based xgoja smoke tests** if generated binary behavior should be part of CI.
