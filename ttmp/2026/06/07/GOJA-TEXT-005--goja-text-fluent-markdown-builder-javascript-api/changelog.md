@@ -91,3 +91,12 @@ Finalized GOJA-TEXT-005 after implementation: docmgr doctor passed and the revis
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/reference/01-investigation-diary.md — Final diary and validation/upload record
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/tasks.md — All implementation tasks checked
 
+
+## 2026-06-07
+
+Added a dedicated Glazed help entry for the Markdown builder API and verified it with goja-text help goja-text-markdown-builder-api-reference.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/xgoja/providers/text/doc/markdown-builder-api-reference.md — New Glazed help entry
+

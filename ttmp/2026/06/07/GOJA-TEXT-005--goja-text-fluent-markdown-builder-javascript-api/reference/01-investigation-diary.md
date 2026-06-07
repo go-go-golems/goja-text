@@ -54,6 +54,8 @@ RelatedFiles:
       Note: Phase 2 runtime test coverage recorded in diary
     - Path: pkg/xgoja/providers/text/doc/markdown-api-reference.md
       Note: Phase 3 API docs recorded in diary
+    - Path: pkg/xgoja/providers/text/doc/markdown-builder-api-reference.md
+      Note: Follow-up API help entry recorded in diary
     - Path: pkg/xgoja/providers/text/doc/markdown-user-guide.md
       Note: Phase 3 guide docs recorded in diary
     - Path: ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md
@@ -66,6 +68,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 
@@ -1055,4 +1058,110 @@ remarquee upload bundle \
   --non-interactive
 docmgr task check --ticket GOJA-TEXT-005 --id 17
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Finalized GOJA-TEXT-005 after implementation: docmgr doctor passed and the revised documentation bundle was uploaded to reMarkable at /ai/2026/06/07/GOJA-TEXT-005."
+```
+
+## Step 11: Add a dedicated Glazed help entry for the builder API
+
+I added a standalone Glazed help page for the Markdown builder API. The earlier work updated the general Markdown API/user-guide pages, but this follow-up creates a focused reference page that mirrors the other API references and can be opened directly with its own slug.
+
+The new page documents loading, builder lifecycle, every builder method, table-builder behavior, inline helpers, render results, validation behavior, a complete example, CLI examples, troubleshooting, and related help topics.
+
+### Prompt Context
+
+**User prompt (verbatim):**
+
+```text
+create documentation about eh API, in the galzed help entry format like the other APIs
+```
+
+**Assistant interpretation:** Add a dedicated Glazed-format help entry for the Markdown builder API, using the existing API reference pages as the style and frontmatter model.
+
+**Inferred user intent:** Make the newly implemented API discoverable through `goja-text help ...`, not only through source docs and the ticket diary.
+
+**Commit (code):** pending — documentation-only follow-up.
+
+### What I did
+
+- Created `pkg/xgoja/providers/text/doc/markdown-builder-api-reference.md`.
+- Used Glazed help frontmatter with `Title`, `Slug`, `Short`, `Topics`, `Commands`, `Flags`, `IsTopLevel`, `IsTemplate`, `ShowPerDefault`, and `SectionType`.
+- Wrote reference sections for:
+  - loading `require("markdown")`
+  - `MarkdownBuilder` lifecycle
+  - block builder methods
+  - `TableBuilder` methods
+  - `InlineFactory` methods
+  - render results
+  - validation behavior
+  - complete JavaScript example
+  - CLI example commands
+  - troubleshooting
+  - see-also links
+- Verified the page is queryable with the generated binary:
+
+```bash
+../../dist/goja-text help goja-text-markdown-builder-api-reference
+```
+
+- Added and checked a follow-up task.
+- Related the new help page to the design doc and diary.
+- Updated the changelog.
+
+### Why
+
+- A dedicated API page is easier to discover than a section embedded inside the broader Markdown API reference.
+- Glazed help entries are the normal documentation surface for the xgoja CLI.
+- The page gives users copy/paste-ready examples and troubleshooting for common builder mistakes.
+
+### What worked
+
+- `go test ./... -count=1` passed after adding the new embedded Markdown file.
+- Rebuilding `cmd/goja-text` picked up the new go:embed help page without needing to regenerate xgoja assets.
+- `goja-text help goja-text-markdown-builder-api-reference` rendered the new page successfully.
+
+### What didn't work
+
+- No validation or rendering failures occurred.
+
+### What I learned
+
+- Help pages under `pkg/xgoja/providers/text/doc/*.md` are embedded by the provider package, so a normal rebuild is enough to verify a new help entry.
+- The builder API benefits from a separate page because the full method list is long and would make the general Markdown API page too dense.
+
+### What was tricky to build
+
+- The main tricky part was choosing enough detail for a reference page without turning it into the long design document. I kept implementation rationale short and focused on user-facing API behavior, examples, and failure modes.
+
+### What warrants a second pair of eyes
+
+- Check whether the `Commands` list in the frontmatter should include only implemented CLI commands or also `goja-text eval`/`run` as script entrypoints.
+- Review whether the troubleshooting table captures the most likely user mistakes.
+
+### What should be done in the future
+
+- Optionally add a shorter example-focused help entry if users want a cookbook page separate from this reference.
+
+### Code review instructions
+
+- Review `pkg/xgoja/providers/text/doc/markdown-builder-api-reference.md` for Glazed frontmatter correctness and API accuracy.
+- Validate with:
+
+```bash
+go test ./... -count=1
+cd cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+../../dist/goja-text help goja-text-markdown-builder-api-reference
+```
+
+### Technical details
+
+Commands run:
+
+```bash
+go test ./... -count=1
+cd cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+../../dist/goja-text help goja-text-markdown-builder-api-reference
+docmgr task add --ticket GOJA-TEXT-005 --text "Follow-up: add dedicated Glazed help entry for the Markdown builder API"
+docmgr task check --ticket GOJA-TEXT-005 --id 18
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Added a dedicated Glazed help entry for the Markdown builder API and verified it with goja-text help goja-text-markdown-builder-api-reference."
 ```
