@@ -21,3 +21,4 @@
 - [x] Phase 5: regenerate/build xgoja binary and smoke-test Markdown builder commands
 - [x] Final: update diary, changelog, doc relations, validate ticket, and upload revised bundle to reMarkable
 - [x] Follow-up: add dedicated Glazed help entry for the Markdown builder API
+- [x] Code review: preserve inline whitespace and table escaping for nested inline helpers

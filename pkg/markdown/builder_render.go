@@ -3,7 +3,6 @@ package markdown
 import (
 	"fmt"
 	"regexp"
-	"strconv"
 	"strings"
 	"unicode/utf8"
 )
@@ -47,7 +46,7 @@ func renderMarkdownBlock(block markdownBlock) (string, error) {
 	case headingBlock:
 		return strings.Repeat("#", b.Level) + " " + renderInlineNormal(b.Text), nil
 	case paragraphBlock:
-		return normalizeParagraph(renderInlineNormal(b.Inlines)), nil
+		return renderInlineNormal(b.Inlines), nil
 	case rawBlock:
 		return b.Markdown, nil
 	case thematicBreakBlock:
@@ -77,17 +76,17 @@ func renderMarkdownBlock(block markdownBlock) (string, error) {
 }
 
 func renderInlineNormal(inlines []markdownInline) string {
-	var b strings.Builder
-	for _, in := range inlines {
-		b.WriteString(renderOneInline(in, false))
-	}
-	return b.String()
+	return renderInline(inlines, false)
 }
 
 func renderInlineTable(inlines []markdownInline) string {
+	return renderInline(inlines, true)
+}
+
+func renderInline(inlines []markdownInline, tableCell bool) string {
 	var b strings.Builder
 	for _, in := range inlines {
-		b.WriteString(renderOneInline(in, true))
+		b.WriteString(renderOneInline(in, tableCell))
 	}
 	return b.String()
 }
@@ -101,14 +100,21 @@ func renderOneInline(in markdownInline, tableCell bool) string {
 	case CodeInline:
 		return renderCodeSpan(v.Code, tableCell)
 	case EmphasisInline:
-		return "*" + renderInlineNormal(v.Children) + "*"
+		return "*" + renderInline(v.Children, tableCell) + "*"
 	case StrongInline:
-		return "**" + renderInlineNormal(v.Children) + "**"
+		return "**" + renderInline(v.Children, tableCell) + "**"
 	case LinkInline:
-		text := renderInlineNormal(v.Text)
+		text := renderInline(v.Text, tableCell)
 		url := strings.ReplaceAll(v.URL, ")", "%29")
+		if tableCell {
+			url = escapeTableDelimiters(url)
+		}
 		if v.Title != "" {
-			return "[" + text + "](" + url + " " + strconv.Quote(v.Title) + ")"
+			title := v.Title
+			if tableCell {
+				title = escapeTableDelimiters(title)
+			}
+			return "[" + text + "](" + url + " " + quoteMarkdownLinkTitle(title) + ")"
 		}
 		return "[" + text + "](" + url + ")"
 	default:
@@ -116,20 +122,24 @@ func renderOneInline(in markdownInline, tableCell bool) string {
 	}
 }
 
+func quoteMarkdownLinkTitle(title string) string {
+	return `"` + strings.ReplaceAll(title, `"`, `\"`) + `"`
+}
+
 func escapeMarkdownText(s string, tableCell bool) string {
 	s = markdownSpecials.Replace(s)
 	if tableCell {
-		s = strings.ReplaceAll(s, "|", `\|`)
-		s = strings.ReplaceAll(s, "\r\n", "<br>")
-		s = strings.ReplaceAll(s, "\n", "<br>")
-		s = strings.ReplaceAll(s, "\r", "<br>")
+		s = escapeTableDelimiters(s)
 	}
 	return s
 }
 
-func normalizeParagraph(s string) string {
-	fields := strings.Fields(strings.ReplaceAll(s, "\u00a0", " "))
-	return strings.Join(fields, " ")
+func escapeTableDelimiters(s string) string {
+	s = strings.ReplaceAll(s, "|", `\|`)
+	s = strings.ReplaceAll(s, "\r\n", "<br>")
+	s = strings.ReplaceAll(s, "\n", "<br>")
+	s = strings.ReplaceAll(s, "\r", "<br>")
+	return s
 }
 
 func renderList(block listBlock) string {

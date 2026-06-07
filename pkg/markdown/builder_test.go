@@ -61,6 +61,43 @@ func TestMarkdownBuilderTableAlignsAndEscapes(t *testing.T) {
 	}
 }
 
+func TestMarkdownBuilderPreservesInlineWhitespace(t *testing.T) {
+	inline := NewInlineFactory()
+	out, err := NewMarkdownBuilder().
+		Paragraph("Run ", inline.Code("cmd  --flag"), " exactly.").
+		RenderString()
+	if err != nil {
+		t.Fatalf("RenderString() error = %v", err)
+	}
+	if !strings.Contains(out, "`cmd  --flag`") {
+		t.Fatalf("code span whitespace was not preserved: %s", out)
+	}
+}
+
+func TestMarkdownBuilderTableEscapesNestedInlineText(t *testing.T) {
+	inline := NewInlineFactory()
+	out, err := NewMarkdownBuilder().
+		Table().
+		Columns("Kind", "Value").
+		Row("strong", inline.Strong("a|b\nc")).
+		Row("em", inline.Em("x|y")).
+		Row("link", inline.Link("docs|api", "https://example.com/a|b", "title|here")).
+		End().
+		RenderString()
+	if err != nil {
+		t.Fatalf("RenderString() error = %v", err)
+	}
+	for _, want := range []string{
+		`**a\|b<br>c**`,
+		`*x\|y*`,
+		`[docs\|api](https://example.com/a\|b "title\|here")`,
+	} {
+		if !strings.Contains(out, want) {
+			t.Fatalf("output missing %q:\n%s", want, out)
+		}
+	}
+}
+
 func TestMarkdownBuilderValidation(t *testing.T) {
 	_, err := NewMarkdownBuilder().
 		Heading(9, "bad").

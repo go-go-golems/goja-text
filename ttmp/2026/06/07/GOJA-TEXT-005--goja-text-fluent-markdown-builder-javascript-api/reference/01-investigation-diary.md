@@ -39,11 +39,15 @@ RelatedFiles:
     - Path: pkg/markdown/builder.go
       Note: Phase 1 fluent builder implementation recorded in diary
     - Path: pkg/markdown/builder_render.go
-      Note: Phase 1 renderer implementation recorded in diary
+      Note: |-
+        Phase 1 renderer implementation recorded in diary
+        PR #6 review fixes recorded in diary
     - Path: pkg/markdown/builder_table.go
       Note: Phase 1 table builder implementation recorded in diary
     - Path: pkg/markdown/builder_test.go
-      Note: Phase 1 test coverage recorded in diary
+      Note: |-
+        Phase 1 test coverage recorded in diary
+        PR #6 regression tests recorded in diary
     - Path: pkg/markdown/builder_types.go
       Note: Phase 1 service type implementation recorded in diary
     - Path: pkg/markdown/module.go
@@ -68,6 +72,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 
@@ -1164,4 +1169,109 @@ GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
 docmgr task add --ticket GOJA-TEXT-005 --text "Follow-up: add dedicated Glazed help entry for the Markdown builder API"
 docmgr task check --ticket GOJA-TEXT-005 --id 18
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Added a dedicated Glazed help entry for the Markdown builder API and verified it with goja-text help goja-text-markdown-builder-api-reference."
+```
+
+## Step 12: Address PR #6 renderer review issues
+
+I addressed two code review issues from PR #6. Both issues were in the Markdown renderer, and both came from treating rendered inline Markdown as an ordinary string too early. Paragraph rendering collapsed whitespace after inline helpers had already rendered, and table rendering lost table-cell escaping context when nested inline helpers rendered their children.
+
+The fix keeps rendering context alive longer. Paragraph blocks now render inline nodes directly instead of normalizing the final Markdown string. Nested inline helpers such as `Strong`, `Em`, and `Link` now render their children with the current table-cell context, so pipes and newlines remain escaped even when they appear inside formatted inline content.
+
+### Prompt Context
+
+**User prompt (verbatim):**
+
+```text
+Address code review issues: https://github.com/go-go-golems/goja-text/pull/6
+```
+
+**Assistant interpretation:** Inspect PR #6 review comments, fix the reported correctness issues, add regression tests, validate, update ticket bookkeeping, and commit the changes.
+
+**Inferred user intent:** Make the PR ready for review by resolving automated review feedback with focused changes rather than broad refactoring.
+
+**Commit (code):** pending — PR review fixes are ready to commit.
+
+### What I did
+
+- Read PR #6 review comments with `gh api repos/go-go-golems/goja-text/pulls/6/comments --paginate`.
+- Fixed paragraph rendering in `pkg/markdown/builder_render.go` by removing final-string whitespace normalization for paragraph blocks.
+- Refactored inline rendering so `renderInlineNormal` and `renderInlineTable` share a context-aware `renderInline(inlines, tableCell)` helper.
+- Updated `EmphasisInline`, `StrongInline`, and `LinkInline` rendering to preserve the current table-cell context for nested text.
+- Added table delimiter escaping for link URLs and link titles when rendering inside table cells.
+- Replaced `strconv.Quote` for link titles with a Markdown-specific quote helper so table pipe escapes are not doubled in link titles.
+- Added regression tests in `pkg/markdown/builder_test.go` for:
+  - preserving double spaces inside code spans in paragraphs,
+  - escaping pipes/newlines inside strong/emphasis/link inline helpers in table cells.
+- Ran formatting, package tests, package lint, and all repository tests.
+- Added and checked a PR-review follow-up task.
+- Updated changelog and related files.
+
+### Why
+
+- `Paragraph("Run ", i.Code("cmd  --flag"))` must preserve the two spaces inside the code span because code spans represent literal text.
+- `Row(i.Strong("a|b"))` must not split a Markdown table. Table escaping has to apply recursively to nested inline text, not only to top-level `TextInline` cells.
+
+### What worked
+
+- The regression tests reproduce both review concerns and now pass.
+- `go test ./pkg/markdown -count=1` passed.
+- `GOWORK=off golangci-lint run ./pkg/markdown` passed with zero issues.
+- `go test ./... -count=1` passed.
+
+### What didn't work
+
+- The first version of the nested-link regression expected a single backslash in the link title, but `strconv.Quote` doubled the backslash because it quotes Go strings. This produced:
+
+```text
+[docs\|api](https://example.com/a\|b "title\\|here")
+```
+
+- I replaced `strconv.Quote` with a Markdown-specific `quoteMarkdownLinkTitle` helper that escapes double quotes without doubling the table pipe escape.
+
+### What I learned
+
+- Render context should be propagated through inline rendering rather than inferred after rendering a string.
+- Generic string normalization is risky after typed inline nodes have already rendered, because it destroys semantics that the inline type was supposed to preserve.
+- Markdown link-title quoting is not the same as Go string literal quoting.
+
+### What was tricky to build
+
+- The table renderer has two escaping layers: Markdown escaping and table delimiter escaping. Nested inline helpers must preserve both layers without double-escaping already escaped child text.
+- Link titles need special handling because escaping the table pipe adds a backslash, but generic Go string quoting treats that backslash as a character that also needs escaping.
+
+### What warrants a second pair of eyes
+
+- Verify whether raw inline Markdown inside table cells should intentionally bypass table escaping. I left `RawInline` as an explicit escape hatch.
+- Review `quoteMarkdownLinkTitle` for any additional Markdown title edge cases beyond double quotes.
+
+### What should be done in the future
+
+- Consider adding a small renderer-focused table of escaping invariants to the help docs if more table edge cases appear.
+
+### Code review instructions
+
+- Start in `pkg/markdown/builder_render.go` at `renderMarkdownBlock`, `renderInline`, and `renderOneInline`.
+- Then read the two new regression tests in `pkg/markdown/builder_test.go`.
+- Validate with:
+
+```bash
+gofmt -w pkg/markdown/builder_render.go pkg/markdown/builder_test.go
+go test ./pkg/markdown -count=1
+GOWORK=off golangci-lint run ./pkg/markdown
+go test ./... -count=1
+```
+
+### Technical details
+
+Commands run:
+
+```bash
+gh api repos/go-go-golems/goja-text/pulls/6/comments --paginate
+gofmt -w pkg/markdown/builder_render.go pkg/markdown/builder_test.go
+go test ./pkg/markdown -count=1
+GOWORK=off golangci-lint run ./pkg/markdown
+go test ./... -count=1
+docmgr task add --ticket GOJA-TEXT-005 --text "Code review: preserve inline whitespace and table escaping for nested inline helpers"
+docmgr task check --ticket GOJA-TEXT-005 --id 19
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Addressed PR #6 code review: paragraph rendering now preserves inline helper whitespace, and nested inline helpers in table cells keep table escaping context for pipes/newlines."
 ```

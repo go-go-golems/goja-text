@@ -100,3 +100,13 @@ Added a dedicated Glazed help entry for the Markdown builder API and verified it
 
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/xgoja/providers/text/doc/markdown-builder-api-reference.md — New Glazed help entry
 
+
+## 2026-06-07
+
+Addressed PR #6 code review: paragraph rendering now preserves inline helper whitespace, and nested inline helpers in table cells keep table escaping context for pipes/newlines.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_render.go — Renderer fixes for paragraph whitespace and table-cell inline context
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_test.go — Regression tests for code-span whitespace and nested inline table escaping
+
