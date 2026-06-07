@@ -952,3 +952,107 @@ GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
 docmgr task check --ticket GOJA-TEXT-005 --id 16
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Regenerated and rebuilt the xgoja binary, then smoke-tested markdown builder-examples and both builder-example variants successfully."
 ```
+
+## Step 10: Final validation and reMarkable delivery
+
+I completed the final ticket bookkeeping pass after implementation. `docmgr doctor` passed, all tasks are checked, and the revised ticket bundle was uploaded to reMarkable with `--force` so the previously uploaded design-only PDF was replaced by the implementation-complete version.
+
+The code was already committed in focused checkpoints before this final documentation-only step. This final step records delivery evidence and leaves the repository ready for review.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Finish the implementation loop with validation, final diary/changelog updates, and revised reMarkable delivery.
+
+**Inferred user intent:** Ensure the ticket is complete and the off-device reading copy matches the final implemented state.
+
+**Commit (code):** pending — final documentation bookkeeping only.
+
+### What I did
+
+- Ran `docmgr doctor --ticket GOJA-TEXT-005 --stale-after 30`.
+- Uploaded the revised documentation bundle to `/ai/2026/06/07/GOJA-TEXT-005`.
+- Used `--force` because a previous design-only bundle already existed at the same destination/name.
+- Checked task 17.
+- Updated the changelog with final validation/upload evidence.
+
+### Why
+
+- The user requested diary maintenance, task tracking, commits, and reMarkable delivery.
+- The uploaded bundle needed to include the implementation diary and completed task list, not just the original design package.
+
+### What worked
+
+- `docmgr doctor` passed:
+
+```text
+## Doctor Report (1 findings)
+
+### GOJA-TEXT-005
+
+- ✅ All checks passed
+```
+
+- reMarkable upload succeeded:
+
+```text
+OK: uploaded GOJA TEXT 005 Markdown Builder Guide.pdf -> /ai/2026/06/07/GOJA-TEXT-005
+```
+
+- All ticket tasks are checked.
+
+### What didn't work
+
+- No final validation or upload failures occurred.
+
+### What I learned
+
+- The `--force` upload is appropriate when replacing an earlier bundle with a more complete version under the same document name.
+- The ticket now covers both the design rationale and the implementation path, so future work can use the diary as a chronological review guide.
+
+### What was tricky to build
+
+- The final upload had to happen after implementation commits and after diary/task updates; otherwise the reMarkable copy would lag behind the repository state.
+
+### What warrants a second pair of eyes
+
+- Review the whole feature from the service tests upward, especially table formatting and JavaScript value normalization.
+- Review jsverb command ergonomics for raw Markdown output versus Glazed table wrapping.
+
+### What should be done in the future
+
+- Consider closing `GOJA-TEXT-005` after code review.
+- Consider follow-up cleanup of older top-level helper functions in `cmd/goja-text/jsverbs/markdown.js`.
+
+### Code review instructions
+
+- Start with commits after `be2bcce` and read in order:
+  - task/docs checkpoint
+  - service layer
+  - goja module export
+  - docs/declarations
+  - jsverbs/assets
+  - generated xgoja assets
+- Validate with `go test ./... -count=1`, `GOWORK=off golangci-lint run`, and the three builder smoke commands from Step 9.
+
+### Technical details
+
+Commands run:
+
+```bash
+docmgr doctor --ticket GOJA-TEXT-005 --stale-after 30
+remarquee upload bundle \
+  ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/index.md \
+  ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/design-doc/01-markdown-builder-analysis-design-and-implementation-guide.md \
+  ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/reference/01-investigation-diary.md \
+  ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/tasks.md \
+  ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/changelog.md \
+  --name "GOJA TEXT 005 Markdown Builder Guide" \
+  --remote-dir "/ai/2026/06/07/GOJA-TEXT-005" \
+  --toc-depth 2 \
+  --force \
+  --non-interactive
+docmgr task check --ticket GOJA-TEXT-005 --id 17
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Finalized GOJA-TEXT-005 after implementation: docmgr doctor passed and the revised documentation bundle was uploaded to reMarkable at /ai/2026/06/07/GOJA-TEXT-005."
+```

@@ -81,3 +81,13 @@ Regenerated and rebuilt the xgoja binary, then smoke-tested markdown builder-exa
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja_embed/assets/goja_text_markdown_builder_assets/report.yaml — Embedded report asset
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja_embed/jsverbs/goja_text_bundled_verbs/markdown.js — Embedded jsverb
 
+
+## 2026-06-07
+
+Finalized GOJA-TEXT-005 after implementation: docmgr doctor passed and the revised documentation bundle was uploaded to reMarkable at /ai/2026/06/07/GOJA-TEXT-005.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/reference/01-investigation-diary.md — Final diary and validation/upload record
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/tasks.md — All implementation tasks checked
+

@@ -19,4 +19,4 @@
 - [x] Phase 3: update TypeScript declarations and help pages for the Markdown builder API
 - [x] Phase 4: add jsverbs and embedded examples for generated Markdown reports and tables
 - [x] Phase 5: regenerate/build xgoja binary and smoke-test Markdown builder commands
-- [ ] Final: update diary, changelog, doc relations, validate ticket, and upload revised bundle to reMarkable
+- [x] Final: update diary, changelog, doc relations, validate ticket, and upload revised bundle to reMarkable
