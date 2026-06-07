@@ -1,7 +1,7 @@
 ---
 Title: Goja Text Template and HTML Template JavaScript API
 Ticket: GOJA-TEXT-004
-Status: active
+Status: complete
 Topics:
     - goja
     - goja-bindings
@@ -18,10 +18,11 @@ Owners: []
 RelatedFiles: []
 ExternalSources: []
 Summary: ""
-LastUpdated: 2026-06-07T16:07:44.863081981-04:00
+LastUpdated: 2026-06-07T17:39:28.581115238-04:00
 WhatFor: ""
 WhenToUse: ""
 ---
+
 
 # Goja Text Template and HTML Template JavaScript API
 
