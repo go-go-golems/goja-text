@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/go-go-goja/engine"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	_ "github.com/go-go-golems/goja-text/pkg/sanitize"
 )
 
@@ -179,7 +179,7 @@ func TestRequireSanitizeRulesExamplesAndParseTree(t *testing.T) {
 
 func newSanitizeRuntime(t *testing.T) *engine.Runtime {
 	t.Helper()
-	factory, err := engine.NewBuilder().UseModuleMiddleware(engine.MiddlewareOnly("sanitize")).Build()
+	factory, err := engine.NewRuntimeFactoryBuilder().UseModuleMiddleware(engine.MiddlewareOnly("sanitize")).Build()
 	if err != nil {
 		t.Fatalf("build runtime factory: %v", err)
 	}

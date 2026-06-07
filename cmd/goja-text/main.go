@@ -39,64 +39,56 @@ const embeddedSpecJSON = `{
       "register": "Register"
     }
   ],
-  "runtimes": {
-    "main": {
-      "modules": [
-        {
-          "package": "goja-text",
-          "name": "markdown",
-          "as": "markdown"
-        },
-        {
-          "package": "goja-text",
-          "name": "sanitize",
-          "as": "sanitize"
-        },
-        {
-          "package": "goja-text",
-          "name": "extract",
-          "as": "extract"
-        },
-        {
-          "package": "go-go-goja-core",
-          "name": "path",
-          "as": "path"
-        },
-        {
-          "package": "go-go-goja-core",
-          "name": "yaml",
-          "as": "yaml"
-        },
-        {
-          "package": "go-go-goja-host",
-          "name": "fs",
-          "as": "fs",
-          "config": {
-            "allow": true
-          }
-        }
-      ]
+  "modules": [
+    {
+      "package": "goja-text",
+      "name": "markdown",
+      "as": "markdown"
+    },
+    {
+      "package": "goja-text",
+      "name": "sanitize",
+      "as": "sanitize"
+    },
+    {
+      "package": "goja-text",
+      "name": "extract",
+      "as": "extract"
+    },
+    {
+      "package": "go-go-goja-core",
+      "name": "path",
+      "as": "path"
+    },
+    {
+      "package": "go-go-goja-core",
+      "name": "yaml",
+      "as": "yaml"
+    },
+    {
+      "package": "go-go-goja-host",
+      "name": "fs",
+      "as": "fs",
+      "config": {
+        "allow": true
+      }
     }
-  },
+  ],
   "commands": {
     "eval": {
       "enabled": true,
-      "runtime": "main",
       "name": "eval"
     },
     "run": {
       "enabled": true,
-      "runtime": "main",
       "name": "run"
     },
     "repl": {
       "enabled": true,
-      "runtime": "main",
       "name": "repl"
     },
     "jsverbs": {
       "enabled": true,
-      "runtime": "main",
       "name": "verbs",
       "mount": "root"
     }
@@ -125,7 +117,7 @@ const embeddedSpecJSON = `{
 var embeddedJSVerbs embed.FS
 
 func main() {
-	registry := providerapi.NewRegistry()
+	registry := providerapi.NewProviderRegistry()
 	must(goja_text.Register(registry))
 	must(go_go_goja_core.Register(registry))
 	must(go_go_goja_host.Register(registry))
@@ -137,10 +129,10 @@ func main() {
 	}
 }
 
-func decodeSpec() *app.Spec {
-	spec := &app.Spec{}
-	must(json.Unmarshal([]byte(embeddedSpecJSON), spec))
-	return spec
+func decodeSpec() *app.RuntimeSpec {
+	buildSpec := &app.RuntimeSpec{}
+	must(json.Unmarshal([]byte(embeddedSpecJSON), buildSpec))
+	return buildSpec
 }
 
 func must(err error) {

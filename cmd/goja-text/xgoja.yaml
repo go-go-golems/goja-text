@@ -11,44 +11,38 @@ packages:
     import: github.com/go-go-golems/go-go-goja/pkg/xgoja/providers/core
   - id: go-go-goja-host
     import: github.com/go-go-golems/go-go-goja/pkg/xgoja/providers/host
-runtimes:
-  main:
-    modules:
-      - package: goja-text
-        name: markdown
-        as: markdown
-      - package: goja-text
-        name: sanitize
-        as: sanitize
-      - package: goja-text
-        name: extract
-        as: extract
-      - package: go-go-goja-core
-        name: path
-        as: path
-      - package: go-go-goja-core
-        name: yaml
-        as: yaml
-      - package: go-go-goja-host
-        name: fs
-        as: fs
-        config:
-          allow: true
 commands:
   eval:
     enabled: true
-    runtime: main
   run:
     enabled: true
-    runtime: main
   repl:
     enabled: true
-    runtime: main
   jsverbs:
     enabled: true
-    runtime: main
     name: verbs
     mount: root
+modules:
+  - package: goja-text
+    name: markdown
+    as: markdown
+  - package: goja-text
+    name: sanitize
+    as: sanitize
+  - package: goja-text
+    name: extract
+    as: extract
+  - package: go-go-goja-core
+    name: path
+    as: path
+  - package: go-go-goja-core
+    name: yaml
+    as: yaml
+  - package: go-go-goja-host
+    name: fs
+    as: fs
+    config:
+      allow: true
 jsverbs:
   - id: goja-text-bundled-verbs
     path: ./jsverbs
