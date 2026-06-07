@@ -32,6 +32,9 @@ modules:
   - package: goja-text
     name: extract
     as: extract
+  - package: goja-text
+    name: template
+    as: template
   - package: go-go-goja-core
     name: path
     as: path
@@ -43,6 +46,19 @@ modules:
     as: fs
     config:
       allow: true
+  - package: go-go-goja-host
+    name: fs
+    as: fs:assets
+    config:
+      embedded:
+        allow: true
+        mounts:
+          - asset: goja-text-template-assets
+            mount: /templates
+assets:
+  - id: goja-text-template-assets
+    path: ./template-assets
+    embed: true
 jsverbs:
   - id: goja-text-bundled-verbs
     path: ./jsverbs

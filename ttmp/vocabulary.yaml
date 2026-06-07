@@ -37,6 +37,10 @@ topics:
       description: Command-line interface design and behavior
     - slug: buildspec
       description: Declarative build specification files
+    - slug: templating
+      description: Go text/template and html/template rendering, helpers, and template API design
+    - slug: html
+      description: HTML rendering and escaping semantics
 docTypes:
     - slug: design-doc
       description: Structured rationale and architecture notes
