@@ -48,6 +48,10 @@ RelatedFiles:
       Note: NativeModule adapter and goja value conversion reference
     - Path: pkg/template/render.go
       Note: Structured render-result pattern for builder output
+    - Path: pkg/xgoja/providers/text/doc/markdown-api-reference.md
+      Note: Phase 3 API reference for builder
+    - Path: pkg/xgoja/providers/text/doc/markdown-user-guide.md
+      Note: Phase 3 user guide updates for generating Markdown from structured data
     - Path: pkg/xgoja/providers/text/text.go
       Note: Provider registration boundary for module visibility
 ExternalSources: []
@@ -56,6 +60,7 @@ LastUpdated: 2026-06-07T18:35:00-04:00
 WhatFor: Use this as the implementation plan for a fluent Markdown document builder in goja-text.
 WhenToUse: Before coding GOJA-TEXT-005, reviewing its API shape, or extending goja-text document-generation support.
 ---
+
 
 
 

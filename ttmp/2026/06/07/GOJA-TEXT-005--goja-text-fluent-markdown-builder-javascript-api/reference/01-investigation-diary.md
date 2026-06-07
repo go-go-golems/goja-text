@@ -29,9 +29,15 @@ RelatedFiles:
     - Path: pkg/markdown/builder_types.go
       Note: Phase 1 service type implementation recorded in diary
     - Path: pkg/markdown/module.go
-      Note: Phase 2 module export implementation recorded in diary
+      Note: |-
+        Phase 2 module export implementation recorded in diary
+        Phase 3 TypeScript declaration updates recorded in diary
     - Path: pkg/markdown/module_test.go
       Note: Phase 2 runtime test coverage recorded in diary
+    - Path: pkg/xgoja/providers/text/doc/markdown-api-reference.md
+      Note: Phase 3 API docs recorded in diary
+    - Path: pkg/xgoja/providers/text/doc/markdown-user-guide.md
+      Note: Phase 3 guide docs recorded in diary
     - Path: ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md
       Note: Recent template implementation diary reviewed for patterns and failure modes
     - Path: ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/design-doc/01-markdown-builder-analysis-design-and-implementation-guide.md
@@ -42,6 +48,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 
@@ -649,4 +656,100 @@ gofmt -w pkg/markdown/module.go pkg/markdown/module_test.go
 go test ./pkg/markdown -count=1
 docmgr task check --ticket GOJA-TEXT-005 --id 12,13
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Implemented Phase 2 goja module exports for markdown.builder and markdown.inline, with runtime tests for fluent document generation, inline helpers, RenderHTML, and validation errors."
+```
+
+## Step 7: Document the JavaScript-facing builder API
+
+I updated the JavaScript-facing API declarations and help docs for the new builder. The TypeScript declaration block now describes `MarkdownBuilder`, `TableBuilder`, `InlineFactory`, inline node types, table alignment values, and the `MarkdownRenderResult` fields. The help pages now explain when to use the builder, how table generation works, and how inline helpers avoid manual Markdown string assembly.
+
+This phase makes the new API discoverable before adding CLI jsverbs. It also records the Go-backed naming convention in the docs: scripts call `Title`, `Paragraph`, `Table`, `RenderString`, and read `Text`, `Bytes`, and `Blocks` because these are exported Go names.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue the task list with Phase 3 documentation and TypeScript declaration updates.
+
+**Inferred user intent:** Keep the implementation usable and reviewable by documenting the API as it becomes available.
+
+**Commit (code):** pending — Phase 3 declarations and docs are ready to commit.
+
+### What I did
+
+- Updated `pkg/markdown/module.go` TypeScript declarations with:
+  - `MarkdownRenderResult`
+  - `TableAlignment`
+  - `InlineInput`, `ColumnInput`, and `ChecklistInput`
+  - inline node interfaces
+  - `InlineFactory`
+  - `TableBuilder`
+  - `MarkdownBuilder`
+  - `builder()` and `inline()` functions
+- Updated `pkg/xgoja/providers/text/doc/markdown-api-reference.md` with:
+  - `builder()` reference
+  - builder method list
+  - `TableBuilder` behavior
+  - table escaping rules
+  - `inline()` helpers
+- Updated `pkg/xgoja/providers/text/doc/markdown-user-guide.md` with:
+  - a builder introduction
+  - generated Markdown report example
+  - inline helper example
+  - updated key points
+- Ran `gofmt` and `go test ./pkg/markdown -count=1`.
+- Checked task 14.
+- Related docs and declarations in docmgr.
+- Updated the changelog.
+
+### Why
+
+- Goja users need a discoverable API surface and examples before jsverbs are added.
+- The TypeScript declarations are the closest thing to a formal JavaScript contract in this project.
+- Help docs reduce the risk that users treat the builder as a raw string appender.
+
+### What worked
+
+- The existing `RawDTS` declaration style made it straightforward to add richer TypeScript shapes.
+- The existing markdown help pages were easy to extend rather than replacing them with separate builder-only pages.
+- Tests still passed after updating declarations.
+
+### What didn't work
+
+- No validation failures occurred in this phase.
+
+### What I learned
+
+- The docs need to repeatedly distinguish three workflows: `parse()` for structure, `renderHTML()` for presentation, and `builder()` for Markdown generation.
+- The table builder documentation should explicitly mention `End()` because it is the main child-builder lifecycle rule users can miss.
+
+### What was tricky to build
+
+- The TypeScript `InlineInput` type is recursive and intentionally approximate. It documents the accepted JavaScript shapes, but the Go runtime still ultimately normalizes values dynamically.
+- Updating existing help pages is less noisy than adding new help pages, but reviewers should check that the pages remain scannable.
+
+### What warrants a second pair of eyes
+
+- Whether `InlineInput` is too broad for generated declarations.
+- Whether builder docs should be split into a dedicated `goja-text-markdown-builder-user-guide` page if the API grows.
+
+### What should be done in the future
+
+- Phase 4: add jsverbs and embedded examples for generated Markdown reports/tables.
+- Include the new builder examples in generated binary smoke tests.
+
+### Code review instructions
+
+- Review the `RawDTS` additions in `pkg/markdown/module.go` for JavaScript API accuracy.
+- Review `markdown-api-reference.md` for copy/paste-ready method documentation.
+- Review `markdown-user-guide.md` for narrative clarity.
+
+### Technical details
+
+Commands run:
+
+```bash
+gofmt -w pkg/markdown/module.go
+go test ./pkg/markdown -count=1
+docmgr task check --ticket GOJA-TEXT-005 --id 14
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Updated Markdown TypeScript declarations and help pages for markdown.builder, TableBuilder, inline helpers, and generated Markdown workflows."
 ```

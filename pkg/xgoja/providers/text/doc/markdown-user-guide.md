@@ -22,7 +22,9 @@ SectionType: Tutorial
 
 The markdown module exists for scripts that need to understand Markdown as a document, not merely transform it as text. A Markdown file contains structure: headings introduce sections, links point outside the document, images carry destinations and alternate text, and code fences often contain data that another tool wants to inspect. `require("markdown")` gives JavaScript access to that structure while keeping the parser and the domain objects in Go.
 
-The central idea is simple: parse once, then ask specific questions by walking the tree. The module does not try to predict every question a script might ask. Instead, it exposes a reliable traversal primitive, `walk()`, and lets JavaScript express the document query that matters for the current task.
+The module also helps scripts create Markdown. Use the fluent `builder()` API when the script has structured data and wants to generate a clean report, table, checklist, prompt, or release note without hand-written string concatenation.
+
+The central parsing idea is simple: parse once, then ask specific questions by walking the tree. The module does not try to predict every question a script might ask. Instead, it exposes a reliable traversal primitive, `walk()`, and lets JavaScript express the document query that matters for the current task.
 
 ## The first parse
 
@@ -95,9 +97,74 @@ The control values are deliberately plain JavaScript values:
 - `false` or `"skip"` skips the current node's children.
 - `"stop"` ends the traversal immediately.
 
+## Building Markdown from data
+
+Use `builder()` when the goal is output generation rather than analysis. The builder is Go-backed: JavaScript calls fluent methods, while Go owns block spacing, table formatting, escaping, validation, and final serialization.
+
+```js
+const markdown = require("markdown");
+
+const report = markdown.builder()
+  .Title("Sprint report")
+  .Paragraph("Generated from structured runtime data.")
+  .Table()
+    .Columns({ label: "Name", align: "left" }, { label: "Status", align: "right" })
+    .Row("Parser", "done")
+    .Row("Builder", "planned")
+    .End()
+  .Heading(2, "Next steps")
+  .Checklist([
+    { text: "Expose goja API", checked: true },
+    { text: "Write docs" },
+  ])
+  .RenderString();
+
+console.log(report);
+```
+
+The output is ordinary Markdown:
+
+```markdown
+# Sprint report
+
+Generated from structured runtime data.
+
+| Name    | Status  |
+| :------ | ------: |
+| Parser  | done    |
+| Builder | planned |
+
+## Next steps
+
+- [x] Expose goja API
+- [ ] Write docs
+```
+
+Builder methods intentionally use PascalCase (`Title`, `Paragraph`, `RenderString`) because they are exported Go methods. This matches the rest of the goja-text API.
+
+## Use inline helpers when strings are not enough
+
+Ordinary strings are escaped as text. Use `inline()` when a paragraph or table cell needs a code span, link, emphasis, strong text, or explicit raw Markdown.
+
+```js
+const i = markdown.inline();
+
+const text = markdown.builder()
+  .Paragraph(
+    "Run ",
+    i.Code("go test ./..."),
+    " and read ",
+    i.Link("the guide", "https://example.com"),
+    "."
+  )
+  .RenderString();
+```
+
+Prefer normal strings for untrusted data. Use `i.Raw()` and `builder.Raw()` only for trusted Markdown fragments.
+
 ## Rendering is a different question
 
-Use `renderHTML()` when the goal is presentation. Use `parse()` and `walk()` when the goal is analysis.
+Use `renderHTML()` when the goal is presentation. Use `parse()` and `walk()` when the goal is analysis. Use `builder()` when the goal is Markdown generation.
 
 ```bash
 ./dist/goja-text eval 'const md = require("markdown"); md.renderHTML("## Title\n\n**bold**")'
@@ -121,4 +188,4 @@ The `markdown headings` verb reads a file with the host `fs` module, parses it, 
 - The Markdown AST is Go-backed so Go can validate nodes when JavaScript passes them back into module functions.
 - JavaScript reads exported fields with PascalCase names such as `Type`, `Children`, `Level`, and `Destination`.
 - `walk()` is the primary extension point. Write document-specific queries in JavaScript instead of waiting for a new Go helper.
-- Use `renderHTML()` for presentation and `parse()` for structure.
+- Use `renderHTML()` for presentation, `parse()` for structure, and `builder()` for generated Markdown output.

@@ -47,3 +47,14 @@ Implemented Phase 2 goja module exports for markdown.builder and markdown.inline
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/module.go — NativeModule exports
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/module_test.go — Runtime integration tests
 
+
+## 2026-06-07
+
+Updated Markdown TypeScript declarations and help pages for markdown.builder, TableBuilder, inline helpers, and generated Markdown workflows.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/module.go — TypeScript declarations
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/xgoja/providers/text/doc/markdown-api-reference.md — API reference docs
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/xgoja/providers/text/doc/markdown-user-guide.md — User guide docs
+
