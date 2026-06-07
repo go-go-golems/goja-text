@@ -17,6 +17,6 @@
 - [x] Phase 2: expose markdown.builder and inline helpers through the goja NativeModule
 - [x] Phase 2: add goja runtime integration tests for builder chains and table rendering
 - [x] Phase 3: update TypeScript declarations and help pages for the Markdown builder API
-- [ ] Phase 4: add jsverbs and embedded examples for generated Markdown reports and tables
+- [x] Phase 4: add jsverbs and embedded examples for generated Markdown reports and tables
 - [ ] Phase 5: regenerate/build xgoja binary and smoke-test Markdown builder commands
 - [ ] Final: update diary, changelog, doc relations, validate ticket, and upload revised bundle to reMarkable

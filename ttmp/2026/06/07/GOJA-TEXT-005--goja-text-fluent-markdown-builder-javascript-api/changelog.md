@@ -58,3 +58,15 @@ Updated Markdown TypeScript declarations and help pages for markdown.builder, Ta
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/xgoja/providers/text/doc/markdown-api-reference.md — API reference docs
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/xgoja/providers/text/doc/markdown-user-guide.md — User guide docs
 
+
+## 2026-06-07
+
+Added Markdown builder jsverbs and embedded YAML examples for sprint reports and API tables, mounted as xgoja assets under /markdown-builder.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/jsverbs/markdown.js — Builder example commands
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/markdown-builder-assets/api-table.yaml — API table example data
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/markdown-builder-assets/report.yaml — Report example data
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja.yaml — Asset mount
+

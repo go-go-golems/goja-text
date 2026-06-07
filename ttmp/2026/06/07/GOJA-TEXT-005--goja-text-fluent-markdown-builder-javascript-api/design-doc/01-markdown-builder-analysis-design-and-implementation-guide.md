@@ -16,10 +16,18 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: cmd/goja-text/jsverbs/markdown.js
+      Note: Phase 4 builder-examples and builder-example jsverbs for generated Markdown
     - Path: cmd/goja-text/jsverbs/template.js
       Note: CLI jsverb and embedded-example structure to reuse
+    - Path: cmd/goja-text/markdown-builder-assets/api-table.yaml
+      Note: Embedded API-table data fixture for builder example
+    - Path: cmd/goja-text/markdown-builder-assets/report.yaml
+      Note: Embedded sprint-report data fixture for builder example
     - Path: cmd/goja-text/xgoja.yaml
-      Note: xgoja module
+      Note: |-
+        xgoja module
+        Phase 4 embedded asset mount for markdown-builder examples
     - Path: pkg/markdown/builder.go
       Note: Phase 1 fluent MarkdownBuilder methods
     - Path: pkg/markdown/builder_render.go
@@ -60,6 +68,7 @@ LastUpdated: 2026-06-07T18:35:00-04:00
 WhatFor: Use this as the implementation plan for a fluent Markdown document builder in goja-text.
 WhenToUse: Before coding GOJA-TEXT-005, reviewing its API shape, or extending goja-text document-generation support.
 ---
+
 
 
 

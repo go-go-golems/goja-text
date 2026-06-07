@@ -18,6 +18,14 @@ Owners: []
 RelatedFiles:
     - Path: ../../../../../../../../../../code/wesen/go-go-golems/go-go-parc/Projects/2026/06/07/PROJ - goja-text - Template and HTML Rendering Module.md
       Note: Starting project note requested by the user
+    - Path: cmd/goja-text/jsverbs/markdown.js
+      Note: Phase 4 jsverb implementation recorded in diary
+    - Path: cmd/goja-text/markdown-builder-assets/api-table.yaml
+      Note: Phase 4 embedded API-table example recorded in diary
+    - Path: cmd/goja-text/markdown-builder-assets/report.yaml
+      Note: Phase 4 embedded report example recorded in diary
+    - Path: cmd/goja-text/xgoja.yaml
+      Note: Phase 4 asset mount recorded in diary
     - Path: pkg/markdown/builder.go
       Note: Phase 1 fluent builder implementation recorded in diary
     - Path: pkg/markdown/builder_render.go
@@ -48,6 +56,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 
@@ -752,4 +761,92 @@ gofmt -w pkg/markdown/module.go
 go test ./pkg/markdown -count=1
 docmgr task check --ticket GOJA-TEXT-005 --id 14
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Updated Markdown TypeScript declarations and help pages for markdown.builder, TableBuilder, inline helpers, and generated Markdown workflows."
+```
+
+## Step 8: Add builder jsverbs and embedded example data
+
+I added CLI-facing examples for the Markdown builder. The `markdown` jsverb source now includes commands to list embedded builder examples and render a selected example. The examples use YAML data mounted into the generated xgoja binary as read-only assets under `/markdown-builder`.
+
+The two initial examples cover the feature's intended sweet spot: a sprint-style report with a status table and checklist, and an API-reference table that uses inline code helpers for function names and return types.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue with Phase 4 by making the builder visible from practical CLI commands and bundled examples.
+
+**Inferred user intent:** Provide runnable examples that prove users can generate Markdown documents and tables without writing templates.
+
+**Commit (code):** pending — Phase 4 jsverbs/assets are ready to commit.
+
+### What I did
+
+- Added `cmd/goja-text/markdown-builder-assets/report.yaml`.
+- Added `cmd/goja-text/markdown-builder-assets/api-table.yaml`.
+- Updated `cmd/goja-text/xgoja.yaml` to embed the new asset directory and mount it at `/markdown-builder` through `fs:assets`.
+- Updated `cmd/goja-text/jsverbs/markdown.js`:
+  - required `fs:assets` and `yaml`
+  - added `builderExamples()` / `builderExample(name, outputPath)` commands
+  - rendered the report example with `markdown.builder().Table()...End().Checklist(...)`
+  - rendered the API table example with `markdown.inline().Code(...)`
+- Ran `go test ./... -count=1`.
+- Checked task 15.
+- Related the jsverb/assets/buildspec changes and updated the changelog.
+
+### Why
+
+- Examples are the easiest way to show why the builder exists: dynamic document assembly without a template file.
+- Embedding YAML fixtures mirrors the existing template module's embedded-example pattern.
+- CLI commands will be useful smoke tests after the xgoja binary is regenerated.
+
+### What worked
+
+- Repository Go tests still passed after adding jsverb JavaScript and YAML assets:
+
+```text
+ok  	github.com/go-go-golems/goja-text/pkg/markdown	0.008s
+ok  	github.com/go-go-golems/goja-text/pkg/sanitize	0.008s
+ok  	github.com/go-go-golems/goja-text/pkg/template	0.008s
+```
+
+- The jsverb implementation keeps new helper logic inside `builderHelpers` rather than adding more private top-level functions.
+
+### What didn't work
+
+- I have not yet regenerated the xgoja binary in this step, so the new jsverbs/assets are not smoke-tested through `./dist/goja-text` until Phase 5.
+
+### What I learned
+
+- The builder examples can be data-only fixtures because the rendering logic lives in the jsverb itself. This keeps the embedded assets simple and makes the example output clearly attributable to `markdown.builder()`.
+- The existing `fs:assets` mount can host multiple asset roots by adding a second mount entry.
+
+### What was tricky to build
+
+- The existing `markdown.js` file already has private top-level helper functions, but the template diary warned that top-level helpers can leak as commands. I avoided adding more by grouping the new helper code in `builderHelpers`.
+- The report example stores the in-progress table builder in a variable while rows are appended in a loop. That is readable, but it means the variable is a `TableBuilder` until `End()` returns the parent `MarkdownBuilder`.
+
+### What warrants a second pair of eyes
+
+- Whether to refactor the older top-level `readFile` and `slugify` helpers in `markdown.js` to avoid accidental command exposure. I did not include that cleanup in this phase to keep the change focused.
+- Whether the jsverb command names should be `builder-example`/`builder-examples` after generated command-name normalization, or whether explicit hyphenated names should be used.
+
+### What should be done in the future
+
+- Regenerate and build the xgoja binary.
+- Smoke-test `markdown builder-examples` and both `markdown builder-example` variants.
+
+### Code review instructions
+
+- Start with the new commands at the bottom of `cmd/goja-text/jsverbs/markdown.js`.
+- Review `cmd/goja-text/xgoja.yaml` to confirm the asset mount path.
+- Render both YAML examples after the binary is rebuilt.
+
+### Technical details
+
+Commands run:
+
+```bash
+go test ./... -count=1
+docmgr task check --ticket GOJA-TEXT-005 --id 15
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Added Markdown builder jsverbs and embedded YAML examples for sprint reports and API tables, mounted as xgoja assets under /markdown-builder."
 ```

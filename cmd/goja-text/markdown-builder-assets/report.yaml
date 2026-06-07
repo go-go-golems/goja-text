@@ -1,0 +1,17 @@
+title: Markdown Builder Sprint Report
+summary: Generated from structured YAML data with markdown.builder().
+statusRows:
+  - name: Service layer
+    status: done
+    owner: Ada
+  - name: Goja module
+    status: done
+    owner: Linus
+  - name: Docs and jsverbs
+    status: in progress
+    owner: Intern
+nextSteps:
+  - text: Regenerate xgoja binary
+    checked: false
+  - text: Smoke-test builder examples
+    checked: false
