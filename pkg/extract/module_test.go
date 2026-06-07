@@ -6,7 +6,7 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/go-go-goja/engine"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	_ "github.com/go-go-golems/goja-text/pkg/extract"
 )
 
@@ -93,7 +93,7 @@ func TestRequireExtractValidate(t *testing.T) {
 
 func newExtractRuntime(t *testing.T) *engine.Runtime {
 	t.Helper()
-	factory, err := engine.NewBuilder().UseModuleMiddleware(engine.MiddlewareOnly("extract")).Build()
+	factory, err := engine.NewRuntimeFactoryBuilder().UseModuleMiddleware(engine.MiddlewareOnly("extract")).Build()
 	if err != nil {
 		t.Fatalf("build runtime factory: %v", err)
 	}

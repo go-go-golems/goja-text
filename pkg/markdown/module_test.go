@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
-	"github.com/go-go-golems/go-go-goja/engine"
+	"github.com/go-go-golems/go-go-goja/pkg/engine"
 	md "github.com/go-go-golems/goja-text/pkg/markdown"
 )
 
@@ -183,7 +183,7 @@ func TestValidateRejectsInvalidNode(t *testing.T) {
 
 func newMarkdownRuntime(t *testing.T) *engine.Runtime {
 	t.Helper()
-	factory, err := engine.NewBuilder().UseModuleMiddleware(engine.MiddlewareOnly("markdown")).Build()
+	factory, err := engine.NewRuntimeFactoryBuilder().UseModuleMiddleware(engine.MiddlewareOnly("markdown")).Build()
 	if err != nil {
 		t.Fatalf("build runtime factory: %v", err)
 	}
