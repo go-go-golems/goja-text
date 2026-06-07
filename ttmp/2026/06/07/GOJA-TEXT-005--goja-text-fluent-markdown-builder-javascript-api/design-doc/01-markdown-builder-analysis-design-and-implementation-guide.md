@@ -20,6 +20,16 @@ RelatedFiles:
       Note: CLI jsverb and embedded-example structure to reuse
     - Path: cmd/goja-text/xgoja.yaml
       Note: xgoja module
+    - Path: pkg/markdown/builder.go
+      Note: Phase 1 fluent MarkdownBuilder methods
+    - Path: pkg/markdown/builder_render.go
+      Note: Phase 1 Markdown serialization
+    - Path: pkg/markdown/builder_table.go
+      Note: Phase 1 TableBuilder lifecycle
+    - Path: pkg/markdown/builder_test.go
+      Note: Phase 1 service tests for document rendering
+    - Path: pkg/markdown/builder_types.go
+      Note: Phase 1 typed Markdown builder document
     - Path: pkg/markdown/convert.go
       Note: Existing Goldmark AST conversion evidence for current markdown model
     - Path: pkg/markdown/module.go
@@ -42,6 +52,7 @@ LastUpdated: 2026-06-07T18:35:00-04:00
 WhatFor: Use this as the implementation plan for a fluent Markdown document builder in goja-text.
 WhenToUse: Before coding GOJA-TEXT-005, reviewing its API shape, or extending goja-text document-generation support.
 ---
+
 
 
 # Markdown Builder Analysis Design and Implementation Guide

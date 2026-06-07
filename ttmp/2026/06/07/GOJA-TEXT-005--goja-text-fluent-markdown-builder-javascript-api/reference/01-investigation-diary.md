@@ -18,6 +18,16 @@ Owners: []
 RelatedFiles:
     - Path: ../../../../../../../../../../code/wesen/go-go-golems/go-go-parc/Projects/2026/06/07/PROJ - goja-text - Template and HTML Rendering Module.md
       Note: Starting project note requested by the user
+    - Path: pkg/markdown/builder.go
+      Note: Phase 1 fluent builder implementation recorded in diary
+    - Path: pkg/markdown/builder_render.go
+      Note: Phase 1 renderer implementation recorded in diary
+    - Path: pkg/markdown/builder_table.go
+      Note: Phase 1 table builder implementation recorded in diary
+    - Path: pkg/markdown/builder_test.go
+      Note: Phase 1 test coverage recorded in diary
+    - Path: pkg/markdown/builder_types.go
+      Note: Phase 1 service type implementation recorded in diary
     - Path: ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md
       Note: Recent template implementation diary reviewed for patterns and failure modes
     - Path: ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/design-doc/01-markdown-builder-analysis-design-and-implementation-guide.md
@@ -28,6 +38,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 # Diary
@@ -408,4 +419,140 @@ Representative commands:
 docmgr task add --ticket GOJA-TEXT-005 --text "Phase 1: implement Markdown builder service types and result structs"
 docmgr task add --ticket GOJA-TEXT-005 --text "Phase 1: implement TableBuilder with columns, alignments, rows, validation, and End lifecycle"
 docmgr task add --ticket GOJA-TEXT-005 --text "Final: update diary, changelog, doc relations, validate ticket, and upload revised bundle to reMarkable"
+```
+
+## Step 5: Implement the Phase 1 Markdown builder service layer
+
+I implemented the first code slice: a pure Go Markdown builder service inside `pkg/markdown`. This phase does not expose anything to goja yet. It establishes the document model, block and inline types, fluent builder methods, table child builder, renderer, validation, HTML bridge, and service tests so the core behavior is reviewable before JavaScript runtime plumbing is added.
+
+The implementation follows the design guide's central constraint: JavaScript should eventually drive a fluent API, but Go should own Markdown normalization and serialization. Tables are first-class, ordinary strings are escaped as text, raw Markdown is explicit, and rendering validates structural errors before producing output.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Begin executing the detailed task list, starting with the service-layer implementation, while recording commands, validation, and review notes.
+
+**Inferred user intent:** Build the feature incrementally with a useful commit boundary after the core Go service is tested.
+
+**Commit (code):** pending — Phase 1 service-layer code and docs are ready to commit.
+
+### What I did
+
+- Added `pkg/markdown/builder_types.go` with:
+  - `MarkdownRenderResult`
+  - internal document/block types
+  - inline node types
+  - table column and alignment types
+- Added `pkg/markdown/builder_render.go` with:
+  - document serialization
+  - block rendering
+  - inline escaping
+  - table row/alignment formatting
+  - code span and fenced-code fence selection
+- Added `pkg/markdown/builder.go` with:
+  - `MarkdownBuilder`
+  - fluent methods for title, heading, paragraph, raw blocks, thematic breaks, blockquotes, callouts, lists, checklists, code blocks, tables, validation, `Render`, `RenderString`, and `RenderHTML`
+  - input normalization helpers for slices, checklist maps, and inline parts
+- Added `pkg/markdown/builder_table.go` with:
+  - `TableBuilder`
+  - `Columns`, `Align`, `Row`, `Rows`, and `End`
+  - table validation helpers
+  - an `InlineFactory` for explicit inline text/raw/code/em/strong/link nodes
+- Added `pkg/markdown/builder_test.go` covering:
+  - basic document rendering
+  - escaping and raw blocks
+  - aligned/escaped tables
+  - validation errors
+  - ordered lists, checklists, callouts, and code fences
+  - `RenderHTML`
+- Ran formatting and tests.
+- Checked Phase 1 tasks 7 through 11.
+- Related the new implementation files to the design doc and diary.
+- Updated the changelog.
+
+### Why
+
+- Keeping the service layer free of goja dependencies makes it easier to test and review.
+- The table builder and renderer are the highest-risk Markdown behavior, so they need tests before module export work starts.
+- `RenderHTML` can reuse the existing Markdown renderer once `RenderString` is correct.
+
+### What worked
+
+- The service tests passed:
+
+```text
+ok  	github.com/go-go-golems/goja-text/pkg/markdown	0.009s
+```
+
+- The builder can now generate headings, paragraphs, lists, checklists, callouts, code blocks, raw blocks, and pipe tables.
+- Table rendering escapes pipes as `\\|`, converts cell newlines to `<br>`, supports left/right/center alignment, and validates row width mismatches.
+- Fenced code blocks choose a longer fence when the code contains triple backticks.
+
+### What didn't work
+
+- The first commit attempt failed in the pre-commit lint hook because the `exhaustive` linter required an explicit `AlignDefault` case in the table alignment switch:
+
+```text
+pkg/markdown/builder_render.go:206:3: missing cases in switch of type markdown.TableAlignment: markdown.AlignDefault (exhaustive)
+		switch column.Align {
+		^
+1 issues:
+* exhaustive: 1
+make: *** [Makefile:19: lint] Error 1
+```
+
+- I fixed this by adding an explicit `case AlignDefault:` branch before the left/center/right alignment cases.
+- The service layer intentionally does not yet expose goja runtime APIs, so `require("markdown").builder()` is not available until Phase 2.
+
+### What I learned
+
+- The service model can stay small while still covering the common generated-document use cases.
+- The existing `ValidationResult` type in `pkg/markdown/types.go` is sufficient for builder validation, so no duplicate validation result type was needed.
+- Rendering tables with padded columns makes fixture tests more specific; this helps catch accidental formatting changes.
+
+### What was tricky to build
+
+- Table cells need to support multiple inline parts, but the table row model stores one inline value per cell. I handled multi-part cells by rendering them into a raw inline fragment for the cell. This is acceptable for service behavior but should get a second look when goja inline helpers are exposed.
+- The `TableBuilder.End()` lifecycle is stateful. The implementation appends exactly once and records an error on double `End()` or calls after `End()`. Runtime tests should verify this from JavaScript as well.
+- Escaping had to be context-sensitive. Normal paragraph text escapes Markdown-sensitive characters, while table text additionally escapes pipes and normalizes newlines to `<br>`.
+
+### What warrants a second pair of eyes
+
+- Whether `cellInline()` should preserve structured inline nodes instead of pre-rendering multi-part cells into `RawInline`.
+- Whether ordinary paragraph escaping is too aggressive for generated documentation.
+- Whether empty documents should render `""` or `"\n"`.
+- Whether `Callout` should validate known callout kinds or allow arbitrary Obsidian/GFM-style labels.
+
+### What should be done in the future
+
+- Phase 2: export `builder()` and inline helpers from `pkg/markdown/module.go`.
+- Add runtime tests that exercise the fluent API through goja.
+- Revisit table row input conversion when JavaScript object arrays are supported in jsverbs.
+
+### Code review instructions
+
+- Start with `pkg/markdown/builder_test.go` to see intended behavior.
+- Then read `pkg/markdown/builder.go` for the fluent API and validation boundary.
+- Review `pkg/markdown/builder_render.go` carefully for escaping and table formatting correctness.
+- Validate with:
+
+```bash
+gofmt -w pkg/markdown/builder*.go
+go test ./pkg/markdown -count=1
+```
+
+### Technical details
+
+Commands run:
+
+```bash
+gofmt -w pkg/markdown/builder*.go
+go test ./pkg/markdown -count=1
+# first commit attempt failed in pre-commit lint on exhaustive AlignDefault handling
+gofmt -w pkg/markdown/builder_render.go
+go test ./pkg/markdown -count=1
+GOWORK=off golangci-lint run ./pkg/markdown
+docmgr task check --ticket GOJA-TEXT-005 --id 7,8,9,10,11
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Implemented Phase 1 Markdown builder service layer with typed blocks/inlines, fluent builder methods, table rendering, escaping, validation, RenderHTML bridge, and service tests."
 ```

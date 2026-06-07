@@ -24,3 +24,16 @@ Validated GOJA-TEXT-005 with docmgr doctor and uploaded the documentation bundle
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/design-doc/01-markdown-builder-analysis-design-and-implementation-guide.md — Uploaded as part of reMarkable bundle
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/reference/01-investigation-diary.md — Uploaded as part of reMarkable bundle
 
+
+## 2026-06-07
+
+Implemented Phase 1 Markdown builder service layer with typed blocks/inlines, fluent builder methods, table rendering, escaping, validation, RenderHTML bridge, and service tests.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder.go — Fluent builder and validation
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_render.go — Markdown serializer
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_table.go — Table builder and inline factory
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_test.go — Service tests
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_types.go — Typed service model
+

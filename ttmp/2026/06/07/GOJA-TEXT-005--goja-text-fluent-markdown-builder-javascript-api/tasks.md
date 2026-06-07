@@ -9,11 +9,11 @@
 - [x] Write intern-ready implementation guide
 - [x] Relate source files and update changelog
 - [x] Validate ticket and upload bundle to reMarkable
-- [ ] Phase 1: implement Markdown builder service types and result structs
-- [ ] Phase 1: implement block and inline rendering helpers with escaping
-- [ ] Phase 1: implement fluent MarkdownBuilder methods for headings, paragraphs, lists, checklist, callouts, code blocks, raw blocks, and HTML rendering
-- [ ] Phase 1: implement TableBuilder with columns, alignments, rows, validation, and End lifecycle
-- [ ] Phase 1: add service-layer tests for rendering, escaping, validation, tables, and RenderHTML
+- [x] Phase 1: implement Markdown builder service types and result structs
+- [x] Phase 1: implement block and inline rendering helpers with escaping
+- [x] Phase 1: implement fluent MarkdownBuilder methods for headings, paragraphs, lists, checklist, callouts, code blocks, raw blocks, and HTML rendering
+- [x] Phase 1: implement TableBuilder with columns, alignments, rows, validation, and End lifecycle
+- [x] Phase 1: add service-layer tests for rendering, escaping, validation, tables, and RenderHTML
 - [ ] Phase 2: expose markdown.builder and inline helpers through the goja NativeModule
 - [ ] Phase 2: add goja runtime integration tests for builder chains and table rendering
 - [ ] Phase 3: update TypeScript declarations and help pages for the Markdown builder API
