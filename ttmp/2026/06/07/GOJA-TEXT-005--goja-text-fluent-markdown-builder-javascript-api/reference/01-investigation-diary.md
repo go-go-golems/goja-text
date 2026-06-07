@@ -28,6 +28,10 @@ RelatedFiles:
       Note: Phase 1 test coverage recorded in diary
     - Path: pkg/markdown/builder_types.go
       Note: Phase 1 service type implementation recorded in diary
+    - Path: pkg/markdown/module.go
+      Note: Phase 2 module export implementation recorded in diary
+    - Path: pkg/markdown/module_test.go
+      Note: Phase 2 runtime test coverage recorded in diary
     - Path: ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md
       Note: Recent template implementation diary reviewed for patterns and failure modes
     - Path: ttmp/2026/06/07/GOJA-TEXT-005--goja-text-fluent-markdown-builder-javascript-api/design-doc/01-markdown-builder-analysis-design-and-implementation-guide.md
@@ -38,6 +42,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 
@@ -555,4 +560,93 @@ go test ./pkg/markdown -count=1
 GOWORK=off golangci-lint run ./pkg/markdown
 docmgr task check --ticket GOJA-TEXT-005 --id 7,8,9,10,11
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Implemented Phase 1 Markdown builder service layer with typed blocks/inlines, fluent builder methods, table rendering, escaping, validation, RenderHTML bridge, and service tests."
+```
+
+## Step 6: Expose the builder through the markdown goja module
+
+I wired the Phase 1 service layer into the existing `markdown` native module. JavaScript can now call `require("markdown").builder()` to create a Go-backed `MarkdownBuilder`, and `require("markdown").inline()` to create explicit inline nodes such as code spans and links.
+
+This keeps the new API in the same namespace as parsing, validation, walking, and HTML rendering. Runtime tests now exercise real goja chains, including `Table().Columns().Row().End()`, checklist input from JavaScript objects, inline helpers, `RenderHTML`, and validation errors thrown back through JavaScript execution.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Continue the implementation task list with Phase 2 module exports and goja runtime validation.
+
+**Inferred user intent:** Make the builder usable from JavaScript, not just from Go tests, while preserving focused commits and diary notes.
+
+**Commit (code):** pending — Phase 2 module exports and runtime tests are ready to commit.
+
+### What I did
+
+- Updated `pkg/markdown/module.go`:
+  - expanded module docs to mention `builder()` and `inline()`
+  - exported `builder` as `NewMarkdownBuilder()`
+  - exported `inline` as `NewInlineFactory()`
+- Updated `pkg/markdown/module_test.go`:
+  - added runtime test for fluent document generation and table rendering
+  - added runtime test for inline helpers and `RenderHTML`
+  - added runtime test for builder validation errors
+- Ran `gofmt` and `go test ./pkg/markdown -count=1`.
+- Checked tasks 12 and 13.
+- Related the changed module files to the design doc and diary.
+- Updated the changelog.
+
+### Why
+
+- The service layer is only useful to `goja-text` users once it is available through `require("markdown")`.
+- Runtime tests catch goja reflection and JavaScript value conversion issues that service tests cannot catch.
+- Keeping the builder in the existing `markdown` module follows the design decision recorded in the guide.
+
+### What worked
+
+- The goja runtime tests passed through the existing `engine.MiddlewareOnly("markdown")` harness.
+- JavaScript object literals for table columns and checklist items converted correctly at the Go method boundary.
+- Chained child-builder calls return to the parent with `End()`, allowing `.Table()...End().Heading(...)` chains.
+
+### What didn't work
+
+- No failures occurred during this phase after adding the missing `strings` import for the new tests before running them.
+
+### What I learned
+
+- The `any`-based builder method signatures work with goja's reflection conversion for the initial JavaScript inputs: strings, arrays, object maps, booleans, and numbers.
+- The existing markdown module test harness made Phase 2 small; no provider or xgoja buildspec changes were needed because the module name stayed `markdown`.
+
+### What was tricky to build
+
+- The runtime tests had to assert exported Go field names (`Text`, `Bytes`, `Blocks`) rather than JSON tag names, matching the project's Go-backed object convention.
+- The tests also needed to verify formatted table substrings instead of exact full documents because padded column widths depend on the widest cell in each column.
+
+### What warrants a second pair of eyes
+
+- Whether `inline()` should return a value or pointer type for future extensibility. It currently returns `InlineFactory`, which is stateless and sufficient.
+- Whether the module docs should include a shorter example to avoid making `markdown.Doc()` too verbose.
+
+### What should be done in the future
+
+- Phase 3: update TypeScript declarations and help pages.
+- Consider adding runtime tests for double `TableBuilder.End()` and post-End mutation if that behavior becomes user-visible.
+
+### Code review instructions
+
+- Review `pkg/markdown/module.go` to confirm the new exports fit the existing module style.
+- Review the new tests in `pkg/markdown/module_test.go` to see JavaScript-facing behavior.
+- Validate with:
+
+```bash
+gofmt -w pkg/markdown/module.go pkg/markdown/module_test.go
+go test ./pkg/markdown -count=1
+```
+
+### Technical details
+
+Commands run:
+
+```bash
+gofmt -w pkg/markdown/module.go pkg/markdown/module_test.go
+go test ./pkg/markdown -count=1
+docmgr task check --ticket GOJA-TEXT-005 --id 12,13
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Implemented Phase 2 goja module exports for markdown.builder and markdown.inline, with runtime tests for fluent document generation, inline helpers, RenderHTML, and validation errors."
 ```

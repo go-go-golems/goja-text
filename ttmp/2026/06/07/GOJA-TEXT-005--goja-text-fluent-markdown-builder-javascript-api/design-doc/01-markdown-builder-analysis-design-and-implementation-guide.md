@@ -33,7 +33,11 @@ RelatedFiles:
     - Path: pkg/markdown/convert.go
       Note: Existing Goldmark AST conversion evidence for current markdown model
     - Path: pkg/markdown/module.go
-      Note: Current markdown NativeModule exports; proposed builder() should extend this API
+      Note: |-
+        Current markdown NativeModule exports; proposed builder() should extend this API
+        Phase 2 exports markdown.builder and markdown.inline from the existing NativeModule
+    - Path: pkg/markdown/module_test.go
+      Note: Phase 2 goja runtime tests for builder chains
     - Path: pkg/markdown/parser.go
       Note: Existing Markdown parse/renderHTML/validate functions that the builder can reuse
     - Path: pkg/markdown/types.go
@@ -52,6 +56,7 @@ LastUpdated: 2026-06-07T18:35:00-04:00
 WhatFor: Use this as the implementation plan for a fluent Markdown document builder in goja-text.
 WhenToUse: Before coding GOJA-TEXT-005, reviewing its API shape, or extending goja-text document-generation support.
 ---
+
 
 
 

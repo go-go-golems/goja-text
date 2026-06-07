@@ -25,9 +25,12 @@ Functions:
   walk(root, visitor): Traverse a Go-backed AST using a JavaScript callback.
   textContent(node): Extract plain text from a MarkdownNode subtree.
   validate(value): Validate a string input or Go-backed MarkdownNode object.
+  builder(): Create a Go-backed fluent Markdown document builder.
+  inline(): Create helpers for explicit inline nodes such as Code, Strong, Link, and Raw.
 
-Go-backed MarkdownNode objects expose exported Go field names in JavaScript:
+Go-backed MarkdownNode and builder objects expose exported Go field and method names in JavaScript:
   node.Type, node.Children, node.Text, node.Level, node.Destination, ...
+  markdown.builder().Title("Report").Table().Columns("Name", "Status").Row("Parser", "done").End().Render().Text
 `
 }
 
@@ -112,6 +115,14 @@ func (mod module) Loader(vm *goja.Runtime, moduleObj *goja.Object) {
 		default:
 			return ValidationResult{Valid: false, Errors: []string{fmt.Sprintf("markdown.validate: expected string or MarkdownNode, got %T", value)}}
 		}
+	})
+
+	modules.SetExport(exports, mod.Name(), "builder", func() *MarkdownBuilder {
+		return NewMarkdownBuilder()
+	})
+
+	modules.SetExport(exports, mod.Name(), "inline", func() InlineFactory {
+		return NewInlineFactory()
 	})
 }
 

@@ -14,8 +14,8 @@
 - [x] Phase 1: implement fluent MarkdownBuilder methods for headings, paragraphs, lists, checklist, callouts, code blocks, raw blocks, and HTML rendering
 - [x] Phase 1: implement TableBuilder with columns, alignments, rows, validation, and End lifecycle
 - [x] Phase 1: add service-layer tests for rendering, escaping, validation, tables, and RenderHTML
-- [ ] Phase 2: expose markdown.builder and inline helpers through the goja NativeModule
-- [ ] Phase 2: add goja runtime integration tests for builder chains and table rendering
+- [x] Phase 2: expose markdown.builder and inline helpers through the goja NativeModule
+- [x] Phase 2: add goja runtime integration tests for builder chains and table rendering
 - [ ] Phase 3: update TypeScript declarations and help pages for the Markdown builder API
 - [ ] Phase 4: add jsverbs and embedded examples for generated Markdown reports and tables
 - [ ] Phase 5: regenerate/build xgoja binary and smoke-test Markdown builder commands

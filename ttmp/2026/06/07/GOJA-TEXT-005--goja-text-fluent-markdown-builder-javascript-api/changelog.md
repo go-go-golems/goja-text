@@ -37,3 +37,13 @@ Implemented Phase 1 Markdown builder service layer with typed blocks/inlines, fl
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_test.go — Service tests
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/builder_types.go — Typed service model
 
+
+## 2026-06-07
+
+Implemented Phase 2 goja module exports for markdown.builder and markdown.inline, with runtime tests for fluent document generation, inline helpers, RenderHTML, and validation errors.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/module.go — NativeModule exports
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/pkg/markdown/module_test.go — Runtime integration tests
+
