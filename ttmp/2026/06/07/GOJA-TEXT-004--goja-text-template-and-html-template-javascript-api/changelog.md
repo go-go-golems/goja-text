@@ -115,3 +115,14 @@ Uploaded final JSFunc callback diary/changelog bundle to reMarkable at /ai/2026/
 
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final reMarkable upload note
 
+
+## 2026-06-07
+
+Step 6: added template documentation-writing help page and template jsverbs, regenerated the xgoja binary, and smoke-tested the new commands.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/examples.js — Updated tour and fixtures
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js — Template jsverb command package
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-writing-documentation.md — New Glazed help page for documentation rendering workflows
+

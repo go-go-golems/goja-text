@@ -61,6 +61,7 @@ The generated binary includes user-facing Glazed help entries. They are written 
 
 ./dist/goja-text help goja-text-template-user-guide
 ./dist/goja-text help goja-text-template-api-reference
+./dist/goja-text help goja-text-template-writing-documentation
 ```
 
 The user guides include runnable examples, including `eval`, `run`, and bundled root-mounted JavaScript verb commands.

@@ -25,7 +25,13 @@ RelatedFiles:
     - Path: go-go-goja/pkg/doc/02-creating-modules.md
       Note: Native module tutorial read during investigation
     - Path: goja-text/README.md
-      Note: Top-level module and demo documentation
+      Note: |-
+        Top-level module and demo documentation
+        Help page listing update for template writing documentation
+    - Path: goja-text/cmd/goja-text/jsverbs/examples.js
+      Note: Tour and fixture updates for template docs and commands
+    - Path: goja-text/cmd/goja-text/jsverbs/template.js
+      Note: Template jsverb command package for text html inspect check and helper-demo
     - Path: goja-text/cmd/goja-text/xgoja.yaml
       Note: xgoja module selection for require template
     - Path: goja-text/examples/js/template-demo.js
@@ -50,6 +56,8 @@ RelatedFiles:
       Note: Template module API help page
     - Path: goja-text/pkg/xgoja/providers/text/doc/template-user-guide.md
       Note: Template module user guide
+    - Path: goja-text/pkg/xgoja/providers/text/doc/template-writing-documentation.md
+      Note: Glazed help page for writing documentation with templates
     - Path: goja-text/pkg/xgoja/providers/text/text.go
       Note: Provider wiring for the template module
 ExternalSources: []
@@ -58,6 +66,7 @@ LastUpdated: 2026-06-07T16:20:00-04:00
 WhatFor: Use to resume or review the template module design-ticket investigation.
 WhenToUse: Before continuing implementation work or checking why design choices were made.
 ---
+
 
 
 
@@ -602,3 +611,123 @@ The generated binary demo now includes this escaped HTML output:
 ```
 
 This confirms both URL filtering and escaping of JS helper return strings in HTML mode.
+
+## Step 6: Add template documentation-writing help and template jsverbs
+
+I added a new Glazed help page focused on writing documentation with the template API and added practical `template` jsverbs to the generated `goja-text` binary. The new help page sits alongside the existing JavaScript API reference and user guide, and it teaches the command-line workflow for rendering Markdown and HTML documentation from YAML or JSON data.
+
+The new jsverbs make the template module usable without writing a JavaScript script first. Users can now run `goja-text template text`, `goja-text template html`, `goja-text template inspect`, `goja-text template check`, and `goja-text template helper-demo` from the xgoja binary.
+
+### Prompt Context
+
+**User prompt (verbatim):** "add glazed help writing documentation for the new API, and a set of useful jsverbs in the xgoja binary / goja-text binary."
+
+**Assistant interpretation:** Add user-facing Glazed help documentation near the existing JS API docs and add template-related JavaScript verb commands to the generated goja-text binary.
+
+**Inferred user intent:** Make the new template API discoverable and operational from the CLI, not only from direct `require("template")` scripts.
+
+**Commit (code):** pending — template documentation-writing help and jsverbs.
+
+### What I did
+
+- Read the Glazed help authoring guidance with:
+
+```bash
+glaze help how-to-write-good-documentation-pages
+glaze help writing-help-entries
+```
+
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-writing-documentation.md` with frontmatter, runnable examples, troubleshooting, and see-also links.
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js` with useful template commands:
+  - `goja-text template text`
+  - `goja-text template html`
+  - `goja-text template inspect`
+  - `goja-text template check`
+  - `goja-text template helper-demo`
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/examples.js` so the tour and fixtures mention template documentation/rendering.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/README.md` to list the new help page.
+- Regenerated and rebuilt the xgoja binary.
+- Smoke-tested the generated template commands with temporary Markdown/YAML inputs.
+- Ran repository tests and lint.
+
+### Why
+
+- The template API is useful for generating documentation, but users need concrete CLI workflows and failure-mode guidance to adopt it safely.
+- jsverbs are the goja-text command surface for practical examples, so the template module should have the same operational treatment as markdown, sanitize, and extract.
+
+### What worked
+
+- `goja-text template --help` now shows the useful template commands.
+- `goja-text help goja-text-template-writing-documentation` renders the new help page.
+- Smoke tests passed for:
+
+```bash
+./dist/goja-text template check "$tmp/doc.tmpl.md" --output json
+./dist/goja-text template inspect "$tmp/doc.tmpl.md" --output json
+./dist/goja-text template text "$tmp/doc.tmpl.md" --data-file "$tmp/doc.yaml" --output json
+./dist/goja-text template helper-demo --name docs --output json
+```
+
+- Validation passed:
+
+```bash
+cd goja-text
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off make lint
+```
+
+### What didn't work
+
+- The first jsverb draft used helper functions such as `readFile`, `parseDataFile`, and `configureBuilder` as top-level function declarations or arrow functions. The jsverb scanner treats top-level functions as commands, so the generated `template --help` initially showed unwanted helper commands such as `read-file`, `parse-data-file`, and `configure-builder`.
+- I fixed that by moving helpers into a single top-level `helpers` object whose methods are not scanned as standalone verb functions.
+- The first command names were `renderText`, `renderHtml`, and `validate`. I renamed the CLI verbs to shorter command names (`text`, `html`, `check`) to match the `goja-text template ...` command context and avoid awkward names.
+
+### What I learned
+
+- JavaScript verb discovery scans top-level functions and variable-declared arrow functions, not only functions annotated with `__verb__`. Helper code should live inside objects or closures if it should not become a command.
+- The generated command automatically converts camelCase verb names like `helperDemo` to kebab-case (`helper-demo`).
+- Glazed help pages are immediately discoverable because the provider doc package embeds all `*.md` files.
+
+### What was tricky to build
+
+- The tricky part was balancing useful command arguments with Glazed/xgoja conventions. I kept `templateFile` as the single positional argument and made `dataFile` a flag so the command shape stays simple and reliable.
+- Another tricky point was command naming. `goja-text template text` and `goja-text template html` read better than `goja-text template render-text` because the parent command already states the domain.
+
+### What warrants a second pair of eyes
+
+- Review whether `--data-file` should be positional for convenience or remain a flag for clarity.
+- Review whether the text/html commands should return raw text by default or wrap it as a Glazed `value` row. Current behavior returns a string, which Glazed renders as a `value` field in JSON mode.
+- Review whether `template helper-demo` should remain as a command or only appear in docs/examples.
+
+### What should be done in the future
+
+- Consider adding real fixture template/data files under `examples/template/` so users can run the docs examples without creating temp files.
+- Consider cleaning up older helper commands exposed by other jsverb packages (`markdown read-file`, `markdown slugify`) in a separate sweep.
+
+### Code review instructions
+
+- Start with `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js` for command behavior.
+- Review `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-writing-documentation.md` for Glazed help quality.
+- Validate with:
+
+```bash
+cd goja-text/cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go generate
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+cd ../..
+./dist/goja-text template --help
+./dist/goja-text help goja-text-template-writing-documentation
+```
+
+### Technical details
+
+The template command set currently includes:
+
+```text
+goja-text template check
+goja-text template helper-demo
+goja-text template html
+goja-text template inspect
+goja-text template text
+```

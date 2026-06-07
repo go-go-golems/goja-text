@@ -19,3 +19,6 @@
 - [x] Phase 4: Regenerate/build cmd/goja-text if provider or buildspec changes require it
 - [x] Phase 5: Update diary, changelog, related files, docmgr doctor, and commit at coherent checkpoints
 - [x] Future phase: Design and implement JS callback functions exposed to template FuncMap after runtime-owner review
+- [x] Add Glazed help documentation for writing docs with the template API, including troubleshooting and see-also links
+- [x] Add useful template jsverbs to the generated goja-text binary and update command tour/fixtures
+- [x] Regenerate/build goja-text xgoja binary and smoke-test template jsverbs
