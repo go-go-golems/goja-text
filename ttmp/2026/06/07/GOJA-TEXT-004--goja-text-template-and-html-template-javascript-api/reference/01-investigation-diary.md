@@ -191,7 +191,7 @@ This step implements the design-guide recommendation that the JavaScript API sho
 
 **Inferred user intent:** Move from design documentation to working code while preserving a continuation-friendly record of decisions, failures, and validation.
 
-**Commit (code):** pending — phase-1 service implementation checkpoint.
+**Commit (code):** d14129b21f530d90637fc9bb9ae0a32c29bf5299 — "Add template service design and phase one implementation"
 
 ### What I did
 
@@ -283,7 +283,7 @@ This step proves that the phase-1 service objects are usable from a real goja ru
 
 **Inferred user intent:** Turn the design into an actual native module that follows existing goja-text conventions and can be reviewed incrementally.
 
-**Commit (code):** pending — phase-2 native module checkpoint.
+**Commit (code):** 9da89ead6c79d3ac2b4547924abe478ab85c686a — "Expose template as a goja native module"
 
 ### What I did
 
@@ -391,7 +391,7 @@ This step completes the product-facing path: a user can build `dist/goja-text`, 
 
 **Inferred user intent:** Ensure the feature is not only implemented as a package, but also available and teachable in the shipped goja-text command.
 
-**Commit (code):** pending — phase-3 provider/docs/generated-binary checkpoint.
+**Commit (code):** 59959280ebf746604cf29b0ebc3309e76352949e — "Wire template module into goja-text command"
 
 ### What I did
 

@@ -66,3 +66,23 @@ Step 4: wired template into xgoja provider/buildspec, added help docs and demo, 
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/examples/js/template-demo.js — Generated binary smoke demo
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/text.go — Provider wiring
 
+
+## 2026-06-07
+
+Step 5: recorded final commit hashes, completed bookkeeping, and prepared final ticket bundle upload.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md — Final diary updates with commit hashes
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/tasks.md — Completed implementation phase tasks
+
+
+## 2026-06-07
+
+Uploaded final GOJA-TEXT-004 implementation diary, design guide, tasks, and changelog bundle to reMarkable at /ai/2026/06/07/GOJA-TEXT-004.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final uploaded changelog
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md — Final uploaded diary
+

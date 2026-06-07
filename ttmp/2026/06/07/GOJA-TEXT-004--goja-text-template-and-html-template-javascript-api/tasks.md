@@ -17,5 +17,5 @@
 - [x] Phase 3: Add template API reference, user guide, and examples/js/template-demo.js
 - [x] Phase 4: Run go test ./... and GOWORK=off go test ./...; fix failures
 - [x] Phase 4: Regenerate/build cmd/goja-text if provider or buildspec changes require it
-- [ ] Phase 5: Update diary, changelog, related files, docmgr doctor, and commit at coherent checkpoints
+- [x] Phase 5: Update diary, changelog, related files, docmgr doctor, and commit at coherent checkpoints
 - [ ] Future phase: Design and implement JS callback functions exposed to template FuncMap after runtime-owner review
