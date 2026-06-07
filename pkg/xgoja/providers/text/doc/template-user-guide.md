@@ -89,6 +89,30 @@ console.log(result.Text);
 
 Use `html()` for HTML, SVG, or any document where escaping matters. Use `text()` for Markdown, prompts, plain text, and configuration files.
 
+## Register JavaScript helper functions
+
+Use `JSFunc(name, fn)` when a template needs a small script-local helper. The function is called synchronously during template execution, and thrown JavaScript errors become render errors.
+
+```js
+const result = template.text()
+  .JSFunc("surround", (left, value, right) => `${left}${String(value).toUpperCase()}${right}`)
+  .Parse('{{ surround "[" .Name "]" }}')
+  .Render({ Name: "ada" });
+
+console.log(result.Text); // [ADA]
+```
+
+HTML mode still escapes ordinary strings returned by JavaScript helpers:
+
+```js
+const result = template.html()
+  .JSFunc("unsafe", () => "<script>alert(1)</script>")
+  .Parse("<div>{{ unsafe }}</div>")
+  .Render({});
+```
+
+Do not use `JSFunc` for asynchronous work. Keep helpers small, deterministic, and side-effect-light.
+
 ## Fail fast on missing data
 
 The default missing-key policy is `error`. This makes automation fail loudly when a template expects data that the script did not provide.
@@ -118,4 +142,4 @@ template.text().MissingKey("default").Parse("Hello {{ .Name }}");
 - Use `template.text()` for plain text and `template.html()` for contextual HTML escaping.
 - Builders and results are Go-backed, so JS reads PascalCase methods and fields.
 - Prefer builder methods over raw option objects.
-- JavaScript functions inside templates are a future phase, not part of the current module contract.
+- `JSFunc` supports synchronous JavaScript helpers; asynchronous Promise-returning helpers are not supported.

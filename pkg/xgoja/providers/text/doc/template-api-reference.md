@@ -72,6 +72,7 @@ Parses and renders an HTML template in one call. This is convenience sugar over 
 - `Funcs(...names)` — choose helper presets. Supported names are `"sprig"`, `"glazed"`, and `"none"`.
 - `MissingKey(policy)` — choose Go template missing-key behavior: `"default"`, `"invalid"`, `"zero"`, or `"error"`.
 - `Delims(left, right)` — set custom delimiters.
+- `JSFunc(name, fn)` — register a synchronous JavaScript function as a template helper. Function names must match `[A-Za-z_][A-Za-z0-9_]*`.
 - `Validate()` — return `{ Valid, Errors }` without parsing.
 - `BuildConfig()` — return a frozen Go-backed config or throw if invalid.
 - `Parse(source)` — parse source using the current builder name.
@@ -98,4 +99,5 @@ Parses and renders an HTML template in one call. This is convenience sugar over 
 
 - The default helper presets are `sprig` and `glazed`.
 - The default missing-key policy is `error` for automation safety.
-- JavaScript callback functions inside templates are intentionally not part of this phase.
+- JavaScript callbacks registered with `JSFunc` are synchronous and run during template execution.
+- In HTML mode, ordinary strings returned from `JSFunc` remain untrusted and are escaped by `html/template`.

@@ -3,20 +3,25 @@ package template
 import (
 	"fmt"
 	"strings"
+	texttemplate "text/template"
+
+	"github.com/dop251/goja"
 )
 
 const defaultTemplateName = "template"
 
 type TemplateBuilder struct {
-	cfg    TemplateConfig
-	errors []string
+	cfg         TemplateConfig
+	customFuncs texttemplate.FuncMap
+	vm          *goja.Runtime
+	errors      []string
 }
 
 func NewTextBuilder() *TemplateBuilder { return newBuilder(ModeText) }
 func NewHTMLBuilder() *TemplateBuilder { return newBuilder(ModeHTML) }
 
 func newBuilder(mode Mode) *TemplateBuilder {
-	return &TemplateBuilder{cfg: TemplateConfig{Mode: mode, Name: defaultTemplateName, FuncSets: append([]string(nil), defaultFuncSets...), MissingKey: MissingKeyError}}
+	return &TemplateBuilder{cfg: TemplateConfig{Mode: mode, Name: defaultTemplateName, FuncSets: append([]string(nil), defaultFuncSets...), MissingKey: MissingKeyError}, customFuncs: texttemplate.FuncMap{}}
 }
 
 func (b *TemplateBuilder) Name(name string) *TemplateBuilder {
@@ -92,7 +97,7 @@ func (b *TemplateBuilder) ParseNamed(name, source string) (*TemplateSet, error) 
 	if err != nil {
 		return nil, err
 	}
-	return parseTemplateSet(*cfg, name, source)
+	return parseTemplateSet(*cfg, name, source, b.customFuncs)
 }
 
 func joinErrors(errs []string) string {

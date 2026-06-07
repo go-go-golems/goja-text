@@ -94,6 +94,72 @@ func TestRequireTemplateConvenienceAndNamedTemplates(t *testing.T) {
 	}
 }
 
+func TestRequireTemplateJSFunc(t *testing.T) {
+	rt := newTemplateRuntime(t)
+
+	ret, err := rt.Owner.Call(context.Background(), "template.jsfunc", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		value, runErr := vm.RunString(`
+			const template = require("template");
+			const text = template.text()
+				.JSFunc("surround", (left, value, right) => String(left) + String(value).toUpperCase() + String(right))
+				.Parse('{{ surround "[" .Name "]" }}')
+				.Render({ Name: "ada" })
+				.Text;
+			const html = template.html()
+				.JSFunc("rawish", () => '<script>alert(1)</script>')
+				.Parse('<div>{{ rawish }}</div>')
+				.Render({})
+				.Text;
+			({ text, html });
+		`)
+		if runErr != nil {
+			return nil, runErr
+		}
+		return value.Export(), nil
+	})
+	if err != nil {
+		t.Fatalf("runtime call error = %v", err)
+	}
+	got := ret.(map[string]any)
+	if got["text"] != "[ADA]" {
+		t.Fatalf("text = %#v", got["text"])
+	}
+	html := got["html"].(string)
+	if strings.Contains(html, "<script>") || !strings.Contains(html, "&lt;script&gt;") {
+		t.Fatalf("JSFunc HTML return was not escaped: %s", html)
+	}
+}
+
+func TestRequireTemplateJSFuncErrors(t *testing.T) {
+	rt := newTemplateRuntime(t)
+
+	_, err := rt.Owner.Call(context.Background(), "template.jsfunc.error", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		_, runErr := vm.RunString(`
+			(() => {
+				const template = require("template");
+				template.text().JSFunc("bad-name", () => "x").Parse("{{ . }}");
+			})();
+		`)
+		return nil, runErr
+	})
+	if err == nil || !strings.Contains(err.Error(), "invalid JS function name") {
+		t.Fatalf("error = %v, want invalid JS function name", err)
+	}
+
+	_, err = rt.Owner.Call(context.Background(), "template.jsfunc.throw", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		_, runErr := vm.RunString(`
+			(() => {
+				const template = require("template");
+				template.text().JSFunc("boom", () => { throw new Error("kaboom"); }).Parse("{{ boom }}").Render({});
+			})();
+		`)
+		return nil, runErr
+	})
+	if err == nil || !strings.Contains(err.Error(), "kaboom") {
+		t.Fatalf("error = %v, want thrown JS error", err)
+	}
+}
+
 func TestRequireTemplateValidationErrors(t *testing.T) {
 	rt := newTemplateRuntime(t)
 

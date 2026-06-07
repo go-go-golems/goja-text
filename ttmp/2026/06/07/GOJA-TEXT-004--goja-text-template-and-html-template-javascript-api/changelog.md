@@ -86,3 +86,14 @@ Uploaded final GOJA-TEXT-004 implementation diary, design guide, tasks, and chan
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final uploaded changelog
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md — Final uploaded diary
 
+
+## 2026-06-07
+
+Step 5: implemented synchronous JSFunc callbacks for template builders, with runtime tests and docs.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/examples/js/template-demo.js — JSFunc demo coverage
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go — JSFunc callback registration and wrapper
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go — Runtime tests for JS template helpers
+

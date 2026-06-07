@@ -15,11 +15,12 @@ type TemplateSet struct {
 	html *htmltemplate.Template
 }
 
-func parseTemplateSet(cfg TemplateConfig, name, source string) (*TemplateSet, error) {
+func parseTemplateSet(cfg TemplateConfig, name, source string, customFuncs texttemplate.FuncMap) (*TemplateSet, error) {
 	funcs, err := funcMapFor(cfg.Mode, cfg.FuncSets)
 	if err != nil {
 		return nil, err
 	}
+	mergeFuncMap(funcs, customFuncs)
 	option := "missingkey=" + cfg.MissingKey
 	set := &TemplateSet{Mode: cfg.Mode, Name: name}
 	if cfg.Mode == ModeHTML {

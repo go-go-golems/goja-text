@@ -497,3 +497,108 @@ The generated binary demo printed HTML output containing Go's `html/template` un
 ```
 
 This confirms the demo is using `html/template` contextual escaping rather than plain string substitution.
+
+## Step 5: Implement synchronous JavaScript template helpers with JSFunc
+
+I implemented the advanced phase that exports JavaScript functions into the Go template renderer. Builders now expose `JSFunc(name, fn)`, which registers a synchronous JavaScript callback as a Go template helper. The wrapper converts template arguments to goja values with the builder's runtime, calls the JavaScript function during template execution, and exports the return value back to Go.
+
+This keeps the phase deliberately narrow. It supports synchronous helpers only, propagates thrown JavaScript errors as render errors, validates helper names before parsing, and relies on `html/template` to escape ordinary strings returned from JavaScript helpers in HTML mode.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead."
+
+**Assistant interpretation:** Proceed with the previously deferred future phase: JavaScript callback functions exposed to template FuncMap.
+
+**Inferred user intent:** Complete the advanced template-renderer capability now that the base module is implemented and validated.
+
+**Commit (code):** pending — JSFunc callback phase.
+
+### What I did
+
+- Extended `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/builder.go` so `TemplateBuilder` can carry custom function maps and the goja runtime used by JS-backed builders.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/render.go` to merge custom functions into the template FuncMap after selected presets.
+- Added `TemplateBuilder.JSFunc(name, fn)` in `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go`.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/typescript.go` with the `JSFunc` builder method.
+- Added runtime tests in `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go` for successful JS helpers, HTML escaping of JS helper returns, invalid helper names, and thrown JavaScript errors.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-api-reference.md` and `template-user-guide.md` with JSFunc documentation.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/examples/js/template-demo.js` to demonstrate `JSFunc`.
+
+### Why
+
+- The original ticket explicitly called out a more advanced phase where JavaScript functions should be exported to the template renderer.
+- Implementing this as a builder method preserves the Go-backed fluent API style and keeps callback registration scoped to one parsed template set.
+
+### What worked
+
+- JS helpers can be called from `text/template`:
+
+```js
+template.text()
+  .JSFunc("surround", (left, value, right) => `${left}${String(value).toUpperCase()}${right}`)
+  .Parse('{{ surround "[" .Name "]" }}')
+  .Render({ Name: "ada" })
+```
+
+- HTML mode escapes ordinary strings returned by JS helpers, so a helper returning `<script>alert(1)</script>` renders as escaped text in the demo.
+- Thrown JS errors propagate to template rendering errors and are visible to callers.
+- Validation passed:
+
+```bash
+cd goja-text
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off make lint
+cd cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+../../dist/goja-text run ../../examples/js/template-demo.js
+```
+
+### What didn't work
+
+- My first implementation attempt tried to convert Go template arguments back to JavaScript values through the callback value itself. That is not a valid goja API shape because a `goja.Value` does not expose a `Runtime()` method. I fixed this by storing the runtime on builders created by the module loader and using `b.vm.ToValue(arg)` inside the callback wrapper.
+- The first `TestRequireTemplateJSFuncErrors` version reused `const template = require("template")` across two `RunString` calls in the same runtime, which caused:
+
+```text
+SyntaxError: Identifier 'template' has already been declared at <eval>:1:1(0)
+```
+
+I fixed that by wrapping each script in an IIFE so `const template` is block-scoped per evaluation.
+
+### What I learned
+
+- Go template helpers can be represented as `func(args ...any) (any, error)`, which is a good fit for variable-arity JavaScript callbacks.
+- The runtime must be captured when the builder is created from JavaScript; pure Go-created builders cannot use `JSFunc` and now report a validation error if attempted.
+- Returning normal strings from JS helpers is safe for HTML mode because `html/template` still treats them as untrusted strings.
+
+### What was tricky to build
+
+- Runtime ownership was the main concern. This implementation keeps helper calls synchronous and tied to render execution from the same goja runtime-backed builder. It does not attempt asynchronous Promise handling or goroutine handoff.
+- Another tricky point was preserving service-layer usability. The builder now imports goja to carry the runtime, which slightly weakens the earlier pure-service boundary, but only the JS callback path uses it; normal service tests and pure Go rendering still work.
+
+### What warrants a second pair of eyes
+
+- Review whether importing goja into `builder.go` is acceptable or whether the runtime pointer should be hidden behind a small adapter interface.
+- Review whether JS helpers should be allowed to override Sprig/Glazed helper names. They currently merge after presets, so they can override selected helpers.
+- Review whether we need explicit rejection of Promise-like return values.
+
+### What should be done in the future
+
+- Consider adding docs warning that `JSFunc` helpers must be synchronous and should not perform long-running work.
+- Consider a follow-up hardening pass for helper-name collisions and Promise-return detection.
+
+### Code review instructions
+
+- Start with `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go` and inspect `JSFunc`.
+- Then review `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go`, especially `TestRequireTemplateJSFunc` and `TestRequireTemplateJSFuncErrors`.
+- Validate with the command block in `What worked`.
+
+### Technical details
+
+The generated binary demo now includes this escaped HTML output:
+
+```json
+"HTML": "<p>&lt;Ada&gt;</p><a href=\"#ZgotmplZ\">open</a><div>&lt;script&gt;alert(1)&lt;/script&gt;</div>"
+```
+
+This confirms both URL filtering and escaping of JS helper return strings in HTML mode.

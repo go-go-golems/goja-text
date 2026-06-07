@@ -18,6 +18,7 @@ func (module) TypeScriptModule() *spec.Module {
 			"  Funcs(...names: FuncSetName[]): TemplateBuilder;",
 			"  MissingKey(policy: MissingKeyPolicy): TemplateBuilder;",
 			"  Delims(left: string, right: string): TemplateBuilder;",
+			"  JSFunc(name: string, fn: (...args: unknown[]) => unknown): TemplateBuilder;",
 			"  Validate(): ValidationResult;",
 			"  BuildConfig(): TemplateConfig;",
 			"  Parse(source: string): TemplateSet;",
