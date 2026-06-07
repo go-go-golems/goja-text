@@ -149,6 +149,8 @@ The `examples/js` directory contains small scripts that use the host `fs` module
 ./dist/goja-text run examples/js/sanitize-demo.js
 ./dist/goja-text run examples/js/extract-demo.js
 ./dist/goja-text run examples/js/template-demo.js
+./dist/goja-text template examples
+./dist/goja-text template example report
 ```
 
 ## Bundled verbs

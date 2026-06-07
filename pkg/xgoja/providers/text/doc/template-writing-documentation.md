@@ -27,7 +27,20 @@ SectionType: Tutorial
 
 Documentation templates turn structured facts into repeatable prose. The `template` module uses Go `text/template` for Markdown and plain text, `html/template` for contextually escaped HTML, and Glazed/Sprig helper functions for common formatting. Use it when the same document shape appears repeatedly: release notes, ticket summaries, API tables, prompt packs, fixture reports, or generated README sections.
 
-The generated `goja-text` binary exposes the same renderer in two ways. Scripts can call `require("template")` for full control, and root-mounted jsverbs under `goja-text template ...` provide practical command-line rendering for template files plus YAML or JSON data. The command names are deliberately short: `template text`, `template html`, `template inspect`, `template check`, and `template helper-demo`.
+The generated `goja-text` binary exposes the same renderer in two ways. Scripts can call `require("template")` for full control, and root-mounted jsverbs under `goja-text template ...` provide practical command-line rendering for template files plus YAML or JSON data. The command names are deliberately short: `template text`, `template html`, `template inspect`, `template check`, `template examples`, `template example`, and `template helper-demo`.
+
+## Try the embedded examples first
+
+The generated binary bundles reusable template examples as read-only xgoja assets mounted at `/templates` through `require("fs:assets")`. Use them as copyable starting points before writing your own templates.
+
+```bash
+./dist/goja-text template examples
+./dist/goja-text template example report
+./dist/goja-text template example api-reference
+./dist/goja-text template example page --output-path page.html
+```
+
+The bundled examples demonstrate a Markdown status report, a Markdown API reference table, and an HTML page that filters unsafe URLs through `html/template`.
 
 ## Start with a small Markdown template
 
@@ -152,10 +165,12 @@ The command returns a small object with the written path and byte count so Glaze
 | HTML output contains `#ZgotmplZ` | `html/template` rejected an unsafe URL or context. | Check URL fields and avoid `javascript:` or malformed links. |
 | JSFunc helper returns `[object Promise]` or unexpected output | `JSFunc` is synchronous and does not await promises. | Resolve asynchronous data before rendering and pass the final value into the template. |
 | Data fields are unexpectedly lowercase or uppercase | YAML/JSON data preserves file keys, while Go-backed objects expose exported Go field names. | Match the template selector to the actual data shape, or normalize data in JavaScript before rendering. |
+| Embedded example path cannot be written | xgoja embedded assets are read-only. | Use `--output-path` to write rendered output to the host filesystem instead of trying to modify `/templates`. |
 
 ## See Also
 
 - `goja-text-template-api-reference` — exact JavaScript API for builders, render results, and `JSFunc`.
 - `goja-text-template-user-guide` — guided introduction to the template module from scripts.
+- `goja-text template examples` — list bundled reusable template assets.
 - `goja-text-markdown-user-guide` — parse and inspect Markdown produced by documentation templates.
 - `goja-text-extract-user-guide` — extract structured payloads from generated or source documents.

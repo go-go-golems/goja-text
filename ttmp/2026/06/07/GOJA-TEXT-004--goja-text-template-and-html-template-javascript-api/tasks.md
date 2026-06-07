@@ -22,3 +22,7 @@
 - [x] Add Glazed help documentation for writing docs with the template API, including troubleshooting and see-also links
 - [x] Add useful template jsverbs to the generated goja-text binary and update command tour/fixtures
 - [x] Regenerate/build goja-text xgoja binary and smoke-test template jsverbs
+- [x] Add embedded reusable template assets for report, API reference, and HTML page examples
+- [x] Wire xgoja assets and fs:assets module alias for bundled template examples
+- [x] Add template jsverbs to list and render embedded template examples
+- [x] Update help docs/README for embedded template examples and validate generated binary

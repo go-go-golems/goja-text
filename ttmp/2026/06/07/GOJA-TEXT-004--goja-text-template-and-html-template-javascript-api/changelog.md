@@ -144,3 +144,14 @@ Uploaded updated template documentation/jsverbs diary bundle to reMarkable at /a
 
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final upload note
 
+
+## 2026-06-07
+
+Step 7: added embedded template assets, fs:assets xgoja wiring, and template example jsverbs.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js — Embedded example commands
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/template-assets/report.tmpl.md — Reusable report fixture
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml — Asset and fs:assets configuration
+

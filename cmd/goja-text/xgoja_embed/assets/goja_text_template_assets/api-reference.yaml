@@ -1,0 +1,19 @@
+module: require("template")
+summary: JavaScript entry points exposed by the goja-text template module.
+functions:
+  - name: template.text()
+    purpose: Create a text/template builder for Markdown, prompts, and plain text.
+    example: template.text().Parse(src).Render(data)
+  - name: template.html()
+    purpose: Create an html/template builder with contextual escaping.
+    example: template.html().Parse(src).Render(data)
+  - name: template.renderText(src, data)
+    purpose: Render a text template in one call.
+    example: template.renderText("Hi {{ .Name }}", data)
+  - name: builder.JSFunc(name, fn)
+    purpose: Register a synchronous JavaScript function as a template helper.
+    example: template.text().JSFunc("badge", fn)
+notes:
+  - Builders and results are Go-backed, so JavaScript uses PascalCase methods and fields.
+  - The default missing-key policy is error for automation safety.
+  - JSFunc helpers are synchronous and ordinary string returns are escaped in HTML mode.

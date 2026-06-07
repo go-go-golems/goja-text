@@ -1,10 +1,36 @@
 const fs = require("fs");
+const assets = require("fs:assets");
 const yaml = require("yaml");
 const template = require("template");
+
+const embeddedExamples = {
+  report: {
+    mode: "text",
+    templatePath: "/templates/report.tmpl.md",
+    dataPath: "/templates/report.yaml",
+    description: "Markdown status report with highlights and metadata"
+  },
+  "api-reference": {
+    mode: "text",
+    templatePath: "/templates/api-reference.tmpl.md",
+    dataPath: "/templates/api-reference.yaml",
+    description: "Markdown API reference table generated from structured data"
+  },
+  page: {
+    mode: "html",
+    templatePath: "/templates/page.tmpl.html",
+    dataPath: "/templates/page.yaml",
+    description: "HTML page demonstrating contextual escaping"
+  }
+};
 
 const helpers = {
   readFile(file) {
     return fs.readFileSync(file, "utf-8");
+  },
+
+  readAsset(file) {
+    return assets.readFileSync(file, "utf-8");
   },
 
   writeMaybe(outputPath, text) {
@@ -18,7 +44,17 @@ const helpers = {
   parseDataFile(dataFile) {
     if (!dataFile) return {};
     const source = helpers.readFile(dataFile);
-    if (dataFile.endsWith(".json")) return JSON.parse(source);
+    return helpers.parseDataSource(dataFile, source);
+  },
+
+  parseAssetDataFile(dataFile) {
+    if (!dataFile) return {};
+    const source = helpers.readAsset(dataFile);
+    return helpers.parseDataSource(dataFile, source);
+  },
+
+  parseDataSource(name, source) {
+    if (name.endsWith(".json")) return JSON.parse(source);
     return yaml.parse(source);
   },
 
@@ -135,6 +171,45 @@ __verb__("check", {
     missingKey: { default: "error", type: "choice", choices: ["default", "invalid", "zero", "error"], help: "Go template missingkey policy" },
     leftDelim: { help: "Custom left delimiter; requires rightDelim" },
     rightDelim: { help: "Custom right delimiter; requires leftDelim" }
+  }
+});
+
+function examples() {
+  return Object.keys(embeddedExamples).map((name) => {
+    const example = embeddedExamples[name];
+    return {
+      name,
+      mode: example.mode,
+      description: example.description,
+      templatePath: example.templatePath,
+      dataPath: example.dataPath,
+      command: `goja-text template example ${name}`
+    };
+  });
+}
+
+__verb__("examples", {
+  short: "List embedded reusable template examples"
+});
+
+function example(name, outputPath) {
+  const key = name || "report";
+  const spec = embeddedExamples[key];
+  if (!spec) {
+    throw new Error(`unknown template example ${key}; choose one of ${Object.keys(embeddedExamples).join(", ")}`);
+  }
+  const source = helpers.readAsset(spec.templatePath);
+  const data = helpers.parseAssetDataFile(spec.dataPath);
+  const builder = spec.mode === "html" ? template.html() : template.text();
+  const result = builder.Name(key).Parse(source).Render(data);
+  return helpers.writeMaybe(outputPath, result.Text);
+}
+
+__verb__("example", {
+  short: "Render one embedded reusable template example",
+  fields: {
+    name: { argument: true, default: "report", type: "choice", choices: ["report", "api-reference", "page"], help: "Embedded example to render" },
+    outputPath: { help: "Optional file path to write rendered output" }
   }
 });
 

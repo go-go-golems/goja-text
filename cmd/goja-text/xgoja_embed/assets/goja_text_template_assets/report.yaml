@@ -1,0 +1,15 @@
+title: Template Module Status Report
+summary: A reusable Markdown report generated with goja-text templates.
+highlights:
+  - name: Go-backed builders
+    description: Keep configuration and parsed template state in Go objects.
+  - name: HTML escaping
+    description: Use html/template for contextual escaping when producing HTML.
+  - name: JSFunc helpers
+    description: Register small synchronous JavaScript helpers for local formatting.
+metadata:
+  module: template
+  mode: text
+  helperPresets:
+    - sprig
+    - glazed

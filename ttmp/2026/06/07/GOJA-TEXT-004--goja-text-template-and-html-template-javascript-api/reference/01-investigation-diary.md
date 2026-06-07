@@ -32,8 +32,16 @@ RelatedFiles:
       Note: Tour and fixture updates for template docs and commands
     - Path: goja-text/cmd/goja-text/jsverbs/template.js
       Note: Template jsverb command package for text html inspect check and helper-demo
+    - Path: goja-text/cmd/goja-text/template-assets/api-reference.tmpl.md
+      Note: Embedded Markdown API reference template example
+    - Path: goja-text/cmd/goja-text/template-assets/page.tmpl.html
+      Note: Embedded HTML escaping template example
+    - Path: goja-text/cmd/goja-text/template-assets/report.tmpl.md
+      Note: Embedded Markdown report template example
     - Path: goja-text/cmd/goja-text/xgoja.yaml
-      Note: xgoja module selection for require template
+      Note: |-
+        xgoja module selection for require template
+        Embedded asset and fs assets module wiring
     - Path: goja-text/examples/js/template-demo.js
       Note: Runnable template module demo
     - Path: goja-text/pkg/template/builder.go
@@ -66,6 +74,7 @@ LastUpdated: 2026-06-07T16:20:00-04:00
 WhatFor: Use to resume or review the template module design-ticket investigation.
 WhenToUse: Before continuing implementation work or checking why design choices were made.
 ---
+
 
 
 
@@ -730,4 +739,132 @@ goja-text template helper-demo
 goja-text template html
 goja-text template inspect
 goja-text template text
+```
+
+## Step 7: Bundle reusable template examples as embedded xgoja assets
+
+I added reusable template/data pairs as embedded xgoja assets and exposed them through the generated `goja-text` binary. The examples are mounted read-only at `/templates` through a new `fs:assets` module alias, while the existing host `fs` alias remains available for user files and output paths.
+
+This step turns the documentation examples into runnable built-in fixtures. Users can list the embedded templates with `goja-text template examples` and render them with `goja-text template example report`, `api-reference`, or `page` without creating local files first.
+
+### Prompt Context
+
+**User prompt (verbatim):** "go ahead, add tasks, and then implement."
+
+**Assistant interpretation:** Add docmgr tasks for embedded reusable template assets, implement xgoja asset bundling, update jsverbs/docs, validate, and commit.
+
+**Inferred user intent:** Make the reusable template examples self-contained in the generated binary rather than only described in documentation.
+
+**Commit (code):** pending — embedded template assets and example rendering jsverbs.
+
+### What I did
+
+- Added reusable embedded assets under `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/template-assets`:
+  - `report.tmpl.md` and `report.yaml`
+  - `api-reference.tmpl.md` and `api-reference.yaml`
+  - `page.tmpl.html` and `page.yaml`
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml` with an embedded asset source and a read-only `fs:assets` module mounted at `/templates`.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js` with:
+  - `template examples`
+  - `template example <name>`
+  - asset-backed rendering through `require("fs:assets")`
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/examples.js` so the tour and fixtures mention embedded template assets.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-writing-documentation.md` with embedded example commands and read-only asset troubleshooting.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/README.md` with embedded template example commands.
+- Regenerated and rebuilt `cmd/goja-text`, then smoke-tested the new commands.
+
+### Why
+
+- Embedded xgoja assets let the generated binary ship reusable template examples without relying on repository-relative files at runtime.
+- A separate `fs:assets` alias preserves the safety boundary: bundled examples are read-only, while host `fs` remains explicitly configured for normal file reads/writes.
+
+### What worked
+
+- xgoja validation/generation succeeded and reported `modules=8`, reflecting the extra `fs:assets` module alias.
+- `goja-text template --help` now shows `examples` and `example`.
+- Smoke tests passed:
+
+```bash
+./dist/goja-text template examples --output json
+./dist/goja-text template example report --output json
+./dist/goja-text template example page --output json
+```
+
+- The HTML example demonstrated `html/template` escaping and unsafe URL filtering with `#ZgotmplZ`.
+- Full validation passed:
+
+```bash
+cd goja-text
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off make lint
+```
+
+### What didn't work
+
+- No command or test failure occurred in the final asset-backed implementation.
+- One minor observation: `goja-text modules` lists provider modules rather than selected aliases, so it does not visibly show `fs:assets`; the successful jsverb smoke tests are the useful proof that the alias is available at runtime.
+
+### What I learned
+
+- xgoja embedded assets are a clean fit for copyable examples: `assets[].path` is resolved relative to `xgoja.yaml`, then copied into `xgoja_embed/assets/<id>/` during generation.
+- The existing host fs module and read-only embedded fs module can coexist as `require("fs")` and `require("fs:assets")`.
+- Keeping reusable examples inside `cmd/goja-text/template-assets` makes their relationship to the generated binary explicit.
+
+### What was tricky to build
+
+- The tricky part was keeping helper functions out of the jsverb command scanner. I preserved the object-method helper pattern from Step 6, so only explicitly intended top-level functions become commands.
+- Another subtle point was data key casing. The embedded YAML files use lowercase keys, and the embedded templates address lowercase selectors accordingly (`.title`, `.items`, etc.).
+
+### What warrants a second pair of eyes
+
+- Review whether the asset mount path `/templates` is the right stable public path.
+- Review whether `fs:assets` should be documented in the top-level README module table or only in template-specific docs.
+- Review whether example output should be raw text by default or object-wrapped for Glazed consistency.
+
+### What should be done in the future
+
+- Consider adding a command to copy embedded templates to a host directory for customization.
+- Consider adding more domain-specific examples, such as release notes or prompt packs.
+
+### Code review instructions
+
+- Start with `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml` to inspect the asset and `fs:assets` wiring.
+- Review `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/template-assets` for fixture quality.
+- Review `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js` for the new `examples` and `example` commands.
+- Validate with:
+
+```bash
+cd goja-text/cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go generate
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+cd ../..
+./dist/goja-text template examples --output json
+./dist/goja-text template example report --output json
+./dist/goja-text template example page --output json
+```
+
+### Technical details
+
+The xgoja buildspec now includes:
+
+```yaml
+assets:
+  - id: goja-text-template-assets
+    path: ./template-assets
+    embed: true
+```
+
+and mounts that asset tree as:
+
+```yaml
+- package: go-go-goja-host
+  name: fs
+  as: fs:assets
+  config:
+    embedded:
+      allow: true
+      mounts:
+        - asset: goja-text-template-assets
+          mount: /templates
 ```

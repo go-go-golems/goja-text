@@ -61,6 +61,22 @@
       "config": {
         "allow": true
       }
+    },
+    {
+      "package": "go-go-goja-host",
+      "name": "fs",
+      "as": "fs:assets",
+      "config": {
+        "embedded": {
+          "allow": true,
+          "mounts": [
+            {
+              "asset": "goja-text-template-assets",
+              "mount": "/templates"
+            }
+          ]
+        }
+      }
     }
   ],
   "commands": {
@@ -98,5 +114,12 @@
         "source": "runtime-api"
       }
     ]
-  }
+  },
+  "assets": [
+    {
+      "id": "goja-text-template-assets",
+      "path": "xgoja_embed/assets/goja_text_template_assets",
+      "embed": true
+    }
+  ]
 }

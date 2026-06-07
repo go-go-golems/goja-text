@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <title>{{ .title }}</title>
+</head>
+<body>
+  <main>
+    <h1>{{ .title }}</h1>
+    <p>{{ .intro }}</p>
+    <ul>
+      {{ range .links -}}
+      <li><a href="{{ .href }}">{{ .label }}</a></li>
+      {{ end }}
+    </ul>
+  </main>
+</body>
+</html>

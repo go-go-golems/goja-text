@@ -77,6 +77,22 @@ const embeddedSpecJSON = `{
       "config": {
         "allow": true
       }
+    },
+    {
+      "package": "go-go-goja-host",
+      "name": "fs",
+      "as": "fs:assets",
+      "config": {
+        "embedded": {
+          "allow": true,
+          "mounts": [
+            {
+              "asset": "goja-text-template-assets",
+              "mount": "/templates"
+            }
+          ]
+        }
+      }
     }
   ],
   "commands": {
@@ -114,19 +130,29 @@ const embeddedSpecJSON = `{
         "source": "runtime-api"
       }
     ]
-  }
+  },
+  "assets": [
+    {
+      "id": "goja-text-template-assets",
+      "path": "xgoja_embed/assets/goja_text_template_assets",
+      "embed": true
+    }
+  ]
 }
 `
 
 //go:embed xgoja_embed/jsverbs/*
 var embeddedJSVerbs embed.FS
 
+//go:embed all:xgoja_embed/assets/*
+var embeddedAssets embed.FS
+
 func main() {
 	registry := providerapi.NewProviderRegistry()
 	must(goja_text.Register(registry))
 	must(go_go_goja_core.Register(registry))
 	must(go_go_goja_host.Register(registry))
-	root, err := app.NewRootCommand(app.Options{Providers: registry, SpecJSON: embeddedSpecJSON, EmbeddedJSVerbs: embeddedJSVerbs, EmbeddedHelp: nil, EmbeddedAssets: nil})
+	root, err := app.NewRootCommand(app.Options{Providers: registry, SpecJSON: embeddedSpecJSON, EmbeddedJSVerbs: embeddedJSVerbs, EmbeddedHelp: nil, EmbeddedAssets: embeddedAssets})
 	must(err)
 	if err := root.Execute(); err != nil {
 		fmt.Fprintln(os.Stderr, err)

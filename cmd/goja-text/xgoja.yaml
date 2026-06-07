@@ -46,6 +46,19 @@ modules:
     as: fs
     config:
       allow: true
+  - package: go-go-goja-host
+    name: fs
+    as: fs:assets
+    config:
+      embedded:
+        allow: true
+        mounts:
+          - asset: goja-text-template-assets
+            mount: /templates
+assets:
+  - id: goja-text-template-assets
+    path: ./template-assets
+    embed: true
 jsverbs:
   - id: goja-text-bundled-verbs
     path: ./jsverbs

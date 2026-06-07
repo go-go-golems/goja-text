@@ -24,6 +24,11 @@ function fixtures() {
       kind: "template-demo",
       path: "examples/js/template-demo.js",
       tryCommand: "goja-text run examples/js/template-demo.js"
+    },
+    {
+      kind: "embedded-template-assets",
+      path: "/templates inside fs:assets",
+      tryCommand: "goja-text template examples"
     }
   ];
 }
@@ -41,7 +46,9 @@ function tour() {
     { step: 5, command: "goja-text help goja-text-extract-user-guide", purpose: "Learn candidate extraction" },
     { step: 6, command: "goja-text extract validate examples/text/structured-data-sample.md", purpose: "Find and validate structured payloads" },
     { step: 7, command: "goja-text help goja-text-template-writing-documentation", purpose: "Learn documentation rendering with Go templates" },
-    { step: 8, command: "goja-text template helperDemo --name goja-text", purpose: "Try the template JSFunc helper command" }
+    { step: 8, command: "goja-text template helper-demo --name goja-text", purpose: "Try the template JSFunc helper command" },
+    { step: 9, command: "goja-text template examples", purpose: "List embedded reusable template assets" },
+    { step: 10, command: "goja-text template example report", purpose: "Render a bundled Markdown report template" }
   ];
 }
 

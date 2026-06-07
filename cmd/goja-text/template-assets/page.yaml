@@ -1,0 +1,7 @@
+title: goja-text Template Demo
+intro: Values are escaped by html/template. Try changing this to include <script> tags.
+links:
+  - label: Safe documentation link
+    href: https://example.com/docs
+  - label: Unsafe JavaScript link filtered by html/template
+    href: javascript:alert(1)
