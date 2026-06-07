@@ -755,7 +755,7 @@ This step turns the documentation examples into runnable built-in fixtures. User
 
 **Inferred user intent:** Make the reusable template examples self-contained in the generated binary rather than only described in documentation.
 
-**Commit (code):** pending — embedded template assets and example rendering jsverbs.
+**Commit (code):** 8ec6534092a4ab7a114fbf5b192a75b8d5ce0682 — "Embed reusable template examples"
 
 ### What I did
 

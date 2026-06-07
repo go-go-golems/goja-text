@@ -155,3 +155,21 @@ Step 7: added embedded template assets, fs:assets xgoja wiring, and template exa
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/template-assets/report.tmpl.md — Reusable report fixture
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml — Asset and fs:assets configuration
 
+
+## 2026-06-07
+
+Recorded embedded reusable template examples commit 8ec6534092a4ab7a114fbf5b192a75b8d5ce0682 in the diary.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md — Embedded assets commit hash recorded
+
+
+## 2026-06-07
+
+Uploaded embedded reusable template examples diary bundle to reMarkable at /ai/2026/06/07/GOJA-TEXT-004.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final embedded assets upload note
+
