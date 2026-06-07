@@ -1,0 +1,15 @@
+title: Markdown Builder API Table
+summary: A compact API table rendered without a template file.
+functions:
+  - name: builder()
+    returns: MarkdownBuilder
+    description: Create a fluent Go-backed document builder.
+  - name: inline()
+    returns: InlineFactory
+    description: Create explicit inline nodes such as code spans and links.
+  - name: RenderString()
+    returns: string
+    description: Render the accumulated document as Markdown text.
+  - name: RenderHTML()
+    returns: string
+    description: Render the generated Markdown through goldmark.

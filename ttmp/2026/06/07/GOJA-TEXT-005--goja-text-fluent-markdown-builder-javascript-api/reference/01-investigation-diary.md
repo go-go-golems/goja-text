@@ -20,12 +20,22 @@ RelatedFiles:
       Note: Starting project note requested by the user
     - Path: cmd/goja-text/jsverbs/markdown.js
       Note: Phase 4 jsverb implementation recorded in diary
+    - Path: cmd/goja-text/main.go
+      Note: Phase 5 generated source recorded in diary
     - Path: cmd/goja-text/markdown-builder-assets/api-table.yaml
       Note: Phase 4 embedded API-table example recorded in diary
     - Path: cmd/goja-text/markdown-builder-assets/report.yaml
       Note: Phase 4 embedded report example recorded in diary
+    - Path: cmd/goja-text/xgoja.gen.json
+      Note: Phase 5 generated manifest recorded in diary
     - Path: cmd/goja-text/xgoja.yaml
       Note: Phase 4 asset mount recorded in diary
+    - Path: cmd/goja-text/xgoja_embed/assets/goja_text_markdown_builder_assets/api-table.yaml
+      Note: Phase 5 embedded API table asset recorded in diary
+    - Path: cmd/goja-text/xgoja_embed/assets/goja_text_markdown_builder_assets/report.yaml
+      Note: Phase 5 embedded report asset recorded in diary
+    - Path: cmd/goja-text/xgoja_embed/jsverbs/goja_text_bundled_verbs/markdown.js
+      Note: Phase 5 embedded jsverb recorded in diary
     - Path: pkg/markdown/builder.go
       Note: Phase 1 fluent builder implementation recorded in diary
     - Path: pkg/markdown/builder_render.go
@@ -56,6 +66,7 @@ LastUpdated: 2026-06-07T18:25:00-04:00
 WhatFor: Use to resume or review the Markdown builder design-ticket investigation.
 WhenToUse: Before implementing the fluent Markdown builder module, CLI verbs, examples, or docs.
 ---
+
 
 
 
@@ -849,4 +860,95 @@ Commands run:
 go test ./... -count=1
 docmgr task check --ticket GOJA-TEXT-005 --id 15
 docmgr changelog update --ticket GOJA-TEXT-005 --entry "Added Markdown builder jsverbs and embedded YAML examples for sprint reports and API tables, mounted as xgoja assets under /markdown-builder."
+```
+
+## Step 9: Regenerate the xgoja binary and smoke-test builder commands
+
+I regenerated the generated `cmd/goja-text` workspace, rebuilt the binary, and smoke-tested the new Markdown builder commands. The generator picked up the new asset mount and embedded the builder example YAML files into `xgoja_embed/assets/goja_text_markdown_builder_assets`.
+
+The generated binary successfully listed the builder examples and rendered both example documents. This validates the full path from `xgoja.yaml` asset configuration, through embedded `fs:assets`, through jsverbs, through `require("markdown").builder()`, to rendered Markdown output.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 4)
+
+**Assistant interpretation:** Complete Phase 5 by regenerating the generated binary and testing the new commands from the actual CLI.
+
+**Inferred user intent:** Verify that the feature works outside unit tests and is available in the generated tool users will run.
+
+**Commit (code):** pending — generated files and diary are ready to commit.
+
+### What I did
+
+- Ran `go generate` in `cmd/goja-text` with `GOTOOLCHAIN=go1.26.4 GOWORK=off`.
+- Rebuilt `dist/goja-text` with the same toolchain/workspace flags.
+- Smoke-tested:
+  - `../../dist/goja-text markdown builder-examples`
+  - `../../dist/goja-text markdown builder-example report`
+  - `../../dist/goja-text markdown builder-example api-table`
+- Checked task 16.
+- Related generated files and embedded assets in docmgr.
+- Updated the changelog.
+
+### Why
+
+- The builder commands depend on generated xgoja assets and embedded jsverbs, so unit tests alone do not validate the final runtime packaging.
+- The previous template work showed that `GOTOOLCHAIN=go1.26.4` and `GOWORK=off` are necessary for this nested generated module.
+
+### What worked
+
+- `go generate` reported:
+
+```text
+validated 20 check(s) for xgoja.yaml
+generated build workspace: .
+xgoja dry run ok: name=goja-text target=xgoja output=dist/goja-text modules=8 packages=3
+```
+
+- `builder-examples` listed both embedded examples.
+- `builder-example report` rendered a Markdown sprint report.
+- `builder-example api-table` rendered a Markdown API table.
+
+### What didn't work
+
+- No command failures occurred.
+- The CLI table renderer displays the returned Markdown string inside a Glazed table cell, so visual output includes table borders around the `value` field. That is a display wrapper, not part of the generated Markdown string.
+
+### What I learned
+
+- Adding a second embedded asset mount under `fs:assets` works as expected.
+- The command name normalization produced the expected `builder-examples` and `builder-example` command names from the jsverb function names.
+
+### What was tricky to build
+
+- The smoke-test output is visually nested because the command returns a string and Glazed renders that string as a table value. For future CLI ergonomics, it may be worth writing raw text output or adding an `outputPath` in examples when demonstrating generated Markdown.
+
+### What warrants a second pair of eyes
+
+- Whether the generated `main.go` and embedded files should be committed for every jsverb/asset change. The existing project appears to track generated xgoja output, so I kept them in scope.
+
+### What should be done in the future
+
+- Run final docmgr validation.
+- Upload the revised bundle to reMarkable.
+- Consider CLI output formatting improvements for commands that return raw Markdown strings.
+
+### Code review instructions
+
+- Review `cmd/goja-text/xgoja.gen.json` and `cmd/goja-text/xgoja_embed/...` to confirm the generated output matches the source jsverbs/assets.
+- Validate manually with the three smoke commands listed above.
+
+### Technical details
+
+Commands run:
+
+```bash
+cd cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go generate
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+../../dist/goja-text markdown builder-examples
+../../dist/goja-text markdown builder-example report
+../../dist/goja-text markdown builder-example api-table
+docmgr task check --ticket GOJA-TEXT-005 --id 16
+docmgr changelog update --ticket GOJA-TEXT-005 --entry "Regenerated and rebuilt the xgoja binary, then smoke-tested markdown builder-examples and both builder-example variants successfully."
 ```

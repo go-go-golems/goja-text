@@ -70,3 +70,14 @@ Added Markdown builder jsverbs and embedded YAML examples for sprint reports and
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/markdown-builder-assets/report.yaml — Report example data
 - /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja.yaml — Asset mount
 
+
+## 2026-06-07
+
+Regenerated and rebuilt the xgoja binary, then smoke-tested markdown builder-examples and both builder-example variants successfully.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja.gen.json — Regenerated manifest
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja_embed/assets/goja_text_markdown_builder_assets/report.yaml — Embedded report asset
+- /home/manuel/workspaces/2026-06-07/goja-render-markdown/goja-text/cmd/goja-text/xgoja_embed/jsverbs/goja_text_bundled_verbs/markdown.js — Embedded jsverb
+
