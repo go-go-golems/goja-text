@@ -512,7 +512,7 @@ This keeps the phase deliberately narrow. It supports synchronous helpers only, 
 
 **Inferred user intent:** Complete the advanced template-renderer capability now that the base module is implemented and validated.
 
-**Commit (code):** pending — JSFunc callback phase.
+**Commit (code):** d9c63e955f52d9af9c5cf5ad08862a2d73b1413b — "Add JavaScript template helper callbacks"
 
 ### What I did
 

@@ -97,3 +97,21 @@ Step 5: implemented synchronous JSFunc callbacks for template builders, with run
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go — JSFunc callback registration and wrapper
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go — Runtime tests for JS template helpers
 
+
+## 2026-06-07
+
+Recorded JSFunc callback commit d9c63e955f52d9af9c5cf5ad08862a2d73b1413b in the diary.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md — JSFunc commit hash recorded
+
+
+## 2026-06-07
+
+Uploaded final JSFunc callback diary/changelog bundle to reMarkable at /ai/2026/06/07/GOJA-TEXT-004.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final reMarkable upload note
+
