@@ -626,7 +626,7 @@ The new jsverbs make the template module usable without writing a JavaScript scr
 
 **Inferred user intent:** Make the new template API discoverable and operational from the CLI, not only from direct `require("template")` scripts.
 
-**Commit (code):** pending — template documentation-writing help and jsverbs.
+**Commit (code):** 2de53ee37bf395cefc0c200022624430f227e412 — "Add template documentation help and jsverbs"
 
 ### What I did
 

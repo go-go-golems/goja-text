@@ -126,3 +126,21 @@ Step 6: added template documentation-writing help page and template jsverbs, reg
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/jsverbs/template.js — Template jsverb command package
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-writing-documentation.md — New Glazed help page for documentation rendering workflows
 
+
+## 2026-06-07
+
+Recorded template documentation/jsverbs commit 2de53ee37bf395cefc0c200022624430f227e412 in the diary.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/reference/01-investigation-diary.md — Template documentation jsverbs commit hash recorded
+
+
+## 2026-06-07
+
+Uploaded updated template documentation/jsverbs diary bundle to reMarkable at /ai/2026/06/07/GOJA-TEXT-004.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/ttmp/2026/06/07/GOJA-TEXT-004--goja-text-template-and-html-template-javascript-api/changelog.md — Final upload note
+
