@@ -13,6 +13,7 @@ The repository currently exposes three JavaScript modules:
 | `markdown` | Parse Markdown, render HTML, walk a Go-backed Markdown AST, and collect text content. | `markdown.parse(input)` |
 | `sanitize` | Repair and inspect YAML or JSON syntax, with fix metadata and Go-backed option builders. | `sanitize.json.sanitize(input)` |
 | `extract` | Find structured-data candidates in Markdown, XML-like tags, frontmatter, or raw text. | `extract.all(input)` |
+| `template` | Render Go `text/template` and `html/template` documents with Go-backed builders and Glazed/Sprig helpers. | `template.text().Parse(input)` |
 
 These modules are available both to Go hosts using `go-go-goja` and to the generated `xgoja` binary described by `cmd/goja-text/xgoja.yaml`.
 
@@ -38,7 +39,7 @@ The `go:generate` directive uses `go tool xgoja build --work-dir . --dry-run` to
 
 The build includes:
 
-- `markdown`, `sanitize`, and `extract` from this repository.
+- `markdown`, `sanitize`, `extract`, and `template` from this repository.
 - Core `path` and `yaml` modules from go-go-goja.
 - Guarded host `fs` access for examples that read local files.
 - Provider-shipped Glazed help pages for every goja-text module.
@@ -57,6 +58,9 @@ The generated binary includes user-facing Glazed help entries. They are written 
 
 ./dist/goja-text help goja-text-extract-user-guide
 ./dist/goja-text help goja-text-extract-api-reference
+
+./dist/goja-text help goja-text-template-user-guide
+./dist/goja-text help goja-text-template-api-reference
 ```
 
 The user guides include runnable examples, including `eval`, `run`, and bundled root-mounted JavaScript verb commands.
@@ -143,6 +147,7 @@ The `examples/js` directory contains small scripts that use the host `fs` module
 ./dist/goja-text run examples/js/markdown-demo.js
 ./dist/goja-text run examples/js/sanitize-demo.js
 ./dist/goja-text run examples/js/extract-demo.js
+./dist/goja-text run examples/js/template-demo.js
 ```
 
 ## Bundled verbs

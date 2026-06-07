@@ -12,10 +12,10 @@
 - [x] Phase 1: Implement Go-backed template service types, builders, validation, function-set selection, and text/html rendering
 - [x] Phase 1: Add service tests for text rendering, HTML escaping, named templates, helpers, missing-key errors, and builder validation
 - [x] Phase 2: Add goja NativeModule adapter with text/html builders, convenience render helpers, docs string, and TypeScript declarations
-- [ ] Phase 2: Add runtime integration tests for require("template"), fluent builder rendering, HTML escaping, helpers, and validation errors
-- [ ] Phase 3: Wire the template module into the goja-text xgoja provider and generated command buildspec
-- [ ] Phase 3: Add template API reference, user guide, and examples/js/template-demo.js
-- [ ] Phase 4: Run go test ./... and GOWORK=off go test ./...; fix failures
-- [ ] Phase 4: Regenerate/build cmd/goja-text if provider or buildspec changes require it
+- [x] Phase 2: Add runtime integration tests for require("template"), fluent builder rendering, HTML escaping, helpers, and validation errors
+- [x] Phase 3: Wire the template module into the goja-text xgoja provider and generated command buildspec
+- [x] Phase 3: Add template API reference, user guide, and examples/js/template-demo.js
+- [x] Phase 4: Run go test ./... and GOWORK=off go test ./...; fix failures
+- [x] Phase 4: Regenerate/build cmd/goja-text if provider or buildspec changes require it
 - [ ] Phase 5: Update diary, changelog, related files, docmgr doctor, and commit at coherent checkpoints
 - [ ] Future phase: Design and implement JS callback functions exposed to template FuncMap after runtime-owner review

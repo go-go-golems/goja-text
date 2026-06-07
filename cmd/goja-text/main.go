@@ -56,6 +56,11 @@ const embeddedSpecJSON = `{
       "as": "extract"
     },
     {
+      "package": "goja-text",
+      "name": "template",
+      "as": "template"
+    },
+    {
       "package": "go-go-goja-core",
       "name": "path",
       "as": "path"

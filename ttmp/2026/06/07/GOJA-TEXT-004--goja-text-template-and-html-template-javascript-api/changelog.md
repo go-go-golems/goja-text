@@ -55,3 +55,14 @@ Step 3: added goja NativeModule adapter, TypeScript declarations, and runtime in
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go — Runtime integration coverage
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/typescript.go — Template TypeScript declaration
 
+
+## 2026-06-07
+
+Step 4: wired template into xgoja provider/buildspec, added help docs and demo, regenerated and validated the generated binary.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml — Buildspec module selection
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/examples/js/template-demo.js — Generated binary smoke demo
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/text.go — Provider wiring
+

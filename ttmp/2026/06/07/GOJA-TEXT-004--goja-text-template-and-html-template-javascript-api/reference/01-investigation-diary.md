@@ -24,6 +24,12 @@ RelatedFiles:
       Note: NativeModule registry contract that shaped the diary's module-loading notes
     - Path: go-go-goja/pkg/doc/02-creating-modules.md
       Note: Native module tutorial read during investigation
+    - Path: goja-text/README.md
+      Note: Top-level module and demo documentation
+    - Path: goja-text/cmd/goja-text/xgoja.yaml
+      Note: xgoja module selection for require template
+    - Path: goja-text/examples/js/template-demo.js
+      Note: Runnable template module demo
     - Path: goja-text/pkg/template/builder.go
       Note: Go-backed fluent template builder and validation
     - Path: goja-text/pkg/template/funcs.go
@@ -40,12 +46,19 @@ RelatedFiles:
       Note: Phase-1 template service result config and metadata types
     - Path: goja-text/pkg/template/typescript.go
       Note: TypeScript declarations for the template module
+    - Path: goja-text/pkg/xgoja/providers/text/doc/template-api-reference.md
+      Note: Template module API help page
+    - Path: goja-text/pkg/xgoja/providers/text/doc/template-user-guide.md
+      Note: Template module user guide
+    - Path: goja-text/pkg/xgoja/providers/text/text.go
+      Note: Provider wiring for the template module
 ExternalSources: []
 Summary: Chronological diary for the GOJA-TEXT-004 template module design investigation.
 LastUpdated: 2026-06-07T16:20:00-04:00
 WhatFor: Use to resume or review the template module design-ticket investigation.
 WhenToUse: Before continuing implementation work or checking why design choices were made.
 ---
+
 
 
 
@@ -363,3 +376,124 @@ func normalizeTemplateData(value any) any {
 ```
 
 I removed the unused helper because the current adapter only needs explicit `exportTemplateData` for top-level convenience functions; reflected Go-backed methods are covered by runtime tests.
+
+## Step 4: Wire xgoja, add docs/examples, and validate the generated binary
+
+I wired the template module into the generated `goja-text` binary path and added user-facing documentation. The xgoja provider now imports and exposes the `template` module, the buildspec selects it as `require("template")`, and the provider help bundle includes an API reference and user guide. I also added a runnable `examples/js/template-demo.js` script and updated the root README module list and help examples.
+
+This step completes the product-facing path: a user can build `dist/goja-text`, run a JavaScript file that imports `template`, and read help pages for the new API inside the generated binary.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue the implementation by wiring the module into xgoja and making it discoverable through docs and examples.
+
+**Inferred user intent:** Ensure the feature is not only implemented as a package, but also available and teachable in the shipped goja-text command.
+
+**Commit (code):** pending — phase-3 provider/docs/generated-binary checkpoint.
+
+### What I did
+
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/text.go` to blank-import `pkg/template`, add `template` to `textModuleNames`, and update the help-source description.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml` to select the new `template` module as `require("template")`.
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-api-reference.md`.
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-user-guide.md`.
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/examples/js/template-demo.js`.
+- Updated `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/README.md` with the new module, help pages, and demo script.
+- Ran xgoja generation and built the generated binary.
+- Ran the new demo through `dist/goja-text`.
+- Ran repository tests and lint in normal and `GOWORK=off` modes.
+
+### Why
+
+- xgoja has two boundaries: provider registration and buildspec module selection. Both must be updated for JavaScript users to `require("template")` in the generated command.
+- Help docs and examples are part of the goja-text pattern for making each native module self-teaching.
+
+### What worked
+
+- `GOTOOLCHAIN=go1.26.4 GOWORK=off go generate` in `cmd/goja-text` succeeded after running `go mod tidy`.
+- `GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .` succeeded.
+- `../../dist/goja-text run ../../examples/js/template-demo.js` succeeded and printed text, named-template, HTML-escaped, and convenience-render output.
+- Validation passed:
+
+```bash
+cd goja-text
+go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off go test ./... -count=1
+GOTOOLCHAIN=go1.26.4 GOWORK=off make lint
+```
+
+### What didn't work
+
+- `cd goja-text/cmd/goja-text && GOWORK=off go generate` failed because the local `go` command reported Go 1.26.1 while the root module requires Go 1.26.4:
+
+```text
+go: module ../.. requires go >= 1.26.4 (running go 1.26.1)
+```
+
+- Running `go generate` without `GOWORK=off` from the nested generated module failed because the workspace treated the root module as the main module:
+
+```text
+main module (github.com/go-go-golems/goja-text) does not contain package github.com/go-go-golems/goja-text/cmd/goja-text
+```
+
+- `GOTOOLCHAIN=go1.26.4 GOWORK=off go generate` then reported that the nested module needed tidying:
+
+```text
+go: updates to go.mod needed; to update it:
+	go mod tidy
+```
+
+I fixed this with:
+
+```bash
+cd goja-text/cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go mod tidy
+GOTOOLCHAIN=go1.26.4 GOWORK=off go generate
+```
+
+### What I learned
+
+- The generated command module now tracks `go 1.26.4`, which matches the root module requirement and avoids the local toolchain mismatch.
+- The dry-run xgoja generation reported `modules=7`, which reflects the added template module alongside the existing goja-text/core/host modules.
+- The generated binary can exercise the template module without adding a jsverb yet.
+
+### What was tricky to build
+
+- The tricky part was the nested module/toolchain interaction. The generated command lives under `cmd/goja-text` with its own `go.mod`, but the workspace root also has a `go.work`. For generation, the reliable command shape was `GOTOOLCHAIN=go1.26.4 GOWORK=off ...` from the nested module.
+- Another subtle point is documentation discoverability. The provider help docs are embedded by a glob in `pkg/xgoja/providers/text/doc/doc.go`, so adding Markdown files there is enough, but the provider description should still mention the new module.
+
+### What warrants a second pair of eyes
+
+- Review the generated `cmd/goja-text/go.mod` change from `go 1.26.1` to `go 1.26.4`; it appears correct because the root module already requires 1.26.4.
+- Review the help docs for exact terminology around `html/template` escaping and Go-backed PascalCase method names.
+- Decide whether to add a first-class `template` jsverb command or keep the example script only for this phase.
+
+### What should be done in the future
+
+- Run `docmgr doctor` and update changelog/relations for the final state.
+- Commit the xgoja/docs/examples checkpoint.
+- Optionally upload the updated ticket bundle to reMarkable again after final validation.
+
+### Code review instructions
+
+- Start with `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/text.go` and `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/cmd/goja-text/xgoja.yaml` to verify module exposure.
+- Review `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/xgoja/providers/text/doc/template-user-guide.md` and `template-api-reference.md` for user-facing API clarity.
+- Validate the generated binary with:
+
+```bash
+cd goja-text/cmd/goja-text
+GOTOOLCHAIN=go1.26.4 GOWORK=off go build -o ../../dist/goja-text .
+../../dist/goja-text run ../../examples/js/template-demo.js
+```
+
+### Technical details
+
+The generated binary demo printed HTML output containing Go's `html/template` unsafe-URL sentinel:
+
+```json
+"HTML": "<p>&lt;Ada&gt;</p><a href=\"#ZgotmplZ\">open</a>"
+```
+
+This confirms the demo is using `html/template` contextual escaping rather than plain string substitution.

@@ -9,6 +9,7 @@ import (
 	_ "github.com/go-go-golems/goja-text/pkg/extract"
 	_ "github.com/go-go-golems/goja-text/pkg/markdown"
 	_ "github.com/go-go-golems/goja-text/pkg/sanitize"
+	_ "github.com/go-go-golems/goja-text/pkg/template"
 	helpdoc "github.com/go-go-golems/goja-text/pkg/xgoja/providers/text/doc"
 )
 
@@ -18,6 +19,7 @@ var textModuleNames = []string{
 	"markdown",
 	"sanitize",
 	"extract",
+	"template",
 }
 
 // Register exposes goja-text modules as xgoja provider modules.
@@ -32,7 +34,7 @@ func Register(registry *providerapi.ProviderRegistry) error {
 	}
 	entries = append(entries, providerapi.HelpSource{
 		Name:        "runtime-api",
-		Description: "goja-text Markdown, sanitize, and extract JavaScript API help pages",
+		Description: "goja-text Markdown, sanitize, extract, and template JavaScript API help pages",
 		FS:          helpdoc.FS(),
 		Root:        ".",
 	})
