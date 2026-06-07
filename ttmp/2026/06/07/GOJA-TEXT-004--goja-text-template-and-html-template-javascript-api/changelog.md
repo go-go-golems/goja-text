@@ -44,3 +44,14 @@ Step 2: implemented phase-1 Go-backed template service layer and service tests.
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/render.go — TemplateSet render implementation
 - /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/template_test.go — Service test coverage
 
+
+## 2026-06-07
+
+Step 3: added goja NativeModule adapter, TypeScript declarations, and runtime integration tests for require template.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go — Native module adapter
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go — Runtime integration coverage
+- /home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/typescript.go — Template TypeScript declaration
+

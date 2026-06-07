@@ -28,18 +28,25 @@ RelatedFiles:
       Note: Go-backed fluent template builder and validation
     - Path: goja-text/pkg/template/funcs.go
       Note: Glazed and Sprig function-set selection
+    - Path: goja-text/pkg/template/module.go
+      Note: Goja NativeModule adapter and JS exports
+    - Path: goja-text/pkg/template/module_test.go
+      Note: Runtime integration tests for require template
     - Path: goja-text/pkg/template/render.go
       Note: Text and HTML template parsing rendering and metadata wrapper
     - Path: goja-text/pkg/template/template_test.go
       Note: Phase-1 service tests
     - Path: goja-text/pkg/template/types.go
       Note: Phase-1 template service result config and metadata types
+    - Path: goja-text/pkg/template/typescript.go
+      Note: TypeScript declarations for the template module
 ExternalSources: []
 Summary: Chronological diary for the GOJA-TEXT-004 template module design investigation.
 LastUpdated: 2026-06-07T16:20:00-04:00
 WhatFor: Use to resume or review the template module design-ticket investigation.
 WhenToUse: Before continuing implementation work or checking why design choices were made.
 ---
+
 
 
 
@@ -248,3 +255,111 @@ set, err := template.NewTextBuilder().Funcs("sprig", "glazed").Parse("Hello {{ .
 result, err := set.Render(map[string]any{"Name": "intern"})
 fmt.Println(result.Text) // Hello INTERN
 ```
+
+## Step 3: Add the goja native module adapter and runtime tests
+
+I added the JavaScript-facing module adapter for `require("template")`. The module now exports `text()`, `html()`, `renderText()`, and `renderHTML()` through the go-go-goja `NativeModule` interface, and it declares TypeScript metadata matching the Go-backed builder and template-set surface.
+
+This step proves that the phase-1 service objects are usable from a real goja runtime. The runtime tests exercise the intended fluent builder API, HTML contextual escaping, named template rendering, convenience rendering, helper functions, and validation errors as JavaScript sees them.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 1)
+
+**Assistant interpretation:** Continue implementing the task list one phase at a time, preserving test evidence and diary context.
+
+**Inferred user intent:** Turn the design into an actual native module that follows existing goja-text conventions and can be reviewed incrementally.
+
+**Commit (code):** pending — phase-2 native module checkpoint.
+
+### What I did
+
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go` implementing `modules.NativeModule`, `Doc()`, `Loader`, and `init()` registration.
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/typescript.go` implementing `modules.TypeScriptDeclarer` with RawDTS for builders, config, template sets, render results, and exported functions.
+- Added `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go` with goja runtime integration tests using `engine.NewRuntimeFactoryBuilder().UseModuleMiddleware(engine.MiddlewareOnly("template"))`.
+- Ran `gofmt -w goja-text/pkg/template`.
+- Ran `cd goja-text && go test ./pkg/template -count=1`.
+
+### Why
+
+- The module adapter is the point where the Go-backed service becomes a goja JavaScript API.
+- Runtime tests are necessary because method reflection, object export, JavaScript object data, and error translation can behave differently from pure Go service tests.
+
+### What worked
+
+- JavaScript can now call `require("template")` in a go-go-goja runtime.
+- The fluent chain works from JS:
+
+```js
+template.text().Name("greeting").Funcs("sprig", "glazed").Parse("Hello {{ .Name | upper }}").Render({ Name: "intern" })
+```
+
+- JavaScript object data passed into Go-backed `TemplateSet.Render(...)` rendered correctly.
+- HTML mode escaped untrusted text and unsafe JavaScript URLs in the runtime test.
+- Validation errors from builders propagate as JavaScript execution errors.
+
+### What didn't work
+
+- The first runtime test compared `got["mode"] != "text"`, but the exported value retained the Go `Mode` type rather than a plain string. The failure looked like this:
+
+```text
+--- FAIL: TestRequireTemplateTextBuilder (0.00s)
+    module_test.go:36: unexpected result: map[string]interface {}{"bytes":12, "mode":"text", "name":"greeting", "text":"Hello INTERN"}
+FAIL
+```
+
+The printed value looked like a string, but the dynamic type was not exactly `string`. I fixed the assertion with `fmt.Sprint(got["mode"]) == "text"`.
+
+### What I learned
+
+- goja can pass a JavaScript object into a reflected Go method accepting `any` well enough for Go templates to read map keys with `{{ .Name }}`.
+- Type aliases like `Mode string` may remain distinct Go types after `Export()`, so tests should avoid overly strict dynamic-type assumptions when checking exported values.
+- The existing `MiddlewareOnly("template")` pattern is enough to test module loading when the package is blank-imported in the test.
+
+### What was tricky to build
+
+- The main sharp edge was data conversion across reflected Go-backed methods. The top-level convenience exports accept `goja.Value` and explicitly call `Export()`, but methods on `TemplateSet` are invoked by goja reflection. The runtime tests confirmed that the reflected path is currently sufficient for normal object data.
+- Another tricky point was ensuring the module adapter stayed small. It only creates builders and convenience render functions; all parsing and rendering remains in the service layer.
+
+### What warrants a second pair of eyes
+
+- Review whether `TemplateSet.Render(data any)` should proactively normalize `goja.Value` in case future code calls it from Go with raw goja values.
+- Confirm the TypeScript declaration naming and whether `RenderString` should be part of the public JS API.
+- Review whether top-level convenience helpers should return `RenderResult` or bare strings.
+
+### What should be done in the future
+
+- Wire the module into the xgoja provider and generated command buildspec.
+- Add user-facing help pages and examples.
+- Add tests covering delimiter customization and `Funcs("none")` if time permits.
+
+### Code review instructions
+
+- Start with `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module.go` to inspect module exports.
+- Then read `/home/manuel/workspaces/2026-06-07/goja-text-templates/goja-text/pkg/template/module_test.go` for the JavaScript contract.
+- Validate with:
+
+```bash
+cd goja-text
+go test ./pkg/template -count=1
+```
+
+### Technical details
+
+The goja module now exposes this minimal API:
+
+```js
+const template = require("template");
+const result = template.renderText("Hello {{ .Name }}", { Name: "Ada" });
+console.log(result.Text);
+```
+
+Additional validation note for Step 3: the first commit attempt failed in the pre-commit lint hook because `normalizeTemplateData` in `pkg/template/module.go` was unused. The exact lint finding was:
+
+```text
+pkg/template/module.go:55:6: func normalizeTemplateData is unused (unused)
+func normalizeTemplateData(value any) any {
+     ^
+```
+
+I removed the unused helper because the current adapter only needs explicit `exportTemplateData` for top-level convenience functions; reflected Go-backed methods are covered by runtime tests.

@@ -10,8 +10,8 @@
 - [x] Write intern-oriented template module implementation guide
 - [x] Relate key source files and upload final bundle to reMarkable
 - [x] Phase 1: Implement Go-backed template service types, builders, validation, function-set selection, and text/html rendering
-- [ ] Phase 1: Add service tests for text rendering, HTML escaping, named templates, helpers, missing-key errors, and builder validation
-- [ ] Phase 2: Add goja NativeModule adapter with text/html builders, convenience render helpers, docs string, and TypeScript declarations
+- [x] Phase 1: Add service tests for text rendering, HTML escaping, named templates, helpers, missing-key errors, and builder validation
+- [x] Phase 2: Add goja NativeModule adapter with text/html builders, convenience render helpers, docs string, and TypeScript declarations
 - [ ] Phase 2: Add runtime integration tests for require("template"), fluent builder rendering, HTML escaping, helpers, and validation errors
 - [ ] Phase 3: Wire the template module into the goja-text xgoja provider and generated command buildspec
 - [ ] Phase 3: Add template API reference, user guide, and examples/js/template-demo.js
