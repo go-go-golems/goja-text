@@ -3,7 +3,7 @@ module example.com/generated/goja-text
 go 1.26.1
 
 require (
-	github.com/go-go-golems/go-go-goja v0.7.4
+	github.com/go-go-golems/go-go-goja v0.8.3
 	github.com/go-go-golems/goja-text v0.0.0-00010101000000-000000000000
 )
 
@@ -48,7 +48,7 @@ require (
 	github.com/fatih/color v1.16.0 // indirect
 	github.com/go-go-golems/bobatea v0.1.5 // indirect
 	github.com/go-go-golems/geppetto v0.11.7 // indirect
-	github.com/go-go-golems/glazed v1.3.5 // indirect
+	github.com/go-go-golems/glazed v1.3.6 // indirect
 	github.com/go-go-golems/logcopter v0.1.0 // indirect
 	github.com/go-go-golems/sanitize v0.0.2 // indirect
 	github.com/go-jose/go-jose/v4 v4.1.4 // indirect

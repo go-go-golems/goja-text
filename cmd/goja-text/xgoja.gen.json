@@ -23,64 +23,56 @@
       "register": "Register"
     }
   ],
-  "runtimes": {
-    "main": {
-      "modules": [
-        {
-          "package": "goja-text",
-          "name": "markdown",
-          "as": "markdown"
-        },
-        {
-          "package": "goja-text",
-          "name": "sanitize",
-          "as": "sanitize"
-        },
-        {
-          "package": "goja-text",
-          "name": "extract",
-          "as": "extract"
-        },
-        {
-          "package": "go-go-goja-core",
-          "name": "path",
-          "as": "path"
-        },
-        {
-          "package": "go-go-goja-core",
-          "name": "yaml",
-          "as": "yaml"
-        },
-        {
-          "package": "go-go-goja-host",
-          "name": "fs",
-          "as": "fs",
-          "config": {
-            "allow": true
-          }
-        }
-      ]
+  "modules": [
+    {
+      "package": "goja-text",
+      "name": "markdown",
+      "as": "markdown"
+    },
+    {
+      "package": "goja-text",
+      "name": "sanitize",
+      "as": "sanitize"
+    },
+    {
+      "package": "goja-text",
+      "name": "extract",
+      "as": "extract"
+    },
+    {
+      "package": "go-go-goja-core",
+      "name": "path",
+      "as": "path"
+    },
+    {
+      "package": "go-go-goja-core",
+      "name": "yaml",
+      "as": "yaml"
+    },
+    {
+      "package": "go-go-goja-host",
+      "name": "fs",
+      "as": "fs",
+      "config": {
+        "allow": true
+      }
     }
-  },
+  ],
   "commands": {
     "eval": {
       "enabled": true,
-      "runtime": "main",
       "name": "eval"
     },
     "run": {
       "enabled": true,
-      "runtime": "main",
       "name": "run"
     },
     "repl": {
       "enabled": true,
-      "runtime": "main",
       "name": "repl"
     },
     "jsverbs": {
       "enabled": true,
-      "runtime": "main",
       "name": "verbs",
       "mount": "root"
     }
