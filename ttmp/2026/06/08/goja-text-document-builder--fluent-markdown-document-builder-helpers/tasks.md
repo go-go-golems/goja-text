@@ -24,6 +24,6 @@
 - [x] Implement Go-backed `FrontmatterFieldBuilder` and field-rule validation
 - [x] Add TypeScript declarations and help docs for field schema builder
 - [x] Run goja-text tests/lint and fix regressions
-- [ ] Commit frontmatter field schema implementation
-- [ ] Update diary/changelog/doc relations for field schema implementation
+- [x] Commit frontmatter field schema implementation
+- [x] Update diary/changelog/doc relations for field schema implementation
 - [ ] Upload updated document bundle to reMarkable after implementation notes are ready

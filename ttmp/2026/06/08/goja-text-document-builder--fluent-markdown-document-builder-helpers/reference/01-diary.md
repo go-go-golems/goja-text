@@ -495,7 +495,7 @@ The implementation intentionally stays small: it validates top-level fields only
 
 **Inferred user intent:** The user wants field-level frontmatter invariants available now, with the task/commit/diary workflow maintained.
 
-**Commit (code):** Pending — this step will be committed after bookkeeping updates.
+**Commit (code):** b4378b39ad916de49819a2321dc00e1873f13e01 — "Add frontmatter field schema builder"
 
 ### What I did
 
@@ -556,6 +556,7 @@ The implementation intentionally stays small: it validates top-level fields only
 - Validate with:
   - `cd goja-text && go test ./... -count=1`
   - `cd goja-text && GOWORK=off go test ./... -count=1`
+  - pre-commit also ran `go test ./... -count=1` and `GOWORK=off golangci-lint run -v` successfully.
 
 ### Technical details
 

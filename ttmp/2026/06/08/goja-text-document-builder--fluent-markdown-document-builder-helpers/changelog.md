@@ -57,3 +57,13 @@ Implemented strict frontmatter field schema builders for markdown.document with 
 - /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document_module_test.go — Field schema test coverage
 - /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/module.go — Field schema TypeScript declarations
 
+
+## 2026-06-08
+
+Committed frontmatter field schema builder implementation (commit b4378b39ad916de49819a2321dc00e1873f13e01).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document.go — Committed field schema builder implementation
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document_module_test.go — Committed field schema integration tests
+
