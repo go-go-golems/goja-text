@@ -417,3 +417,59 @@ return markdown.document(source)
     .End()
   .Build();
 ```
+
+## Step 5: Add field-schema implementation tasks
+
+The user asked to proceed with the frontmatter field schema builder. I added explicit tasks for tests, implementation, TypeScript/help documentation, validation, commit, and diary/changelog bookkeeping before touching the code.
+
+The intended implementation is a strict schema layer on top of the existing permissive `FrontmatterView` accessors. Field rules should fail `Build()` for missing required fields or type mismatches, while defaults should be inserted into the built frontmatter view.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Add tasks to the ticket tasks.md then implement them one by one, commit and keep a diary."
+
+**Assistant interpretation:** Add concrete frontmatter field-schema tasks to the existing docmgr ticket and then implement them in order with commits and diary updates.
+
+**Inferred user intent:** The user wants the previously discussed schema builder added now, but with the same disciplined task/diary/commit workflow used for the minimal builder.
+
+**Commit (code):** Pending — task planning step.
+
+### What I did
+
+- Added tasks for frontmatter field-schema tests, implementation, docs, validation, commit, and diary/changelog updates.
+
+### Why
+
+- The task list now has a reviewable implementation sequence for the schema layer.
+
+### What worked
+
+- The existing ticket already has the design context for field schema builders, so the task update was straightforward.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The schema layer should be strict and should complement, not replace, permissive accessors.
+
+### What was tricky to build
+
+- The scope needs to stay limited: validate top-level frontmatter fields only, without nested object schemas or JSON-path validation.
+
+### What warrants a second pair of eyes
+
+- Review strictness semantics: required missing, empty strings, and default insertion behavior.
+
+### What should be done in the future
+
+- Implement tests first, then code.
+
+### Code review instructions
+
+- Review the newly added tasks before the code commit.
+
+### Technical details
+
+- Proposed API shape: `.Field("title").String().Required().End()` and `.Field("number").String().Optional().Default("01").End()`.
