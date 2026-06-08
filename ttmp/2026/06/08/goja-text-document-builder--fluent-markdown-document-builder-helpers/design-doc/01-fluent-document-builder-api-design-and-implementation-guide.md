@@ -12,11 +12,17 @@ Intent: long-term
 Owners: []
 RelatedFiles:
     - Path: ClubMedMeetup/minitrace-viz/lib/handout-loader.js
-      Note: Secondary refactor target with duplicated frontmatter and first-heading logic
+      Note: |-
+        Secondary refactor target with duplicated frontmatter and first-heading logic
+        Refactored secondary ClubMed loader to use markdown.document
     - Path: ClubMedMeetup/minitrace-viz/lib/slide-loader.js
-      Note: Primary refactor target with duplicated frontmatter
+      Note: |-
+        Primary refactor target with duplicated frontmatter
+        Refactored primary ClubMed loader to use markdown.document
     - Path: ClubMedMeetup/minitrace-viz/xgoja.yaml
-      Note: Shows goja-text module aliases used by the generated ClubMed runtime
+      Note: |-
+        Shows goja-text module aliases used by the generated ClubMed runtime
+        Added local goja-text provider replace for unreleased helper validation
     - Path: goja-text/pkg/extract/frontmatter.go
       Note: Existing frontmatter extraction primitive that informs document frontmatter behavior
     - Path: goja-text/pkg/markdown/builder.go
@@ -39,6 +45,7 @@ LastUpdated: 2026-06-08T18:15:00-04:00
 WhatFor: Use this before implementing markdown.document() so the API shape, invariants, tests, and minitrace-viz migration can be reviewed first.
 WhenToUse: Read when adding document-level helpers to goja-text or replacing duplicated Markdown/frontmatter/block parsing in ClubMedMeetup/minitrace-viz/lib.
 ---
+
 
 
 

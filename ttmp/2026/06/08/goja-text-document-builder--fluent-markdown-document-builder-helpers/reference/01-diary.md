@@ -11,6 +11,12 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: ClubMedMeetup/minitrace-viz/lib/handout-loader.js
+      Note: Step 4 ClubMed refactor target
+    - Path: ClubMedMeetup/minitrace-viz/lib/slide-loader.js
+      Note: Step 4 ClubMed refactor target
+    - Path: ClubMedMeetup/minitrace-viz/xgoja.yaml
+      Note: Step 4 local build strategy
     - Path: ClubMedMeetup/ttmp/2026/06/08/xgoja-modules-improvement-second-edition--improve-xgoja-and-goja-modules-from-clubmedmeetup-usage-patterns-second-edition/design-doc/01-xgoja-and-goja-module-improvement-map-second-edition.md
       Note: Source design ticket identifying point 7 for goja-text document helpers
     - Path: goja-text/pkg/markdown/document.go
@@ -29,6 +35,7 @@ LastUpdated: 2026-06-08T18:15:00-04:00
 WhatFor: Use this to resume or review the design-first document-builder workflow before any implementation begins.
 WhenToUse: Read before implementing markdown.document() or refactoring ClubMedMeetup/minitrace-viz loaders.
 ---
+
 
 
 
@@ -298,6 +305,107 @@ Example supported API:
 
 ```js
 const doc = markdown.document(source)
+  .Frontmatter().YAML().Repair().Optional().End()
+  .Blocks()
+    .Block("context-window")
+      .FromXMLTag("context-window")
+      .FromFence("context-window")
+      .JSON().Repair().Optional().End()
+      .StripFromBody()
+      .End()
+    .End()
+  .Build();
+```
+
+## Step 4: Refactor ClubMed slide and handout loaders around markdown.document
+
+With the minimal `goja-text` builder committed, I refactored the two ClubMed content loaders that originally motivated the helper. The slide loader now asks `markdown.document()` to parse/repair frontmatter, extract and repair `context-window` JSON blocks, strip those blocks from rendered body content, and provide the first heading. The handout loader now uses the same document helper for frontmatter, first heading, and body handling.
+
+This removed the duplicated JavaScript parser-policy helpers while keeping ClubMed-specific DTO normalization in the application. In particular, `normalizeSnapshot`, `bulletNotes`, `firstParagraphExcerpt`, navigation, and presentation defaults remain local because those are site behavior rather than generic Markdown document invariants.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** After implementing the minimal helper, refactor the ClubMed usage sites to exercise it and remove duplication.
+
+**Inferred user intent:** The user wants the reusable API proven against the real application code that exposed the duplication problem.
+
+**Commit (code):** 24513e0ecafa54486ae3b8df041175302c0054fd — "Use goja-text document helpers in loaders"
+
+### What I did
+
+- Replaced `extract`/`sanitize` imports in `minitrace-viz/lib/slide-loader.js` and `handout-loader.js` with the new `markdown.document()` flow.
+- Removed local duplicated helpers from the loaders:
+  - `parseScalar`
+  - `parseSimpleFrontmatterYaml`
+  - `splitFrontmatter`
+  - `headingTitle` / `firstHeading`
+  - `stripContextBlocks`
+  - `parseJsonCandidate`
+  - `contextWindowCandidates`
+- Added local wrapper functions:
+  - `parseSlideDocument(source)`
+  - `parseHandoutDocument(source)`
+- Added `replace: ../../goja-text` to `ClubMedMeetup/minitrace-viz/xgoja.yaml` so local xgoja builds use the newly implemented helper.
+- Built the xgoja runtime and evaluated the loaders through the generated binary.
+
+### Why
+
+- The refactor validates that the document helper solves the original app-level duplication.
+- The local `replace` is needed because the helper is not released as a tagged `goja-text` module yet.
+
+### What worked
+
+- `xgoja build -f xgoja.yaml --xgoja-version v0.8.4` succeeded.
+- `xgoja doctor -f xgoja.yaml` passed all checks and now reports the `goja-text` package replace.
+- Loader eval succeeded:
+  - `./dist/minitrace-viz eval --http-enabled=false 'const slides = require("./lib/slide-loader").loadSlideDeck(); const handouts = require("./lib/handout-loader").loadHandoutBundle(); JSON.stringify({slides: slides.length, firstSlide: slides[0] && slides[0].id, snapshotParts: slides[0] && slides[0].snapshot && slides[0].snapshot.parts.length, handouts: handouts.docs.length, firstHandout: handouts.docs[0] && handouts.docs[0].id})'`
+  - Output: `{"slides":2,"firstSlide":"window-budget","snapshotParts":7,"handouts":2,"firstHandout":"context-window-checklist"}`
+
+### What didn't work
+
+- `GOWORK=off go test ./... -count=1` from `ClubMedMeetup/minitrace-viz` failed because the module currently matches no Go packages:
+  - `go: warning: "./..." matched no packages`
+  - `no packages to test`
+- This is not a regression from the loader refactor, but it means the useful validation path for this JavaScript/xgoja app is `xgoja build`, `xgoja doctor`, and generated-binary eval/smoke checks.
+
+### What I learned
+
+- The loader refactor is substantially smaller: parser policy moved into `goja-text`, while site DTO logic stayed local.
+- The generated binary is a good validation tool for JS module behavior because it runs the actual xgoja module aliases rather than a separate Node process.
+
+### What was tricky to build
+
+- The main tricky part was build provenance. `ClubMedMeetup/minitrace-viz/xgoja.yaml` did not previously replace `goja-text`, so the generated binary would not have seen the local unreleased `markdown.document()` implementation. I added a local replace, matching the existing sibling-repo workflow already used for `go-minitrace`.
+- Another subtle point was preserving current block behavior. `FromFence("context-window")` matches fenced info whose first word is `context-window`, so existing blocks such as `context-window json` remain compatible.
+
+### What warrants a second pair of eyes
+
+- Review whether committing `replace: ../../goja-text` is acceptable for ClubMed release/build contexts. The buildspec already has a sibling replace for `go-minitrace`, but Docker/release behavior should be checked when this moves beyond local workspace development.
+- Compare rendered slide/handout output visually or through API snapshots to catch subtle Markdown/frontmatter behavior changes.
+
+### What should be done in the future
+
+- Add stable ClubMed smoke tests for loader output or Widget API pages so future document-helper changes are caught automatically.
+- Once `goja-text` is tagged with the helper, decide whether to remove the local `replace` and pin a version.
+
+### Code review instructions
+
+- Start with `ClubMedMeetup/minitrace-viz/lib/slide-loader.js` and confirm only parsing infrastructure moved out.
+- Then review `ClubMedMeetup/minitrace-viz/lib/handout-loader.js` for the same pattern.
+- Review `ClubMedMeetup/minitrace-viz/xgoja.yaml` for the local goja-text replace.
+- Validate with:
+  - `cd ClubMedMeetup/minitrace-viz && xgoja doctor -f xgoja.yaml`
+  - `cd ClubMedMeetup/minitrace-viz && xgoja build -f xgoja.yaml --xgoja-version v0.8.4`
+  - the loader eval command recorded above.
+
+### Technical details
+
+The slide loader now uses:
+
+```js
+return markdown.document(source)
   .Frontmatter().YAML().Repair().Optional().End()
   .Blocks()
     .Block("context-window")

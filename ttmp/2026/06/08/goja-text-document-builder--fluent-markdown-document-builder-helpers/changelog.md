@@ -35,3 +35,14 @@ Committed minimal markdown.document builder implementation (commit 4cf73d7d0dcde
 - /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document.go — Committed builder implementation
 - /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document_module_test.go — Committed integration tests
 
+
+## 2026-06-08
+
+Refactored ClubMed slide and handout loaders to use markdown.document and committed the app change (commit 24513e0ecafa54486ae3b8df041175302c0054fd).
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/lib/handout-loader.js — Removed duplicated frontmatter/heading parsing
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/lib/slide-loader.js — Removed duplicated frontmatter/block parsing
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/xgoja.yaml — Local goja-text replace for xgoja build
+

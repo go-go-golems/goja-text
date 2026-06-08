@@ -15,8 +15,8 @@
 - [x] Wire `markdown.document(source)` into module docs and TypeScript declarations
 - [x] Run goja-text test suite and fix regressions
 - [x] Commit the goja-text document helper implementation
-- [ ] Refactor `ClubMedMeetup/minitrace-viz/lib/slide-loader.js` to use `markdown.document()` where feasible
-- [ ] Refactor `ClubMedMeetup/minitrace-viz/lib/handout-loader.js` to use `markdown.document()` where feasible
-- [ ] Validate/refine ClubMed runtime build strategy for the unreleased local goja-text helper
-- [ ] Update diary, changelog, and doc relations after each implementation milestone
+- [x] Refactor `ClubMedMeetup/minitrace-viz/lib/slide-loader.js` to use `markdown.document()` where feasible
+- [x] Refactor `ClubMedMeetup/minitrace-viz/lib/handout-loader.js` to use `markdown.document()` where feasible
+- [x] Validate/refine ClubMed runtime build strategy for the unreleased local goja-text helper
+- [x] Update diary, changelog, and doc relations after each implementation milestone
 - [ ] Upload updated document bundle to reMarkable after implementation notes are ready
