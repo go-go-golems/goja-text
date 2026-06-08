@@ -215,7 +215,7 @@ The implementation follows the existing goja-text builder style. JavaScript conf
 
 **Inferred user intent:** The user wants usable document-level helpers now, but wants stronger schema/view parsing deferred until after the minimal API is proven.
 
-**Commit (code):** Pending — this step will be committed after diary/bookkeeping updates.
+**Commit (code):** 4cf73d7d0dcde4a1131bb5f2af3be3288250818c — "Add fluent Markdown document builder"
 
 ### What I did
 
@@ -290,6 +290,7 @@ The implementation follows the existing goja-text builder style. JavaScript conf
 - Validate with:
   - `cd goja-text && go test ./... -count=1`
   - `cd goja-text && GOWORK=off go test ./... -count=1`
+  - pre-commit also ran `go test ./... -count=1` and `GOWORK=off golangci-lint run -v` successfully.
 
 ### Technical details
 
