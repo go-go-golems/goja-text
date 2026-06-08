@@ -89,6 +89,10 @@ const embeddedSpecJSON = `{
             {
               "asset": "goja-text-template-assets",
               "mount": "/templates"
+            },
+            {
+              "asset": "goja-text-markdown-builder-assets",
+              "mount": "/markdown-builder"
             }
           ]
         }
@@ -135,6 +139,11 @@ const embeddedSpecJSON = `{
     {
       "id": "goja-text-template-assets",
       "path": "xgoja_embed/assets/goja_text_template_assets",
+      "embed": true
+    },
+    {
+      "id": "goja-text-markdown-builder-assets",
+      "path": "xgoja_embed/assets/goja_text_markdown_builder_assets",
       "embed": true
     }
   ]

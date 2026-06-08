@@ -55,9 +55,14 @@ modules:
         mounts:
           - asset: goja-text-template-assets
             mount: /templates
+          - asset: goja-text-markdown-builder-assets
+            mount: /markdown-builder
 assets:
   - id: goja-text-template-assets
     path: ./template-assets
+    embed: true
+  - id: goja-text-markdown-builder-assets
+    path: ./markdown-builder-assets
     embed: true
 jsverbs:
   - id: goja-text-bundled-verbs

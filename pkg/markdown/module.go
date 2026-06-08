@@ -25,9 +25,12 @@ Functions:
   walk(root, visitor): Traverse a Go-backed AST using a JavaScript callback.
   textContent(node): Extract plain text from a MarkdownNode subtree.
   validate(value): Validate a string input or Go-backed MarkdownNode object.
+  builder(): Create a Go-backed fluent Markdown document builder.
+  inline(): Create helpers for explicit inline nodes such as Code, Strong, Link, and Raw.
 
-Go-backed MarkdownNode objects expose exported Go field names in JavaScript:
+Go-backed MarkdownNode and builder objects expose exported Go field and method names in JavaScript:
   node.Type, node.Children, node.Text, node.Level, node.Destination, ...
+  markdown.builder().Title("Report").Table().Columns("Name", "Status").Row("Parser", "done").End().Render().Text
 `
 }
 
@@ -64,6 +67,55 @@ func (module) TypeScriptModule() *spec.Module {
 			"  Valid: boolean;",
 			"  Errors?: string[];",
 			"}",
+			"export interface MarkdownRenderResult {",
+			"  Text: string;",
+			"  Bytes: number;",
+			"  Blocks: number;",
+			"}",
+			"export type TableAlignment = 'default' | 'left' | 'center' | 'right';",
+			"export type InlineInput = string | number | boolean | TextInline | RawInline | CodeInline | EmphasisInline | StrongInline | LinkInline | InlineInput[];",
+			"export type ColumnInput = string | { label?: InlineInput; Label?: InlineInput; align?: TableAlignment; Align?: TableAlignment };",
+			"export type ChecklistInput = string | { text?: InlineInput; Text?: InlineInput; checked?: boolean; Checked?: boolean };",
+			"export interface TextInline { Text: string; }",
+			"export interface RawInline { Markdown: string; }",
+			"export interface CodeInline { Code: string; }",
+			"export interface EmphasisInline { Children: InlineInput[]; }",
+			"export interface StrongInline { Children: InlineInput[]; }",
+			"export interface LinkInline { Text: InlineInput[]; URL: string; Title?: string; }",
+			"export interface InlineFactory {",
+			"  Text(text: string): TextInline;",
+			"  Raw(markdown: string): RawInline;",
+			"  Code(code: string): CodeInline;",
+			"  Em(...parts: InlineInput[]): EmphasisInline;",
+			"  Strong(...parts: InlineInput[]): StrongInline;",
+			"  Link(text: InlineInput, url: string, title?: string): LinkInline;",
+			"}",
+			"export interface TableBuilder {",
+			"  Columns(...columns: ColumnInput[]): TableBuilder;",
+			"  Align(...alignments: TableAlignment[]): TableBuilder;",
+			"  Row(...cells: InlineInput[]): TableBuilder;",
+			"  Rows(rows: InlineInput[][]): TableBuilder;",
+			"  End(): MarkdownBuilder;",
+			"}",
+			"export interface MarkdownBuilder {",
+			"  Title(text: InlineInput): MarkdownBuilder;",
+			"  Heading(level: number, text: InlineInput): MarkdownBuilder;",
+			"  Paragraph(...parts: InlineInput[]): MarkdownBuilder;",
+			"  Text(text: string): MarkdownBuilder;",
+			"  Raw(markdown: string): MarkdownBuilder;",
+			"  ThematicBreak(): MarkdownBuilder;",
+			"  Blockquote(body: unknown): MarkdownBuilder;",
+			"  Callout(kind: string, title: string, body?: unknown): MarkdownBuilder;",
+			"  BulletList(items: InlineInput[]): MarkdownBuilder;",
+			"  OrderedList(items: InlineInput[], start?: number): MarkdownBuilder;",
+			"  Checklist(items: ChecklistInput[]): MarkdownBuilder;",
+			"  CodeBlock(language: string, code: string): MarkdownBuilder;",
+			"  Table(): TableBuilder;",
+			"  Validate(): ValidationResult;",
+			"  Render(): MarkdownRenderResult;",
+			"  RenderString(): string;",
+			"  RenderHTML(): string;",
+			"}",
 		},
 		Functions: []spec.Function{
 			{Name: "parse", Params: []spec.Param{{Name: "input", Type: spec.String()}}, Returns: spec.Named("MarkdownNode")},
@@ -71,6 +123,8 @@ func (module) TypeScriptModule() *spec.Module {
 			{Name: "walk", Params: []spec.Param{{Name: "root", Type: spec.Named("MarkdownNode")}, {Name: "visitor", Type: spec.Any()}}, Returns: spec.Void()},
 			{Name: "textContent", Params: []spec.Param{{Name: "node", Type: spec.Named("MarkdownNode")}}, Returns: spec.String()},
 			{Name: "validate", Params: []spec.Param{{Name: "value", Type: spec.Any()}}, Returns: spec.Named("ValidationResult")},
+			{Name: "builder", Returns: spec.Named("MarkdownBuilder")},
+			{Name: "inline", Returns: spec.Named("InlineFactory")},
 		},
 	}
 }
@@ -112,6 +166,14 @@ func (mod module) Loader(vm *goja.Runtime, moduleObj *goja.Object) {
 		default:
 			return ValidationResult{Valid: false, Errors: []string{fmt.Sprintf("markdown.validate: expected string or MarkdownNode, got %T", value)}}
 		}
+	})
+
+	modules.SetExport(exports, mod.Name(), "builder", func() *MarkdownBuilder {
+		return NewMarkdownBuilder()
+	})
+
+	modules.SetExport(exports, mod.Name(), "inline", func() InlineFactory {
+		return NewInlineFactory()
 	})
 }
 

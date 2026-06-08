@@ -1,4 +1,6 @@
 const fs = require("fs");
+const assets = require("fs:assets");
+const yaml = require("yaml");
 const markdown = require("markdown");
 
 function readFile(file) {
@@ -111,5 +113,102 @@ __verb__("summary", {
   short: "Summarize Markdown document structure",
   fields: {
     file: { argument: true, help: "Markdown file to parse" }
+  }
+});
+
+const builderExampleSpecs = {
+  report: {
+    dataPath: "/markdown-builder/report.yaml",
+    description: "Sprint-style Markdown report with status table and checklist"
+  },
+  "api-table": {
+    dataPath: "/markdown-builder/api-table.yaml",
+    description: "API reference table generated from structured function metadata"
+  }
+};
+
+const builderHelpers = {
+  readAssetYaml(path) {
+    return yaml.parse(assets.readFileSync(path, "utf-8"));
+  },
+
+  writeMaybe(outputPath, text) {
+    if (outputPath) {
+      fs.writeFileSync(outputPath, text);
+      return { outputPath, bytes: text.length };
+    }
+    return text;
+  },
+
+  renderReport(data) {
+    const doc = markdown.builder()
+      .Title(data.title)
+      .Paragraph(data.summary)
+      .Table()
+        .Columns(
+          { label: "Name", align: "left" },
+          { label: "Status", align: "center" },
+          { label: "Owner", align: "left" }
+        );
+
+    for (const row of data.statusRows || []) {
+      doc.Row(row.name, row.status, row.owner);
+    }
+
+    return doc.End()
+      .Heading(2, "Next steps")
+      .Checklist(data.nextSteps || [])
+      .RenderString();
+  },
+
+  renderApiTable(data) {
+    const i = markdown.inline();
+    const table = markdown.builder()
+      .Title(data.title)
+      .Paragraph(data.summary)
+      .Table()
+        .Columns(
+          { label: "Function", align: "left" },
+          { label: "Returns", align: "left" },
+          "Description"
+        );
+
+    for (const fn of data.functions || []) {
+      table.Row(i.Code(fn.name), i.Code(fn.returns), fn.description);
+    }
+
+    return table.End().RenderString();
+  }
+};
+
+function builderExamples() {
+  return Object.keys(builderExampleSpecs).map((name) => ({
+    name,
+    description: builderExampleSpecs[name].description,
+    dataPath: builderExampleSpecs[name].dataPath,
+    command: `goja-text markdown builder-example ${name}`
+  }));
+}
+
+__verb__("builderExamples", {
+  short: "List embedded Markdown builder examples"
+});
+
+function builderExample(name, outputPath) {
+  const key = name || "report";
+  const spec = builderExampleSpecs[key];
+  if (!spec) {
+    throw new Error(`unknown Markdown builder example ${key}; choose one of ${Object.keys(builderExampleSpecs).join(", ")}`);
+  }
+  const data = builderHelpers.readAssetYaml(spec.dataPath);
+  const text = key === "api-table" ? builderHelpers.renderApiTable(data) : builderHelpers.renderReport(data);
+  return builderHelpers.writeMaybe(outputPath, text);
+}
+
+__verb__("builderExample", {
+  short: "Render one embedded Markdown builder example",
+  fields: {
+    name: { argument: true, default: "report", type: "choice", choices: ["report", "api-table"], help: "Embedded builder example to render" },
+    outputPath: { help: "Optional file path to write rendered Markdown" }
   }
 });

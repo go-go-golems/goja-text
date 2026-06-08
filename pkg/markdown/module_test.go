@@ -2,6 +2,7 @@ package markdown_test
 
 import (
 	"context"
+	"strings"
 	"testing"
 
 	"github.com/dop251/goja"
@@ -178,6 +179,100 @@ func TestValidateRejectsInvalidNode(t *testing.T) {
 	}
 	if result.Valid || len(result.Errors) == 0 {
 		t.Fatalf("result = %#v, want invalid with errors", result)
+	}
+}
+
+func TestRequireMarkdownBuilderRendersDocument(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	ret, err := rt.Owner.Call(context.Background(), "markdown.builder.document", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		value, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			const result = markdown.builder()
+				.Title("Sprint report")
+				.Paragraph("Generated from JS data.")
+				.Table()
+					.Columns({ label: "Name", align: "left" }, { label: "Status", align: "right" })
+					.Row("Parser", "done")
+					.Row("Builder", "planned")
+					.End()
+				.Heading(2, "Next steps")
+				.Checklist([{ text: "Expose goja API", checked: true }, { text: "Write docs" }])
+				.Render();
+			({ text: result.Text, bytes: result.Bytes, blocks: result.Blocks });
+		`)
+		if runErr != nil {
+			return nil, runErr
+		}
+		return value.Export(), nil
+	})
+	if err != nil {
+		t.Fatalf("runtime call error = %v", err)
+	}
+	got, ok := ret.(map[string]any)
+	if !ok {
+		t.Fatalf("ret = %T, want map", ret)
+	}
+	text, ok := got["text"].(string)
+	if !ok {
+		t.Fatalf("text = %T", got["text"])
+	}
+	for _, want := range []string{"# Sprint report", "| Name    | Status  |", "| :------ | ------: |", "- [x] Expose goja API", "- [ ] Write docs"} {
+		if !strings.Contains(text, want) {
+			t.Fatalf("text missing %q:\n%s", want, text)
+		}
+	}
+}
+
+func TestRequireMarkdownInlineHelpersAndRenderHTML(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	ret, err := rt.Owner.Call(context.Background(), "markdown.builder.inline", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		value, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			const i = markdown.inline();
+			const builder = markdown.builder()
+				.Paragraph("Run ", i.Code("go test ./..."), " and read ", i.Link("docs", "https://example.com"), ".")
+				.CodeBlock("js", "console.log('ok')");
+			({ md: builder.RenderString(), html: builder.RenderHTML() });
+		`)
+		if runErr != nil {
+			return nil, runErr
+		}
+		return value.Export(), nil
+	})
+	if err != nil {
+		t.Fatalf("runtime call error = %v", err)
+	}
+	got, ok := ret.(map[string]any)
+	if !ok {
+		t.Fatalf("ret = %T, want map", ret)
+	}
+	mdText := got["md"].(string)
+	if !strings.Contains(mdText, "`go test ./...`") || !strings.Contains(mdText, "[docs](https://example.com)") {
+		t.Fatalf("markdown text = %s", mdText)
+	}
+	html := got["html"].(string)
+	if !strings.Contains(html, "<code>go test ./...</code>") || !strings.Contains(html, "<pre><code class=\"language-js\">") {
+		t.Fatalf("html = %s", html)
+	}
+}
+
+func TestRequireMarkdownBuilderValidationError(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	_, err := rt.Owner.Call(context.Background(), "markdown.builder.validation", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		_, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			markdown.builder()
+				.Heading(9, "bad")
+				.Table().Columns("A", "B").Row("one").End()
+				.RenderString();
+		`)
+		return nil, runErr
+	})
+	if err == nil || !strings.Contains(err.Error(), "heading level") || !strings.Contains(err.Error(), "table row") {
+		t.Fatalf("error = %v, want builder validation error", err)
 	}
 }
 
