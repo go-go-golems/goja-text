@@ -86,11 +86,18 @@ Use this when scripts accept mixed user input and need a Go-side type check befo
 
 Creates a Go-backed fluent document parser for Markdown files that combine prose with leading YAML frontmatter and named structured blocks.
 
-The first implementation deliberately avoids field-level frontmatter schema parsing. Instead, it provides typed accessors on the built `FrontmatterView` while keeping parser policy and validation in Go.
+The document builder supports two frontmatter layers:
+
+- permissive typed accessors on the built `FrontmatterView`, such as `String(name, fallback)`;
+- optional strict top-level field schema rules, such as `.Field("title").String().Required().End()`.
 
 ```js
 const doc = markdown.document(source)
-  .Frontmatter().YAML().Repair().Optional().End()
+  .Frontmatter()
+    .YAML().Repair().Optional()
+    .Field("title").String().Required().End()
+    .Field("number").String().Optional().Default("01").End()
+    .End()
   .Blocks()
     .Block("context-window")
       .FromXMLTag("context-window")
@@ -120,7 +127,18 @@ Frontmatter builder methods:
 - `YAML()` — parse leading `---` frontmatter as YAML.
 - `Repair()` — repair frontmatter YAML before parsing.
 - `Optional()` / `Required()` — decide whether missing frontmatter is allowed.
+- `Field(name)` — add a strict top-level field rule.
 - `End()` — return to the document builder.
+
+Frontmatter field builder methods:
+
+- `String()`, `Number()`, `Bool()` — require the YAML value to have that parsed type when present.
+- `Required()` — fail `Build()` if the field is missing. Empty strings count as missing for string fields.
+- `Optional()` — allow the field to be absent.
+- `Default(value)` — insert a default into `FrontmatterView` when the field is absent. The default must match the declared type.
+- `End()` — return to the frontmatter builder.
+
+Field schema rules are intentionally strict. For example, `.Field("published").Bool().Required()` rejects `published: "yes"` because YAML parsed that value as a string, not a boolean.
 
 Structured block builder methods:
 

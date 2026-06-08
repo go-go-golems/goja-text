@@ -46,3 +46,14 @@ Refactored ClubMed slide and handout loaders to use markdown.document and commit
 - /home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/lib/slide-loader.js — Removed duplicated frontmatter/block parsing
 - /home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/xgoja.yaml — Local goja-text replace for xgoja build
 
+
+## 2026-06-08
+
+Implemented strict frontmatter field schema builders for markdown.document with defaults and type validation.
+
+### Related Files
+
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document.go — Field builder and validation implementation
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/document_module_test.go — Field schema test coverage
+- /home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/module.go — Field schema TypeScript declarations
+

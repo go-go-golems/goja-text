@@ -116,6 +116,93 @@ func TestRequireMarkdownDocumentExtractsAndStripsJSONBlock(t *testing.T) {
 	}
 }
 
+func TestRequireMarkdownDocumentFrontmatterFieldSchemaAppliesDefaults(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	ret, err := rt.Owner.Call(context.Background(), "markdown.document.fieldSchema.defaults", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		value, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			const source = [
+				"---",
+				"title: Demo",
+				"published: true",
+				"---",
+				"# Body",
+			].join("\n");
+			const doc = markdown.document(source)
+				.Frontmatter().YAML().Optional()
+					.Field("title").String().Required().End()
+					.Field("number").String().Optional().Default("01").End()
+					.Field("published").Bool().Required().End()
+					.Field("weight").Number().Optional().Default(2.5).End()
+					.End()
+				.Build();
+			({
+				title: doc.Frontmatter().String("title", "fallback"),
+				number: doc.Frontmatter().String("number", "00"),
+				published: doc.Frontmatter().Bool("published", false),
+				weight: doc.Frontmatter().Number("weight", 0),
+				keys: doc.Frontmatter().Keys().join(","),
+			});
+		`)
+		if runErr != nil {
+			return nil, runErr
+		}
+		return value.Export(), nil
+	})
+	if err != nil {
+		t.Fatalf("runtime call error = %v", err)
+	}
+	got, ok := ret.(map[string]any)
+	if !ok {
+		t.Fatalf("ret = %T, want map", ret)
+	}
+	if got["title"] != "Demo" || got["number"] != "01" || got["published"] != true || got["weight"] != 2.5 {
+		t.Fatalf("unexpected schema/default result: %#v", got)
+	}
+	if got["keys"] != "number,published,title,weight" {
+		t.Fatalf("keys = %#v", got["keys"])
+	}
+}
+
+func TestRequireMarkdownDocumentFrontmatterFieldSchemaRejectsMissingRequired(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	_, err := rt.Owner.Call(context.Background(), "markdown.document.fieldSchema.required", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		_, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			markdown.document("---\ntitle: Demo\n---\n# Body")
+				.Frontmatter().YAML().Optional()
+					.Field("id").String().Required().End()
+					.End()
+				.Build();
+		`)
+		return nil, runErr
+	})
+	if err == nil || !strings.Contains(err.Error(), "frontmatter field \"id\": required field missing") {
+		t.Fatalf("error = %v, want missing required field", err)
+	}
+}
+
+func TestRequireMarkdownDocumentFrontmatterFieldSchemaRejectsTypeMismatch(t *testing.T) {
+	rt := newMarkdownRuntime(t)
+
+	_, err := rt.Owner.Call(context.Background(), "markdown.document.fieldSchema.type", func(_ context.Context, vm *goja.Runtime) (any, error) {
+		_, runErr := vm.RunString(`
+			const markdown = require("markdown");
+			markdown.document("---\npublished: \"yes\"\n---\n# Body")
+				.Frontmatter().YAML().Optional()
+					.Field("published").Bool().Required().End()
+					.End()
+				.Build();
+		`)
+		return nil, runErr
+	})
+	if err == nil || !strings.Contains(err.Error(), "frontmatter field \"published\": expected bool") {
+		t.Fatalf("error = %v, want type mismatch", err)
+	}
+}
+
 func TestRequireMarkdownDocumentRejectsInvalidBuilderConfig(t *testing.T) {
 	rt := newMarkdownRuntime(t)
 

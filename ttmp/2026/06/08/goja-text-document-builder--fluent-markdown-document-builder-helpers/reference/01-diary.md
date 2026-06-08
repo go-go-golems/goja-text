@@ -20,11 +20,17 @@ RelatedFiles:
     - Path: ClubMedMeetup/ttmp/2026/06/08/xgoja-modules-improvement-second-edition--improve-xgoja-and-goja-modules-from-clubmedmeetup-usage-patterns-second-edition/design-doc/01-xgoja-and-goja-module-improvement-map-second-edition.md
       Note: Source design ticket identifying point 7 for goja-text document helpers
     - Path: goja-text/pkg/markdown/document.go
-      Note: Implementation diary evidence for the document builder
+      Note: |-
+        Implementation diary evidence for the document builder
+        Step 6 field schema implementation
     - Path: goja-text/pkg/markdown/document_module_test.go
-      Note: Tests captured in Step 3
+      Note: |-
+        Tests captured in Step 3
+        Step 6 field schema tests
     - Path: goja-text/pkg/markdown/module.go
-      Note: Module export and TypeScript declaration wiring
+      Note: |-
+        Module export and TypeScript declaration wiring
+        Step 6 TypeScript declaration wiring
     - Path: goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/design-doc/01-fluent-document-builder-api-design-and-implementation-guide.md
       Note: Design guide produced in the design-first step
     - Path: goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/tasks.md
@@ -35,6 +41,7 @@ LastUpdated: 2026-06-08T18:15:00-04:00
 WhatFor: Use this to resume or review the design-first document-builder workflow before any implementation begins.
 WhenToUse: Read before implementing markdown.document() or refactoring ClubMedMeetup/minitrace-viz loaders.
 ---
+
 
 
 
@@ -473,3 +480,93 @@ The intended implementation is a strict schema layer on top of the existing perm
 ### Technical details
 
 - Proposed API shape: `.Field("title").String().Required().End()` and `.Field("number").String().Optional().Default("01").End()`.
+
+## Step 6: Implement strict frontmatter field schema builders
+
+I implemented the field-schema layer on top of the existing document builder. The new API lets scripts declare strict top-level frontmatter fields with `Field(name).String/Number/Bool().Required/Optional().Default(value).End()`. This keeps the existing permissive `FrontmatterView` accessors for application fallback logic while adding an opt-in validation layer for documents that should fail during `Build()` when metadata is missing or typed incorrectly.
+
+The implementation intentionally stays small: it validates top-level fields only, inserts defaults into the built frontmatter view, and does not attempt nested object schemas or arbitrary coercion. Schema rules are strict, while accessors remain permissive.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 5)
+
+**Assistant interpretation:** Implement the planned frontmatter field schema builder tasks, validate them, and prepare to commit.
+
+**Inferred user intent:** The user wants field-level frontmatter invariants available now, with the task/commit/diary workflow maintained.
+
+**Commit (code):** Pending — this step will be committed after bookkeeping updates.
+
+### What I did
+
+- Added Goja integration tests for:
+  - required string/bool fields;
+  - optional string/number defaults inserted into `FrontmatterView`;
+  - missing required field errors;
+  - strict type mismatch errors.
+- Added `FrontmatterFieldBuilder` and `frontmatterFieldRule` to `pkg/markdown/document.go`.
+- Added frontmatter config validation for field names, duplicate fields, supported field types, and default type compatibility.
+- Added `applyFrontmatterFieldRules()` during `Build()` after YAML parse and before constructing `FrontmatterView`.
+- Added field schema TypeScript declarations in `pkg/markdown/module.go`.
+- Updated `pkg/xgoja/providers/text/doc/markdown-api-reference.md` with field schema API docs and strictness notes.
+
+### Why
+
+- The schema builder lets users enforce required metadata and parsed YAML types at runtime without relying on JavaScript object maps or ad hoc checks in every application.
+- Defaults are inserted into the built view so downstream code can use the same `FrontmatterView` accessors whether a value came from source YAML or schema default.
+
+### What worked
+
+- The new tests initially failed because `FrontmatterBuilder` had no `Field` method:
+  - `TypeError: Object has no member 'Field'`
+- After implementation, targeted field-schema tests passed.
+- Full goja-text tests passed in both modes:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+
+### What didn't work
+
+- N/A beyond the expected failing-test-first behavior.
+
+### What I learned
+
+- Keeping schema strict and accessors permissive avoids confusing semantics: `.Field("published").Bool()` validates YAML parsed type, while `FrontmatterView.Bool("published", false)` can remain a convenience accessor.
+- Defaults should be type-checked at builder validation time so invalid defaults fail before document parsing behavior becomes ambiguous.
+
+### What was tricky to build
+
+- The tricky part was default handling. The implementation inserts defaults only when a field is absent or effectively missing, then validates actual provided values strictly. This prevents defaults from silently overriding wrong user input.
+- Another subtle point was empty string handling. Required string fields treat `""` as missing; optional string fields may remain empty if explicitly provided unless a default is used for an absent value.
+
+### What warrants a second pair of eyes
+
+- Review whether empty strings should count as missing for optional fields with defaults or only for required fields.
+- Review whether number validation should accept all numeric Go types currently possible through YAML/goja export, or be narrowed.
+- Review whether field names should allow dashes. The implementation allows `^[A-Za-z_][A-Za-z0-9_-]*$`.
+
+### What should be done in the future
+
+- Add nested object/list schema builders only if real frontmatter documents require them.
+- Consider adding diagnostics on `ParsedDocument` rather than only build errors.
+
+### Code review instructions
+
+- Start with the new field-schema tests in `pkg/markdown/document_module_test.go`.
+- Review `frontmatterFieldRule`, `FrontmatterFieldBuilder`, `Validate()`, and `applyFrontmatterFieldRules()` in `pkg/markdown/document.go`.
+- Validate with:
+  - `cd goja-text && go test ./... -count=1`
+  - `cd goja-text && GOWORK=off go test ./... -count=1`
+
+### Technical details
+
+Example API:
+
+```js
+const doc = markdown.document(source)
+  .Frontmatter().YAML().Optional()
+    .Field("title").String().Required().End()
+    .Field("published").Bool().Required().End()
+    .Field("number").String().Optional().Default("01").End()
+    .End()
+  .Build();
+```

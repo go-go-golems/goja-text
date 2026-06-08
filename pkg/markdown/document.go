@@ -28,6 +28,15 @@ type frontmatterConfig struct {
 	format   string
 	repair   bool
 	required bool
+	fields   []frontmatterFieldRule
+}
+
+type frontmatterFieldRule struct {
+	name       string
+	valueType  string
+	required   bool
+	hasDefault bool
+	defaultVal any
 }
 
 type blockRule struct {
@@ -49,6 +58,12 @@ type jsonBlockConfig struct {
 type FrontmatterBuilder struct {
 	parent *DocumentBuilder
 	cfg    *frontmatterConfig
+}
+
+// FrontmatterFieldBuilder configures one top-level frontmatter field rule.
+type FrontmatterFieldBuilder struct {
+	parent *FrontmatterBuilder
+	rule   *frontmatterFieldRule
 }
 
 // BlockSetBuilder configures named structured blocks extracted from a document body.
@@ -137,6 +152,24 @@ func (b *DocumentBuilder) Validate() DocumentValidationResult {
 		} else if format != "yaml" {
 			errs = append(errs, fmt.Sprintf("unsupported frontmatter format %q", b.frontmatter.format))
 		}
+		seenFields := map[string]bool{}
+		for _, field := range b.frontmatter.fields {
+			if !validFrontmatterFieldName(field.name) {
+				errs = append(errs, fmt.Sprintf("invalid frontmatter field name %q", field.name))
+			}
+			if seenFields[field.name] {
+				errs = append(errs, fmt.Sprintf("duplicate frontmatter field %q", field.name))
+			}
+			seenFields[field.name] = true
+			switch field.valueType {
+			case "string", "number", "bool":
+			default:
+				errs = append(errs, fmt.Sprintf("frontmatter field %q has unsupported type %q", field.name, field.valueType))
+			}
+			if field.hasDefault && !frontmatterValueMatchesType(field.defaultVal, field.valueType) {
+				errs = append(errs, fmt.Sprintf("frontmatter field %q default does not match %s", field.name, field.valueType))
+			}
+		}
 	}
 	seenBlocks := map[string]bool{}
 	for _, rule := range b.blocks {
@@ -177,6 +210,9 @@ func (b *DocumentBuilder) Build() (*ParsedDocument, error) {
 	if b.frontmatter != nil && b.frontmatter.enabled {
 		values, rest, err := b.parseFrontmatter()
 		if err != nil {
+			return nil, err
+		}
+		if err := b.applyFrontmatterFieldRules(values); err != nil {
 			return nil, err
 		}
 		frontmatter = NewFrontmatterView(values)
@@ -227,8 +263,57 @@ func (b *FrontmatterBuilder) Required() *FrontmatterBuilder {
 	return b
 }
 
+// Field adds a strict top-level frontmatter field rule.
+func (b *FrontmatterBuilder) Field(name string) *FrontmatterFieldBuilder {
+	rule := frontmatterFieldRule{name: strings.TrimSpace(name), valueType: "string"}
+	b.cfg.fields = append(b.cfg.fields, rule)
+	return &FrontmatterFieldBuilder{parent: b, rule: &b.cfg.fields[len(b.cfg.fields)-1]}
+}
+
 // End returns to the parent DocumentBuilder.
 func (b *FrontmatterBuilder) End() *DocumentBuilder {
+	return b.parent
+}
+
+// String requires this field to be a YAML string when present.
+func (b *FrontmatterFieldBuilder) String() *FrontmatterFieldBuilder {
+	b.rule.valueType = "string"
+	return b
+}
+
+// Number requires this field to be a YAML number when present.
+func (b *FrontmatterFieldBuilder) Number() *FrontmatterFieldBuilder {
+	b.rule.valueType = "number"
+	return b
+}
+
+// Bool requires this field to be a YAML boolean when present.
+func (b *FrontmatterFieldBuilder) Bool() *FrontmatterFieldBuilder {
+	b.rule.valueType = "bool"
+	return b
+}
+
+// Required marks this field as required.
+func (b *FrontmatterFieldBuilder) Required() *FrontmatterFieldBuilder {
+	b.rule.required = true
+	return b
+}
+
+// Optional marks this field as optional.
+func (b *FrontmatterFieldBuilder) Optional() *FrontmatterFieldBuilder {
+	b.rule.required = false
+	return b
+}
+
+// Default inserts value into FrontmatterView when this field is absent.
+func (b *FrontmatterFieldBuilder) Default(value any) *FrontmatterFieldBuilder {
+	b.rule.hasDefault = true
+	b.rule.defaultVal = normalizeDocumentValue(value)
+	return b
+}
+
+// End returns to the parent FrontmatterBuilder.
+func (b *FrontmatterFieldBuilder) End() *FrontmatterBuilder {
 	return b.parent
 }
 
@@ -604,6 +689,29 @@ func (b *DocumentBlock) JSONValue() (any, error) {
 	return value, nil
 }
 
+func (b *DocumentBuilder) applyFrontmatterFieldRules(values map[string]any) error {
+	if b.frontmatter == nil || len(b.frontmatter.fields) == 0 {
+		return nil
+	}
+	for _, field := range b.frontmatter.fields {
+		value, ok := values[field.name]
+		if !ok || value == nil || (field.valueType == "string" && value == "") {
+			if field.hasDefault {
+				values[field.name] = field.defaultVal
+				continue
+			}
+			if field.required {
+				return fmt.Errorf("markdown.document.build: frontmatter field %q: required field missing", field.name)
+			}
+			continue
+		}
+		if !frontmatterValueMatchesType(value, field.valueType) {
+			return fmt.Errorf("markdown.document.build: frontmatter field %q: expected %s, got %s", field.name, field.valueType, frontmatterValueTypeName(value))
+		}
+	}
+	return nil
+}
+
 func (b *DocumentBuilder) parseFrontmatter() (map[string]any, string, error) {
 	match := frontmatterPattern.FindStringSubmatchIndex(b.source)
 	if match == nil {
@@ -758,6 +866,47 @@ func validDocumentLabel(label string) bool {
 	return documentLabelPattern.MatchString(label)
 }
 
+func validFrontmatterFieldName(name string) bool {
+	return frontmatterFieldPattern.MatchString(name)
+}
+
+func frontmatterValueMatchesType(value any, typ string) bool {
+	switch typ {
+	case "string":
+		_, ok := value.(string)
+		return ok
+	case "number":
+		switch value.(type) {
+		case int, int64, float64, float32:
+			return true
+		default:
+			return false
+		}
+	case "bool":
+		_, ok := value.(bool)
+		return ok
+	default:
+		return false
+	}
+}
+
+func frontmatterValueTypeName(value any) string {
+	switch value.(type) {
+	case string:
+		return "string"
+	case int, int64, float64, float32:
+		return "number"
+	case bool:
+		return "bool"
+	case []any:
+		return "array"
+	case map[string]any:
+		return "object"
+	default:
+		return fmt.Sprintf("%T", value)
+	}
+}
+
 func appendUniqueString(values []string, value string) []string {
 	for _, existing := range values {
 		if existing == value {
@@ -797,8 +946,9 @@ func firstBoolFallback(fallback []bool) bool {
 }
 
 var (
-	frontmatterPattern   = regexp.MustCompile(`(?s)^---\s*\r?\n(.*?)\r?\n---\s*\r?\n?`)
-	xmlBlockPattern      = regexp.MustCompile(`(?is)<([a-z][a-z0-9_-]*)\b[^>]*>(.*?)</\s*([a-z][a-z0-9_-]*)\s*>`)
-	fencedBlockPattern   = regexp.MustCompile("(?is)```([^\n\r`]*)\r?\n(.*?)\r?\n```")
-	documentLabelPattern = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
+	frontmatterPattern      = regexp.MustCompile(`(?s)^---\s*\r?\n(.*?)\r?\n---\s*\r?\n?`)
+	xmlBlockPattern         = regexp.MustCompile(`(?is)<([a-z][a-z0-9_-]*)\b[^>]*>(.*?)</\s*([a-z][a-z0-9_-]*)\s*>`)
+	fencedBlockPattern      = regexp.MustCompile("(?is)```([^\n\r`]*)\r?\n(.*?)\r?\n```")
+	documentLabelPattern    = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
+	frontmatterFieldPattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_-]*$`)
 )

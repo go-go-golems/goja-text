@@ -20,10 +20,10 @@
 - [x] Validate/refine ClubMed runtime build strategy for the unreleased local goja-text helper
 - [x] Update diary, changelog, and doc relations after each implementation milestone
 - [x] Add implementation task plan for frontmatter field schema builder
-- [ ] Add failing Goja integration tests for frontmatter field schema builder
-- [ ] Implement Go-backed `FrontmatterFieldBuilder` and field-rule validation
-- [ ] Add TypeScript declarations and help docs for field schema builder
-- [ ] Run goja-text tests/lint and fix regressions
+- [x] Add failing Goja integration tests for frontmatter field schema builder
+- [x] Implement Go-backed `FrontmatterFieldBuilder` and field-rule validation
+- [x] Add TypeScript declarations and help docs for field schema builder
+- [x] Run goja-text tests/lint and fix regressions
 - [ ] Commit frontmatter field schema implementation
 - [ ] Update diary/changelog/doc relations for field schema implementation
 - [ ] Upload updated document bundle to reMarkable after implementation notes are ready
