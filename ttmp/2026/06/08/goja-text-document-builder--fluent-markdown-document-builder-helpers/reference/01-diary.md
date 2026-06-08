@@ -13,6 +13,12 @@ Owners: []
 RelatedFiles:
     - Path: ClubMedMeetup/ttmp/2026/06/08/xgoja-modules-improvement-second-edition--improve-xgoja-and-goja-modules-from-clubmedmeetup-usage-patterns-second-edition/design-doc/01-xgoja-and-goja-module-improvement-map-second-edition.md
       Note: Source design ticket identifying point 7 for goja-text document helpers
+    - Path: goja-text/pkg/markdown/document.go
+      Note: Implementation diary evidence for the document builder
+    - Path: goja-text/pkg/markdown/document_module_test.go
+      Note: Tests captured in Step 3
+    - Path: goja-text/pkg/markdown/module.go
+      Note: Module export and TypeScript declaration wiring
     - Path: goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/design-doc/01-fluent-document-builder-api-design-and-implementation-guide.md
       Note: Design guide produced in the design-first step
     - Path: goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/tasks.md
@@ -23,6 +29,7 @@ LastUpdated: 2026-06-08T18:15:00-04:00
 WhatFor: Use this to resume or review the design-first document-builder workflow before any implementation begins.
 WhenToUse: Read before implementing markdown.document() or refactoring ClubMedMeetup/minitrace-viz loaders.
 ---
+
 
 
 # Diary
@@ -193,3 +200,111 @@ This step is intentionally documentation-only. It records the accepted scope bef
 
 - Minimal scope excludes frontmatter field/schema builder methods.
 - Minimal scope includes typed accessors on a built `FrontmatterView`, for example `String(name, fallback)`.
+
+## Step 3: Implement the minimal Go-backed document builder in goja-text
+
+I implemented the first builder slice that the user approved: `markdown.document(source)` with fluent Go-backed configuration for YAML frontmatter, structured block extraction, JSON parsing/repair, block stripping, first-heading lookup, and HTML rendering. I intentionally did not implement field-level frontmatter schema parsing; callers use `FrontmatterView` typed accessors such as `String`, `Number`, and `Bool` for now.
+
+The implementation follows the existing goja-text builder style. JavaScript configures behavior through PascalCase Go methods and `Build()` returns a Go-backed `ParsedDocument`, while validation and parsing policy live in Go.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Implement the minimal fluent document builder, with tests and documentation, while keeping the field-schema layer out of scope.
+
+**Inferred user intent:** The user wants usable document-level helpers now, but wants stronger schema/view parsing deferred until after the minimal API is proven.
+
+**Commit (code):** Pending — this step will be committed after diary/bookkeeping updates.
+
+### What I did
+
+- Added `pkg/markdown/document_module_test.go` with Goja integration tests for:
+  - parsing YAML frontmatter and first heading;
+  - extracting and stripping a fenced `context-window` JSON block;
+  - rejecting invalid block names;
+  - failing when a required block is missing.
+- Added `pkg/markdown/document.go` implementing:
+  - `DocumentBuilder`, `FrontmatterBuilder`, `BlockSetBuilder`, `BlockRuleBuilder`, and `JSONBlockBuilder`;
+  - `ParsedDocument`, `FrontmatterView`, and `DocumentBlock`;
+  - YAML frontmatter parsing/repair via `gopkg.in/yaml.v3` and `github.com/go-go-golems/sanitize/pkg/yaml`;
+  - JSON block parsing/repair via `encoding/json` and `github.com/go-go-golems/sanitize/pkg/json`;
+  - XML-like and fenced block extraction;
+  - stripping configured blocks before body AST/HTML rendering.
+- Updated `pkg/markdown/module.go` to export `document(source)` and include TypeScript declaration strings for the new builder/result types.
+- Updated `pkg/xgoja/providers/text/doc/markdown-api-reference.md` with the new API reference.
+- Ran `go mod tidy`, which moved `gopkg.in/yaml.v3` from indirect to direct dependency.
+
+### Why
+
+- The new helper directly removes the parser-policy duplication identified in ClubMed slide/handout loaders.
+- Go-side builders preserve invariants better than JavaScript maps because invalid block names, missing required blocks, parse failures, and unsupported formats fail through Go validation/errors.
+
+### What worked
+
+- The first failing tests failed exactly because `markdown.document` did not exist yet:
+  - `TypeError: Object has no member 'document'`
+- After implementation, the targeted document tests passed.
+- Full goja-text tests passed in both workspace and `GOWORK=off` modes:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+
+### What didn't work
+
+- My first XML extraction regex used a backreference (`\1`), but Go's `regexp` package does not support backreferences. The failure was:
+  - `panic: regexp: Compile(...): error parsing regexp: invalid escape sequence: \1`
+  I fixed this by capturing the closing tag as a separate group and comparing opening/closing tags in Go.
+- My first JSON repair test used unquoted keys and single-quoted strings. The current JSON sanitizer did not repair that shape into strict JSON, producing:
+  - `invalid character 'i' looking for beginning of object key string`
+  I adjusted the test to cover a common repairable case: strict JSON with a trailing comma.
+
+### What I learned
+
+- Go-backed builders integrate cleanly with the existing module test runtime and preserve the existing PascalCase API style.
+- The sanitizer should not be assumed to repair every JavaScript-object-literal-like payload; the document builder should report parse errors with block context instead of hiding them.
+- Go regex limitations matter for XML-like wrapper parsing; comparing captured tags in Go is simpler and explicit.
+
+### What was tricky to build
+
+- The trickiest part was preserving chain ergonomics without a schema layer. The final minimal API supports `.Frontmatter().YAML().Repair().Optional().End()` and `.Blocks().Block(...).FromFence(...).JSON().Repair().End().StripFromBody().End().End()`, but field declarations remain out of scope.
+- Another sharp edge was mutation through nested builders. `BlockSetBuilder.Block()` appends a rule to the parent slice and returns a pointer to that concrete slice element, so later methods mutate the rule that `Build()` will read.
+
+### What warrants a second pair of eyes
+
+- Review whether `FrontmatterView.String/Number/Bool` coercion should be permissive as implemented, or stricter until field-schema parsing exists.
+- Review whether duplicate block names should stay rejected in the first slice.
+- Review whether `DocumentBlock.JSONValue()` should mutate/cache parsed JSON, as it currently does for on-demand parsing.
+- Review whether XML-like extraction should remain regex-based or move to the existing `extract` package internals later.
+
+### What should be done in the future
+
+- Add field-level/schema frontmatter parsing as a second slice if callers need build-time validation of required fields.
+- Consider exposing sanitize diagnostics/fixes on `DocumentBlock` and frontmatter parse results.
+- Refactor ClubMed slide/handout loaders after deciding how the app should consume the unreleased local goja-text API.
+
+### Code review instructions
+
+- Start with `pkg/markdown/document_module_test.go` to see the intended JavaScript API.
+- Then review `pkg/markdown/document.go`, focusing on builder validation, frontmatter parsing, block extraction, and JSON repair behavior.
+- Finally review `pkg/markdown/module.go` and `pkg/xgoja/providers/text/doc/markdown-api-reference.md` for public API wiring.
+- Validate with:
+  - `cd goja-text && go test ./... -count=1`
+  - `cd goja-text && GOWORK=off go test ./... -count=1`
+
+### Technical details
+
+Example supported API:
+
+```js
+const doc = markdown.document(source)
+  .Frontmatter().YAML().Repair().Optional().End()
+  .Blocks()
+    .Block("context-window")
+      .FromXMLTag("context-window")
+      .FromFence("context-window")
+      .JSON().Repair().Optional().End()
+      .StripFromBody()
+      .End()
+    .End()
+  .Build();
+```

@@ -25,6 +25,7 @@ Functions:
   walk(root, visitor): Traverse a Go-backed AST using a JavaScript callback.
   textContent(node): Extract plain text from a MarkdownNode subtree.
   validate(value): Validate a string input or Go-backed MarkdownNode object.
+  document(source): Create a Go-backed fluent document parser for frontmatter, structured blocks, headings, body, and HTML.
   builder(): Create a Go-backed fluent Markdown document builder.
   inline(): Create helpers for explicit inline nodes such as Code, Strong, Link, and Raw.
 
@@ -66,6 +67,67 @@ func (module) TypeScriptModule() *spec.Module {
 			"export interface ValidationResult {",
 			"  Valid: boolean;",
 			"  Errors?: string[];",
+			"}",
+			"export interface FrontmatterView {",
+			"  Has(name: string): boolean;",
+			"  Value(name: string): unknown;",
+			"  String(name: string, fallback?: string): string;",
+			"  Number(name: string, fallback?: number): number;",
+			"  Bool(name: string, fallback?: boolean): boolean;",
+			"  Keys(): string[];",
+			"  ToObject(): Record<string, unknown>;",
+			"}",
+			"export interface DocumentBlock {",
+			"  Name(): string;",
+			"  Kind(): 'xml' | 'fence' | string;",
+			"  Text(): string;",
+			"  Raw(): string;",
+			"  StartByte(): number;",
+			"  EndByte(): number;",
+			"  JSONValue(): unknown;",
+			"}",
+			"export interface ParsedDocument {",
+			"  Source(): string;",
+			"  Body(): string;",
+			"  AST(): MarkdownNode;",
+			"  Frontmatter(): FrontmatterView;",
+			"  FirstHeading(fallback?: string): string;",
+			"  RenderHTML(): string;",
+			"  Blocks(): DocumentBlock[];",
+			"  Block(name: string): DocumentBlock | null;",
+			"}",
+			"export interface FrontmatterBuilder {",
+			"  YAML(): FrontmatterBuilder;",
+			"  Repair(): FrontmatterBuilder;",
+			"  Optional(): FrontmatterBuilder;",
+			"  Required(): FrontmatterBuilder;",
+			"  End(): DocumentBuilder;",
+			"}",
+			"export interface BlockSetBuilder {",
+			"  Block(name: string): BlockRuleBuilder;",
+			"  End(): DocumentBuilder;",
+			"}",
+			"export interface BlockRuleBuilder {",
+			"  FromXMLTag(tag: string): BlockRuleBuilder;",
+			"  FromFence(info: string): BlockRuleBuilder;",
+			"  StripFromBody(): BlockRuleBuilder;",
+			"  JSON(): JSONBlockBuilder;",
+			"  Optional(): BlockRuleBuilder;",
+			"  Required(): BlockRuleBuilder;",
+			"  End(): BlockSetBuilder;",
+			"}",
+			"export interface JSONBlockBuilder {",
+			"  Repair(): JSONBlockBuilder;",
+			"  Strict(): JSONBlockBuilder;",
+			"  Optional(): JSONBlockBuilder;",
+			"  Required(): JSONBlockBuilder;",
+			"  End(): BlockRuleBuilder;",
+			"}",
+			"export interface DocumentBuilder {",
+			"  Frontmatter(): FrontmatterBuilder;",
+			"  Blocks(): BlockSetBuilder;",
+			"  Validate(): ValidationResult;",
+			"  Build(): ParsedDocument;",
 			"}",
 			"export interface MarkdownRenderResult {",
 			"  Text: string;",
@@ -123,6 +185,7 @@ func (module) TypeScriptModule() *spec.Module {
 			{Name: "walk", Params: []spec.Param{{Name: "root", Type: spec.Named("MarkdownNode")}, {Name: "visitor", Type: spec.Any()}}, Returns: spec.Void()},
 			{Name: "textContent", Params: []spec.Param{{Name: "node", Type: spec.Named("MarkdownNode")}}, Returns: spec.String()},
 			{Name: "validate", Params: []spec.Param{{Name: "value", Type: spec.Any()}}, Returns: spec.Named("ValidationResult")},
+			{Name: "document", Params: []spec.Param{{Name: "source", Type: spec.String()}}, Returns: spec.Named("DocumentBuilder")},
 			{Name: "builder", Returns: spec.Named("MarkdownBuilder")},
 			{Name: "inline", Returns: spec.Named("InlineFactory")},
 		},
@@ -166,6 +229,10 @@ func (mod module) Loader(vm *goja.Runtime, moduleObj *goja.Object) {
 		default:
 			return ValidationResult{Valid: false, Errors: []string{fmt.Sprintf("markdown.validate: expected string or MarkdownNode, got %T", value)}}
 		}
+	})
+
+	modules.SetExport(exports, mod.Name(), "document", func(source string) *DocumentBuilder {
+		return NewDocumentBuilder(source)
 	})
 
 	modules.SetExport(exports, mod.Name(), "builder", func() *MarkdownBuilder {

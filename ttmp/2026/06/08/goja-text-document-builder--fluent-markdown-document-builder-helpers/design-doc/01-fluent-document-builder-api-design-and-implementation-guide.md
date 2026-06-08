@@ -21,10 +21,16 @@ RelatedFiles:
       Note: Existing frontmatter extraction primitive that informs document frontmatter behavior
     - Path: goja-text/pkg/markdown/builder.go
       Note: Existing Go-backed fluent builder pattern to mirror for document helpers
+    - Path: goja-text/pkg/markdown/document.go
+      Note: Minimal Go-backed document builder implementation
+    - Path: goja-text/pkg/markdown/document_module_test.go
+      Note: Goja integration tests for markdown.document minimal builder
     - Path: goja-text/pkg/markdown/module.go
       Note: Current markdown module export
     - Path: goja-text/pkg/sanitize/module.go
       Note: Existing YAML/JSON repair module to compose from document builder policies
+    - Path: goja-text/pkg/xgoja/providers/text/doc/markdown-api-reference.md
+      Note: Provider help documentation for the new document API
     - Path: goja-text/pkg/xgoja/providers/text/text.go
       Note: Provider registration and help source surface for documenting the new API
 ExternalSources: []
@@ -33,6 +39,7 @@ LastUpdated: 2026-06-08T18:15:00-04:00
 WhatFor: Use this before implementing markdown.document() so the API shape, invariants, tests, and minitrace-viz migration can be reviewed first.
 WhenToUse: Read when adding document-level helpers to goja-text or replacing duplicated Markdown/frontmatter/block parsing in ClubMedMeetup/minitrace-viz/lib.
 ---
+
 
 
 # Fluent Document Builder API Design and Implementation Guide

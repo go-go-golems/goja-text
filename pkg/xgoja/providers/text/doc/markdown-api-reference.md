@@ -19,9 +19,9 @@ ShowPerDefault: true
 SectionType: GeneralTopic
 ---
 
-Use `require("markdown")` when JavaScript needs a Go-backed Markdown parser, HTML renderer, AST traversal primitive, or fluent Markdown document builder.
+Use `require("markdown")` when JavaScript needs a Go-backed Markdown parser, HTML renderer, AST traversal primitive, fluent Markdown document builder, or fluent document parser for frontmatter and structured blocks.
 
-The module keeps parsed nodes and generated-document builders as Go objects. JavaScript therefore reads exported Go fields and calls exported Go methods with PascalCase names such as `Type`, `Children`, `Level`, `Destination`, `Title`, `Text`, `RenderString`, and `Table`.
+The module keeps parsed nodes, generated-document builders, and parsed document helpers as Go objects. JavaScript therefore reads exported Go fields and calls exported Go methods with PascalCase names such as `Type`, `Children`, `Level`, `Destination`, `Title`, `Text`, `Frontmatter`, `FirstHeading`, `RenderString`, and `Table`.
 
 ## Loading
 
@@ -81,6 +81,79 @@ console.log(markdown.textContent(heading));
 Validates Markdown input or a Go-backed `MarkdownNode` value and returns a validation result.
 
 Use this when scripts accept mixed user input and need a Go-side type check before continuing.
+
+### document(source)
+
+Creates a Go-backed fluent document parser for Markdown files that combine prose with leading YAML frontmatter and named structured blocks.
+
+The first implementation deliberately avoids field-level frontmatter schema parsing. Instead, it provides typed accessors on the built `FrontmatterView` while keeping parser policy and validation in Go.
+
+```js
+const doc = markdown.document(source)
+  .Frontmatter().YAML().Repair().Optional().End()
+  .Blocks()
+    .Block("context-window")
+      .FromXMLTag("context-window")
+      .FromFence("context-window")
+      .JSON().Repair().Optional().End()
+      .StripFromBody()
+      .End()
+    .End()
+  .Build();
+
+const fm = doc.Frontmatter();
+const title = fm.String("title", doc.FirstHeading("Untitled"));
+const html = doc.RenderHTML();
+const block = doc.Block("context-window");
+const snapshot = block ? block.JSONValue() : null;
+```
+
+Document builder methods:
+
+- `Frontmatter()` — start frontmatter configuration.
+- `Blocks()` — start structured block configuration.
+- `Validate()` — validate builder configuration.
+- `Build()` — parse and validate the document, returning a `ParsedDocument`.
+
+Frontmatter builder methods:
+
+- `YAML()` — parse leading `---` frontmatter as YAML.
+- `Repair()` — repair frontmatter YAML before parsing.
+- `Optional()` / `Required()` — decide whether missing frontmatter is allowed.
+- `End()` — return to the document builder.
+
+Structured block builder methods:
+
+- `Blocks().Block(name)` — configure a named block rule.
+- `FromXMLTag(tag)` — extract `<tag>...</tag>` payloads.
+- `FromFence(info)` — extract fenced code blocks whose first info word matches `info`.
+- `JSON().Repair().End()` — parse matching payloads as JSON, repairing common syntax issues first.
+- `StripFromBody()` — remove matching blocks before `Body()`, `AST()`, `FirstHeading()`, and `RenderHTML()`.
+- `Optional()` / `Required()` — decide whether a matching block is required.
+- `End()` — return to the parent builder.
+
+Parsed document methods:
+
+- `Source()` — original source.
+- `Body()` — body after frontmatter removal and configured block stripping.
+- `AST()` — parsed Markdown AST for `Body()`.
+- `Frontmatter()` — typed frontmatter view.
+- `FirstHeading(fallback?)` — first Markdown heading text from the parsed body.
+- `RenderHTML()` — body rendered through goldmark.
+- `Blocks()` — all extracted blocks.
+- `Block(name)` — first extracted block by name, or `null`.
+
+Frontmatter view methods:
+
+- `Has(name)` / `Value(name)` — presence and raw normalized value.
+- `String(name, fallback?)`, `Number(name, fallback?)`, `Bool(name, fallback?)` — typed accessors with fallback.
+- `Keys()` — stable key list.
+- `ToObject()` — shallow object copy for escape-hatch use.
+
+Document block methods:
+
+- `Name()`, `Kind()`, `Text()`, `Raw()`, `StartByte()`, `EndByte()`.
+- `JSONValue()` — parsed JSON value when the rule used `JSON()`, or strict on-demand JSON parsing otherwise.
 
 ### builder()
 
