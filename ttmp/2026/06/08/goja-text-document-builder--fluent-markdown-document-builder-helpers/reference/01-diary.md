@@ -1,0 +1,573 @@
+---
+Title: Diary
+Ticket: goja-text-document-builder
+Status: active
+Topics:
+    - goja
+    - modules
+    - markdown
+    - architecture
+DocType: reference
+Intent: long-term
+Owners: []
+RelatedFiles:
+    - Path: ClubMedMeetup/minitrace-viz/lib/handout-loader.js
+      Note: Step 4 ClubMed refactor target
+    - Path: ClubMedMeetup/minitrace-viz/lib/slide-loader.js
+      Note: Step 4 ClubMed refactor target
+    - Path: ClubMedMeetup/minitrace-viz/xgoja.yaml
+      Note: Step 4 local build strategy
+    - Path: ClubMedMeetup/ttmp/2026/06/08/xgoja-modules-improvement-second-edition--improve-xgoja-and-goja-modules-from-clubmedmeetup-usage-patterns-second-edition/design-doc/01-xgoja-and-goja-module-improvement-map-second-edition.md
+      Note: Source design ticket identifying point 7 for goja-text document helpers
+    - Path: goja-text/pkg/markdown/document.go
+      Note: |-
+        Implementation diary evidence for the document builder
+        Step 6 field schema implementation
+    - Path: goja-text/pkg/markdown/document_module_test.go
+      Note: |-
+        Tests captured in Step 3
+        Step 6 field schema tests
+    - Path: goja-text/pkg/markdown/module.go
+      Note: |-
+        Module export and TypeScript declaration wiring
+        Step 6 TypeScript declaration wiring
+    - Path: goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/design-doc/01-fluent-document-builder-api-design-and-implementation-guide.md
+      Note: Design guide produced in the design-first step
+    - Path: goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/tasks.md
+      Note: Task checklist for design review and later implementation
+ExternalSources: []
+Summary: Chronological diary for the design-first goja-text document builder ticket.
+LastUpdated: 2026-06-08T18:15:00-04:00
+WhatFor: Use this to resume or review the design-first document-builder workflow before any implementation begins.
+WhenToUse: Read before implementing markdown.document() or refactoring ClubMedMeetup/minitrace-viz loaders.
+---
+
+
+
+
+
+# Diary
+
+## Goal
+
+This diary captures the design-first work for adding Go-backed fluent document-level helpers to `goja-text` and planning the later `ClubMedMeetup/minitrace-viz` loader refactor.
+
+## Step 1: Create the goja-text ticket and pivot to design-first API review
+
+I created a dedicated docmgr ticket under `goja-text/ttmp` using the requested `docmgr --root goja-text/ttmp ...` workflow, then wrote the design/implementation guide before making any code changes. The design centers on a fluent Go-backed `markdown.document(source)` builder so Go, not JavaScript option maps, owns validation and runtime invariants.
+
+I briefly started sketching a concrete Go file too early, then stopped and removed that draft when the user clarified that the document must be reviewed first. The current repo state should therefore contain only the new ticket documentation, not an implementation of the document helper.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Look at @ClubMedMeetup/ttmp/2026/06/08/xgoja-modules-improvement-second-edition--improve-xgoja-and-goja-modules-from-clubmedmeetup-usage-patterns-second-edition/ and the design ticket, and then tacakle point 7 for goja-text and document level helpers, and refactoring @ClubMedMeetup/minitrace-viz/ accordingly as well.
+
+Create a docmgr ticket in goja-text/ttmp/ using the `docmgr --root goja-text/ttmp ...` flag, and Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
+
+**Follow-up user prompt (verbatim):** "Go for an elegant fluent builder based API where the building is done on the go side to be able to enforce solid invariants at runtime as well, instead of relying on JS maps/objects"
+
+**Follow-up user prompt (verbatim):** "oko but write the document / design / implementaiton guide first before implementing, I need to review it"
+
+**Assistant interpretation:** Create a new goja-text docmgr ticket, study the existing second-edition ClubMed xgoja design ticket and current source files, then write a detailed intern-facing design and implementation guide for a Go-backed fluent Markdown document builder API before implementation.
+
+**Inferred user intent:** The user wants to review and shape the API contract before code exists, especially to ensure the API is builder-based and invariant-preserving rather than a loose JavaScript object-map helper.
+
+**Commit (code):** N/A — no code changes were intentionally kept.
+
+### What I did
+
+- Created ticket `goja-text-document-builder` under `goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers`.
+- Added design doc `design-doc/01-fluent-document-builder-api-design-and-implementation-guide.md`.
+- Added this diary doc `reference/01-diary.md`.
+- Read the relevant point 7 section in the ClubMed second-edition design ticket.
+- Inspected current `goja-text` module/provider files and the target `ClubMedMeetup/minitrace-viz/lib/slide-loader.js` and `handout-loader.js` files.
+- Wrote a design that proposes `markdown.document(source)` plus nested Go-backed builders for frontmatter and structured blocks.
+- Removed an early draft implementation file at `goja-text/pkg/markdown/document.go` after the user clarified design-first review.
+
+### Why
+
+- A separate goja-text ticket keeps the reusable module design independent from the ClubMed application ticket.
+- The builder-first design directly addresses the user's request to enforce invariants on the Go side.
+- Deferring implementation makes API review possible before compatibility and naming choices harden.
+
+### What worked
+
+- `docmgr --root goja-text/ttmp ticket create-ticket` created the requested ticket workspace.
+- `docmgr --root goja-text/ttmp doc add` created the design doc and diary doc.
+- Existing `goja-text` code already has strong precedents for Go-backed fluent builders: `markdown.builder()`, `extract.options()`, `sanitize.*.options()`, and `template.text()`.
+- The ClubMed loaders provide clear evidence for a reusable document-level helper: duplicated frontmatter parsing, heading extraction, block extraction, JSON repair, and body stripping.
+
+### What didn't work
+
+- I initially started an implementation draft before the design was ready for review. I corrected this by deleting the draft file:
+  - `rm -f goja-text/pkg/markdown/document.go`
+- Running `git status --short` from the workspace root failed because the root is not itself a Git repository:
+  - `fatal: not a git repository (or any of the parent directories): .git`
+  - I then checked repository-specific status with `git -C goja-text status --short`.
+
+### What I learned
+
+- The existing `markdown` module intentionally exposes Go-backed objects with PascalCase methods/fields, so the new builder should follow that convention instead of inventing a lower-camel JavaScript object API.
+- The first implementation slice can be much smaller than the full design: frontmatter builder, block extraction builder, parsed document methods, and typed frontmatter accessors are enough to refactor the ClubMed loaders.
+- Field-schema builders are valuable but should probably be a second slice unless review says they are required immediately.
+
+### What was tricky to build
+
+- The main design tension is elegance versus scope. A nested fluent builder is more verbose than an options map, but it is the right shape for Go-side validation. The proposed solution keeps the full fluent shape in the design while identifying a minimal first implementation slice.
+- Another tricky point is package ownership: the feature belongs in the `markdown` module, but it wants frontmatter extraction and YAML/JSON repair behavior that currently lives in `extract` and `sanitize`. The implementation guide calls out package-cycle risk and suggests shared internals if direct reuse creates a cycle.
+
+### What warrants a second pair of eyes
+
+- Review whether the proposed nested API shape is the desired level of fluency:
+  - `.Frontmatter().YAML().Repair().Optional().End()`
+  - `.Blocks().Block("context-window").FromXMLTag(...).FromFence(...).JSON().Repair().End().StripFromBody().End().End()`
+- Review whether first-slice implementation should include field declaration builders or only typed `FrontmatterView` accessors.
+- Review whether generic `JSONValue()` is acceptable for structured blocks or whether the first version should include stronger JSON shape validation.
+
+### What should be done in the future
+
+- After design review, implement the minimal `markdown.document()` builder in `goja-text` with tests first.
+- Only after `goja-text` tests pass, refactor `ClubMedMeetup/minitrace-viz/lib/slide-loader.js` and `handout-loader.js`.
+- Upload the reviewed/approved guide bundle to reMarkable if still desired.
+
+### Code review instructions
+
+- Start with `goja-text/ttmp/2026/06/08/goja-text-document-builder--fluent-markdown-document-builder-helpers/design-doc/01-fluent-document-builder-api-design-and-implementation-guide.md`.
+- Check the proposed API contract, decision records, and review checklist before looking at any implementation.
+- Confirm no implementation file such as `goja-text/pkg/markdown/document.go` is present from this step.
+- Validate documentation with:
+  - `docmgr --root goja-text/ttmp doctor --ticket goja-text-document-builder --stale-after 30`
+
+### Technical details
+
+Key source files that shaped the design:
+
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/module.go`
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/markdown/builder.go`
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/extract/frontmatter.go`
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/sanitize/module.go`
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/goja-text/pkg/xgoja/providers/text/text.go`
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/lib/slide-loader.js`
+- `/home/manuel/workspaces/2026-06-07/club-meetup-site/ClubMedMeetup/minitrace-viz/lib/handout-loader.js`
+
+## Step 2: Accept minimal builder scope and add implementation tasks
+
+The user approved moving forward with the minimal builder slice and explicitly scoped out view-level/frontmatter field-schema parsing for now. I updated the ticket task list so the implementation can proceed one step at a time: tests first, then Go-backed builder/result types, then module wiring, then validation, then the ClubMed loader refactor if the local build strategy permits it.
+
+This step is intentionally documentation-only. It records the accepted scope before any code changes so the later implementation commits can be reviewed against a concrete checklist.
+
+### Prompt Context
+
+**User prompt (verbatim):** "ok, let's build the one without the view-level frontmatter schema parsing for now. Add tasks to the ticket, then work on them one by one, committing at a ppropriate intervals, keeping a detailed diary as you work."
+
+**Assistant interpretation:** Proceed with the minimal `markdown.document()` builder implementation, skip field-level/schema frontmatter parsing for the first slice, add concrete tasks to the ticket, commit work at sensible boundaries, and keep the diary current.
+
+**Inferred user intent:** The user wants implementation to begin, but with disciplined ticket bookkeeping and a smaller API surface that can be validated before adding schema-driven field parsing.
+
+**Commit (code):** Pending — this step prepares documentation/task state for the first commit.
+
+### What I did
+
+- Updated `tasks.md` with implementation tasks for the minimal builder.
+- Kept field-level frontmatter schema parsing out of the immediate task list.
+- Left the design document intact so it can continue to describe future schema-builder extensions, while the tasks constrain the first implementation slice.
+
+### Why
+
+- The task list now matches the approved scope.
+- Committing the documentation/task plan before code gives reviewers a clean baseline.
+
+### What worked
+
+- The existing design already had a "minimal API for first implementation" section, so no design rewrite was needed before implementation.
+
+### What didn't work
+
+- N/A for this planning step.
+
+### What I learned
+
+- The first implementation should focus on parser-policy consolidation: frontmatter section parsing/repair, typed accessor fallback, structured block extraction/repair, body stripping, first heading, and HTML rendering.
+- Field declarations such as `.Field("title").String().Optional()` should remain future work.
+
+### What was tricky to build
+
+- The tricky part is keeping the implementation small while preserving the fluent Go-backed shape. The task list now separates the minimal builder from the future field-schema extension so the first code pass does not grow too wide.
+
+### What warrants a second pair of eyes
+
+- Confirm that the ClubMed refactor should happen before a released goja-text version exists. `ClubMedMeetup/minitrace-viz/xgoja.yaml` currently selects `goja-text` without a local `replace`, so runtime validation of the refactor may require a temporary local build strategy.
+
+### What should be done in the future
+
+- Implement failing Goja tests first.
+- Commit documentation/task baseline.
+- Implement the minimal builder and module wiring.
+- Decide whether the ClubMed refactor should be committed now or after tagging/replacing goja-text.
+
+### Code review instructions
+
+- Review `tasks.md` first to confirm the approved implementation scope.
+- Then review later code commits against the task checklist.
+
+### Technical details
+
+- Minimal scope excludes frontmatter field/schema builder methods.
+- Minimal scope includes typed accessors on a built `FrontmatterView`, for example `String(name, fallback)`.
+
+## Step 3: Implement the minimal Go-backed document builder in goja-text
+
+I implemented the first builder slice that the user approved: `markdown.document(source)` with fluent Go-backed configuration for YAML frontmatter, structured block extraction, JSON parsing/repair, block stripping, first-heading lookup, and HTML rendering. I intentionally did not implement field-level frontmatter schema parsing; callers use `FrontmatterView` typed accessors such as `String`, `Number`, and `Bool` for now.
+
+The implementation follows the existing goja-text builder style. JavaScript configures behavior through PascalCase Go methods and `Build()` returns a Go-backed `ParsedDocument`, while validation and parsing policy live in Go.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** Implement the minimal fluent document builder, with tests and documentation, while keeping the field-schema layer out of scope.
+
+**Inferred user intent:** The user wants usable document-level helpers now, but wants stronger schema/view parsing deferred until after the minimal API is proven.
+
+**Commit (code):** 4cf73d7d0dcde4a1131bb5f2af3be3288250818c — "Add fluent Markdown document builder"
+
+### What I did
+
+- Added `pkg/markdown/document_module_test.go` with Goja integration tests for:
+  - parsing YAML frontmatter and first heading;
+  - extracting and stripping a fenced `context-window` JSON block;
+  - rejecting invalid block names;
+  - failing when a required block is missing.
+- Added `pkg/markdown/document.go` implementing:
+  - `DocumentBuilder`, `FrontmatterBuilder`, `BlockSetBuilder`, `BlockRuleBuilder`, and `JSONBlockBuilder`;
+  - `ParsedDocument`, `FrontmatterView`, and `DocumentBlock`;
+  - YAML frontmatter parsing/repair via `gopkg.in/yaml.v3` and `github.com/go-go-golems/sanitize/pkg/yaml`;
+  - JSON block parsing/repair via `encoding/json` and `github.com/go-go-golems/sanitize/pkg/json`;
+  - XML-like and fenced block extraction;
+  - stripping configured blocks before body AST/HTML rendering.
+- Updated `pkg/markdown/module.go` to export `document(source)` and include TypeScript declaration strings for the new builder/result types.
+- Updated `pkg/xgoja/providers/text/doc/markdown-api-reference.md` with the new API reference.
+- Ran `go mod tidy`, which moved `gopkg.in/yaml.v3` from indirect to direct dependency.
+
+### Why
+
+- The new helper directly removes the parser-policy duplication identified in ClubMed slide/handout loaders.
+- Go-side builders preserve invariants better than JavaScript maps because invalid block names, missing required blocks, parse failures, and unsupported formats fail through Go validation/errors.
+
+### What worked
+
+- The first failing tests failed exactly because `markdown.document` did not exist yet:
+  - `TypeError: Object has no member 'document'`
+- After implementation, the targeted document tests passed.
+- Full goja-text tests passed in both workspace and `GOWORK=off` modes:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+
+### What didn't work
+
+- My first XML extraction regex used a backreference (`\1`), but Go's `regexp` package does not support backreferences. The failure was:
+  - `panic: regexp: Compile(...): error parsing regexp: invalid escape sequence: \1`
+  I fixed this by capturing the closing tag as a separate group and comparing opening/closing tags in Go.
+- My first JSON repair test used unquoted keys and single-quoted strings. The current JSON sanitizer did not repair that shape into strict JSON, producing:
+  - `invalid character 'i' looking for beginning of object key string`
+  I adjusted the test to cover a common repairable case: strict JSON with a trailing comma.
+
+### What I learned
+
+- Go-backed builders integrate cleanly with the existing module test runtime and preserve the existing PascalCase API style.
+- The sanitizer should not be assumed to repair every JavaScript-object-literal-like payload; the document builder should report parse errors with block context instead of hiding them.
+- Go regex limitations matter for XML-like wrapper parsing; comparing captured tags in Go is simpler and explicit.
+
+### What was tricky to build
+
+- The trickiest part was preserving chain ergonomics without a schema layer. The final minimal API supports `.Frontmatter().YAML().Repair().Optional().End()` and `.Blocks().Block(...).FromFence(...).JSON().Repair().End().StripFromBody().End().End()`, but field declarations remain out of scope.
+- Another sharp edge was mutation through nested builders. `BlockSetBuilder.Block()` appends a rule to the parent slice and returns a pointer to that concrete slice element, so later methods mutate the rule that `Build()` will read.
+
+### What warrants a second pair of eyes
+
+- Review whether `FrontmatterView.String/Number/Bool` coercion should be permissive as implemented, or stricter until field-schema parsing exists.
+- Review whether duplicate block names should stay rejected in the first slice.
+- Review whether `DocumentBlock.JSONValue()` should mutate/cache parsed JSON, as it currently does for on-demand parsing.
+- Review whether XML-like extraction should remain regex-based or move to the existing `extract` package internals later.
+
+### What should be done in the future
+
+- Add field-level/schema frontmatter parsing as a second slice if callers need build-time validation of required fields.
+- Consider exposing sanitize diagnostics/fixes on `DocumentBlock` and frontmatter parse results.
+- Refactor ClubMed slide/handout loaders after deciding how the app should consume the unreleased local goja-text API.
+
+### Code review instructions
+
+- Start with `pkg/markdown/document_module_test.go` to see the intended JavaScript API.
+- Then review `pkg/markdown/document.go`, focusing on builder validation, frontmatter parsing, block extraction, and JSON repair behavior.
+- Finally review `pkg/markdown/module.go` and `pkg/xgoja/providers/text/doc/markdown-api-reference.md` for public API wiring.
+- Validate with:
+  - `cd goja-text && go test ./... -count=1`
+  - `cd goja-text && GOWORK=off go test ./... -count=1`
+  - pre-commit also ran `go test ./... -count=1` and `GOWORK=off golangci-lint run -v` successfully.
+
+### Technical details
+
+Example supported API:
+
+```js
+const doc = markdown.document(source)
+  .Frontmatter().YAML().Repair().Optional().End()
+  .Blocks()
+    .Block("context-window")
+      .FromXMLTag("context-window")
+      .FromFence("context-window")
+      .JSON().Repair().Optional().End()
+      .StripFromBody()
+      .End()
+    .End()
+  .Build();
+```
+
+## Step 4: Refactor ClubMed slide and handout loaders around markdown.document
+
+With the minimal `goja-text` builder committed, I refactored the two ClubMed content loaders that originally motivated the helper. The slide loader now asks `markdown.document()` to parse/repair frontmatter, extract and repair `context-window` JSON blocks, strip those blocks from rendered body content, and provide the first heading. The handout loader now uses the same document helper for frontmatter, first heading, and body handling.
+
+This removed the duplicated JavaScript parser-policy helpers while keeping ClubMed-specific DTO normalization in the application. In particular, `normalizeSnapshot`, `bulletNotes`, `firstParagraphExcerpt`, navigation, and presentation defaults remain local because those are site behavior rather than generic Markdown document invariants.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 2)
+
+**Assistant interpretation:** After implementing the minimal helper, refactor the ClubMed usage sites to exercise it and remove duplication.
+
+**Inferred user intent:** The user wants the reusable API proven against the real application code that exposed the duplication problem.
+
+**Commit (code):** 24513e0ecafa54486ae3b8df041175302c0054fd — "Use goja-text document helpers in loaders"
+
+### What I did
+
+- Replaced `extract`/`sanitize` imports in `minitrace-viz/lib/slide-loader.js` and `handout-loader.js` with the new `markdown.document()` flow.
+- Removed local duplicated helpers from the loaders:
+  - `parseScalar`
+  - `parseSimpleFrontmatterYaml`
+  - `splitFrontmatter`
+  - `headingTitle` / `firstHeading`
+  - `stripContextBlocks`
+  - `parseJsonCandidate`
+  - `contextWindowCandidates`
+- Added local wrapper functions:
+  - `parseSlideDocument(source)`
+  - `parseHandoutDocument(source)`
+- Added `replace: ../../goja-text` to `ClubMedMeetup/minitrace-viz/xgoja.yaml` so local xgoja builds use the newly implemented helper.
+- Built the xgoja runtime and evaluated the loaders through the generated binary.
+
+### Why
+
+- The refactor validates that the document helper solves the original app-level duplication.
+- The local `replace` is needed because the helper is not released as a tagged `goja-text` module yet.
+
+### What worked
+
+- `xgoja build -f xgoja.yaml --xgoja-version v0.8.4` succeeded.
+- `xgoja doctor -f xgoja.yaml` passed all checks and now reports the `goja-text` package replace.
+- Loader eval succeeded:
+  - `./dist/minitrace-viz eval --http-enabled=false 'const slides = require("./lib/slide-loader").loadSlideDeck(); const handouts = require("./lib/handout-loader").loadHandoutBundle(); JSON.stringify({slides: slides.length, firstSlide: slides[0] && slides[0].id, snapshotParts: slides[0] && slides[0].snapshot && slides[0].snapshot.parts.length, handouts: handouts.docs.length, firstHandout: handouts.docs[0] && handouts.docs[0].id})'`
+  - Output: `{"slides":2,"firstSlide":"window-budget","snapshotParts":7,"handouts":2,"firstHandout":"context-window-checklist"}`
+
+### What didn't work
+
+- `GOWORK=off go test ./... -count=1` from `ClubMedMeetup/minitrace-viz` failed because the module currently matches no Go packages:
+  - `go: warning: "./..." matched no packages`
+  - `no packages to test`
+- This is not a regression from the loader refactor, but it means the useful validation path for this JavaScript/xgoja app is `xgoja build`, `xgoja doctor`, and generated-binary eval/smoke checks.
+
+### What I learned
+
+- The loader refactor is substantially smaller: parser policy moved into `goja-text`, while site DTO logic stayed local.
+- The generated binary is a good validation tool for JS module behavior because it runs the actual xgoja module aliases rather than a separate Node process.
+
+### What was tricky to build
+
+- The main tricky part was build provenance. `ClubMedMeetup/minitrace-viz/xgoja.yaml` did not previously replace `goja-text`, so the generated binary would not have seen the local unreleased `markdown.document()` implementation. I added a local replace, matching the existing sibling-repo workflow already used for `go-minitrace`.
+- Another subtle point was preserving current block behavior. `FromFence("context-window")` matches fenced info whose first word is `context-window`, so existing blocks such as `context-window json` remain compatible.
+
+### What warrants a second pair of eyes
+
+- Review whether committing `replace: ../../goja-text` is acceptable for ClubMed release/build contexts. The buildspec already has a sibling replace for `go-minitrace`, but Docker/release behavior should be checked when this moves beyond local workspace development.
+- Compare rendered slide/handout output visually or through API snapshots to catch subtle Markdown/frontmatter behavior changes.
+
+### What should be done in the future
+
+- Add stable ClubMed smoke tests for loader output or Widget API pages so future document-helper changes are caught automatically.
+- Once `goja-text` is tagged with the helper, decide whether to remove the local `replace` and pin a version.
+
+### Code review instructions
+
+- Start with `ClubMedMeetup/minitrace-viz/lib/slide-loader.js` and confirm only parsing infrastructure moved out.
+- Then review `ClubMedMeetup/minitrace-viz/lib/handout-loader.js` for the same pattern.
+- Review `ClubMedMeetup/minitrace-viz/xgoja.yaml` for the local goja-text replace.
+- Validate with:
+  - `cd ClubMedMeetup/minitrace-viz && xgoja doctor -f xgoja.yaml`
+  - `cd ClubMedMeetup/minitrace-viz && xgoja build -f xgoja.yaml --xgoja-version v0.8.4`
+  - the loader eval command recorded above.
+
+### Technical details
+
+The slide loader now uses:
+
+```js
+return markdown.document(source)
+  .Frontmatter().YAML().Repair().Optional().End()
+  .Blocks()
+    .Block("context-window")
+      .FromXMLTag("context-window")
+      .FromFence("context-window")
+      .JSON().Repair().Optional().End()
+      .StripFromBody()
+      .End()
+    .End()
+  .Build();
+```
+
+## Step 5: Add field-schema implementation tasks
+
+The user asked to proceed with the frontmatter field schema builder. I added explicit tasks for tests, implementation, TypeScript/help documentation, validation, commit, and diary/changelog bookkeeping before touching the code.
+
+The intended implementation is a strict schema layer on top of the existing permissive `FrontmatterView` accessors. Field rules should fail `Build()` for missing required fields or type mismatches, while defaults should be inserted into the built frontmatter view.
+
+### Prompt Context
+
+**User prompt (verbatim):** "Add tasks to the ticket tasks.md then implement them one by one, commit and keep a diary."
+
+**Assistant interpretation:** Add concrete frontmatter field-schema tasks to the existing docmgr ticket and then implement them in order with commits and diary updates.
+
+**Inferred user intent:** The user wants the previously discussed schema builder added now, but with the same disciplined task/diary/commit workflow used for the minimal builder.
+
+**Commit (code):** Pending — task planning step.
+
+### What I did
+
+- Added tasks for frontmatter field-schema tests, implementation, docs, validation, commit, and diary/changelog updates.
+
+### Why
+
+- The task list now has a reviewable implementation sequence for the schema layer.
+
+### What worked
+
+- The existing ticket already has the design context for field schema builders, so the task update was straightforward.
+
+### What didn't work
+
+- N/A.
+
+### What I learned
+
+- The schema layer should be strict and should complement, not replace, permissive accessors.
+
+### What was tricky to build
+
+- The scope needs to stay limited: validate top-level frontmatter fields only, without nested object schemas or JSON-path validation.
+
+### What warrants a second pair of eyes
+
+- Review strictness semantics: required missing, empty strings, and default insertion behavior.
+
+### What should be done in the future
+
+- Implement tests first, then code.
+
+### Code review instructions
+
+- Review the newly added tasks before the code commit.
+
+### Technical details
+
+- Proposed API shape: `.Field("title").String().Required().End()` and `.Field("number").String().Optional().Default("01").End()`.
+
+## Step 6: Implement strict frontmatter field schema builders
+
+I implemented the field-schema layer on top of the existing document builder. The new API lets scripts declare strict top-level frontmatter fields with `Field(name).String/Number/Bool().Required/Optional().Default(value).End()`. This keeps the existing permissive `FrontmatterView` accessors for application fallback logic while adding an opt-in validation layer for documents that should fail during `Build()` when metadata is missing or typed incorrectly.
+
+The implementation intentionally stays small: it validates top-level fields only, inserts defaults into the built frontmatter view, and does not attempt nested object schemas or arbitrary coercion. Schema rules are strict, while accessors remain permissive.
+
+### Prompt Context
+
+**User prompt (verbatim):** (same as Step 5)
+
+**Assistant interpretation:** Implement the planned frontmatter field schema builder tasks, validate them, and prepare to commit.
+
+**Inferred user intent:** The user wants field-level frontmatter invariants available now, with the task/commit/diary workflow maintained.
+
+**Commit (code):** b4378b39ad916de49819a2321dc00e1873f13e01 — "Add frontmatter field schema builder"
+
+### What I did
+
+- Added Goja integration tests for:
+  - required string/bool fields;
+  - optional string/number defaults inserted into `FrontmatterView`;
+  - missing required field errors;
+  - strict type mismatch errors.
+- Added `FrontmatterFieldBuilder` and `frontmatterFieldRule` to `pkg/markdown/document.go`.
+- Added frontmatter config validation for field names, duplicate fields, supported field types, and default type compatibility.
+- Added `applyFrontmatterFieldRules()` during `Build()` after YAML parse and before constructing `FrontmatterView`.
+- Added field schema TypeScript declarations in `pkg/markdown/module.go`.
+- Updated `pkg/xgoja/providers/text/doc/markdown-api-reference.md` with field schema API docs and strictness notes.
+
+### Why
+
+- The schema builder lets users enforce required metadata and parsed YAML types at runtime without relying on JavaScript object maps or ad hoc checks in every application.
+- Defaults are inserted into the built view so downstream code can use the same `FrontmatterView` accessors whether a value came from source YAML or schema default.
+
+### What worked
+
+- The new tests initially failed because `FrontmatterBuilder` had no `Field` method:
+  - `TypeError: Object has no member 'Field'`
+- After implementation, targeted field-schema tests passed.
+- Full goja-text tests passed in both modes:
+  - `go test ./... -count=1`
+  - `GOWORK=off go test ./... -count=1`
+
+### What didn't work
+
+- N/A beyond the expected failing-test-first behavior.
+
+### What I learned
+
+- Keeping schema strict and accessors permissive avoids confusing semantics: `.Field("published").Bool()` validates YAML parsed type, while `FrontmatterView.Bool("published", false)` can remain a convenience accessor.
+- Defaults should be type-checked at builder validation time so invalid defaults fail before document parsing behavior becomes ambiguous.
+
+### What was tricky to build
+
+- The tricky part was default handling. The implementation inserts defaults only when a field is absent or effectively missing, then validates actual provided values strictly. This prevents defaults from silently overriding wrong user input.
+- Another subtle point was empty string handling. Required string fields treat `""` as missing; optional string fields may remain empty if explicitly provided unless a default is used for an absent value.
+
+### What warrants a second pair of eyes
+
+- Review whether empty strings should count as missing for optional fields with defaults or only for required fields.
+- Review whether number validation should accept all numeric Go types currently possible through YAML/goja export, or be narrowed.
+- Review whether field names should allow dashes. The implementation allows `^[A-Za-z_][A-Za-z0-9_-]*$`.
+
+### What should be done in the future
+
+- Add nested object/list schema builders only if real frontmatter documents require them.
+- Consider adding diagnostics on `ParsedDocument` rather than only build errors.
+
+### Code review instructions
+
+- Start with the new field-schema tests in `pkg/markdown/document_module_test.go`.
+- Review `frontmatterFieldRule`, `FrontmatterFieldBuilder`, `Validate()`, and `applyFrontmatterFieldRules()` in `pkg/markdown/document.go`.
+- Validate with:
+  - `cd goja-text && go test ./... -count=1`
+  - `cd goja-text && GOWORK=off go test ./... -count=1`
+  - pre-commit also ran `go test ./... -count=1` and `GOWORK=off golangci-lint run -v` successfully.
+
+### Technical details
+
+Example API:
+
+```js
+const doc = markdown.document(source)
+  .Frontmatter().YAML().Optional()
+    .Field("title").String().Required().End()
+    .Field("published").Bool().Required().End()
+    .Field("number").String().Optional().Default("01").End()
+    .End()
+  .Build();
+```

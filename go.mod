@@ -11,6 +11,7 @@ require (
 	github.com/go-go-golems/logcopter v0.1.0
 	github.com/go-go-golems/sanitize v0.0.2
 	github.com/yuin/goldmark v1.8.2
+	gopkg.in/yaml.v3 v3.0.1
 )
 
 require (
@@ -119,7 +120,6 @@ require (
 	golang.org/x/tools v0.45.0 // indirect
 	gopkg.in/natefinch/lumberjack.v2 v2.2.1 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
-	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
 tool (
