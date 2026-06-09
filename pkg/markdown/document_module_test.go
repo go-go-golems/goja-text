@@ -6,6 +6,7 @@ import (
 	"testing"
 
 	"github.com/dop251/goja"
+	markdown "github.com/go-go-golems/goja-text/pkg/markdown"
 )
 
 func TestRequireMarkdownDocumentParsesFrontmatterAndHeading(t *testing.T) {
@@ -113,6 +114,62 @@ func TestRequireMarkdownDocumentExtractsAndStripsJSONBlock(t *testing.T) {
 	}
 	if strings.Contains(got["body"].(string), "context-window") || strings.Contains(got["html"].(string), "demo") {
 		t.Fatalf("body/html still contains stripped block: %#v", got)
+	}
+}
+
+func TestMarkdownDocumentStripPreservesIndentedBodyWhitespace(t *testing.T) {
+	source := strings.Join([]string{
+		"    fmt.Println(\"hi\")",
+		"",
+		"```meta",
+		"{}",
+		"```",
+	}, "\n")
+
+	doc, err := markdown.NewDocumentBuilder(source).
+		Blocks().
+		Block("meta").FromFence("meta").StripFromBody().End().
+		End().
+		Build()
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	if !strings.HasPrefix(doc.Body(), "    fmt.Println") {
+		t.Fatalf("body = %q, want leading indentation preserved", doc.Body())
+	}
+	html, err := doc.RenderHTML()
+	if err != nil {
+		t.Fatalf("RenderHTML() error = %v", err)
+	}
+	if !strings.Contains(html, "<pre><code>") {
+		t.Fatalf("html = %q, want indented code block", html)
+	}
+}
+
+func TestMarkdownDocumentXMLBlockContainsNestedTags(t *testing.T) {
+	source := strings.Join([]string{
+		"<context-window><item>1</item></context-window>",
+		"",
+		"# Visible",
+	}, "\n")
+
+	doc, err := markdown.NewDocumentBuilder(source).
+		Blocks().
+		Block("context-window").FromXMLTag("context-window").Required().StripFromBody().End().
+		End().
+		Build()
+	if err != nil {
+		t.Fatalf("Build() error = %v", err)
+	}
+	block := doc.Block("context-window")
+	if block == nil {
+		t.Fatalf("Block() = nil, want context-window block")
+	}
+	if block.Text() != "<item>1</item>" {
+		t.Fatalf("block.Text() = %q, want nested item markup", block.Text())
+	}
+	if strings.Contains(doc.Body(), "context-window") {
+		t.Fatalf("body = %q, want context-window stripped", doc.Body())
 	}
 }
 

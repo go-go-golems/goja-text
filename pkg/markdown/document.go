@@ -762,13 +762,21 @@ func (b *DocumentBuilder) extractBlocks(body string) ([]extractedBlock, error) {
 func extractBlocksForRule(body string, rule *blockRule) []*DocumentBlock {
 	var blocks []*DocumentBlock
 	wantedTags := stringSet(rule.xmlTags)
-	for _, match := range xmlBlockPattern.FindAllStringSubmatchIndex(body, -1) {
-		tag := normalizeDocumentLabel(body[match[2]:match[3]])
-		closingTag := normalizeDocumentLabel(body[match[6]:match[7]])
-		if tag != closingTag || !wantedTags[tag] {
+	coveredUntil := -1
+	for _, match := range xmlOpeningTagPattern.FindAllStringSubmatchIndex(body, -1) {
+		if match[0] < coveredUntil {
 			continue
 		}
-		blocks = append(blocks, &DocumentBlock{name: rule.name, kind: "xml", text: body[match[4]:match[5]], raw: body[match[0]:match[1]], startByte: match[0], endByte: match[1]})
+		tag := normalizeDocumentLabel(body[match[2]:match[3]])
+		if !wantedTags[tag] {
+			continue
+		}
+		closingStart, closingEnd, ok := findMatchingXMLClosingTag(body, tag, match[1])
+		if !ok {
+			continue
+		}
+		blocks = append(blocks, &DocumentBlock{name: rule.name, kind: "xml", text: body[match[1]:closingStart], raw: body[match[0]:closingEnd], startByte: match[0], endByte: closingEnd})
+		coveredUntil = closingEnd
 	}
 	wantedFences := stringSet(rule.fenceInfos)
 	for _, match := range fencedBlockPattern.FindAllStringSubmatchIndex(body, -1) {
@@ -803,7 +811,36 @@ func stripExtractedBlocks(body string, extracted []extractedBlock) string {
 			body = body[:s.start] + body[s.end:]
 		}
 	}
-	return strings.TrimSpace(body)
+	return body
+}
+
+func findMatchingXMLClosingTag(body, tag string, offset int) (int, int, bool) {
+	pattern := regexp.MustCompile(`(?is)<\s*(/?)\s*` + regexp.QuoteMeta(tag) + `\b[^>]*>`)
+	matches := pattern.FindAllStringSubmatchIndex(body[offset:], -1)
+	depth := 1
+	for _, match := range matches {
+		start := offset + match[0]
+		end := offset + match[1]
+		isClosing := match[2] != -1 && strings.TrimSpace(body[offset+match[2]:offset+match[3]]) == "/"
+		if isClosing {
+			depth--
+			if depth == 0 {
+				return start, end, true
+			}
+			continue
+		}
+		if xmlTagIsSelfClosing(body[start:end]) {
+			continue
+		}
+		depth++
+	}
+	return 0, 0, false
+}
+
+func xmlTagIsSelfClosing(tag string) bool {
+	trimmed := strings.TrimSpace(tag)
+	trimmed = strings.TrimSuffix(trimmed, ">")
+	return strings.HasSuffix(strings.TrimSpace(trimmed), "/")
 }
 
 func parseDocumentYAMLMap(text string) (map[string]any, error) {
@@ -947,7 +984,7 @@ func firstBoolFallback(fallback []bool) bool {
 
 var (
 	frontmatterPattern      = regexp.MustCompile(`(?s)^---\s*\r?\n(.*?)\r?\n---\s*\r?\n?`)
-	xmlBlockPattern         = regexp.MustCompile(`(?is)<([a-z][a-z0-9_-]*)\b[^>]*>(.*?)</\s*([a-z][a-z0-9_-]*)\s*>`)
+	xmlOpeningTagPattern    = regexp.MustCompile(`(?is)<\s*([a-z][a-z0-9_-]*)\b[^>]*>`)
 	fencedBlockPattern      = regexp.MustCompile("(?is)```([^\n\r`]*)\r?\n(.*?)\r?\n```")
 	documentLabelPattern    = regexp.MustCompile(`^[a-z0-9][a-z0-9_-]*$`)
 	frontmatterFieldPattern = regexp.MustCompile(`^[A-Za-z_][A-Za-z0-9_-]*$`)
