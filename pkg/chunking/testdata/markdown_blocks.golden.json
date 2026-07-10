@@ -1,0 +1,32 @@
+{
+  "source": "# A\n\nBody.\n\n```go\nx()\n```\n",
+  "spans": [
+    {
+      "kind": "heading",
+      "text": "# A\n\n",
+      "startByte": 0,
+      "endByte": 5,
+      "headingLevel": 1,
+      "atomic": false,
+      "language": ""
+    },
+    {
+      "kind": "paragraph",
+      "text": "Body.\n\n",
+      "startByte": 5,
+      "endByte": 12,
+      "headingLevel": 0,
+      "atomic": false,
+      "language": ""
+    },
+    {
+      "kind": "fencedCodeBlock",
+      "text": "```go\nx()\n```\n",
+      "startByte": 12,
+      "endByte": 26,
+      "headingLevel": 0,
+      "atomic": true,
+      "language": "go"
+    }
+  ]
+}

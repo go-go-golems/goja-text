@@ -8,5 +8,5 @@
 - [x] Implement budgeted, preweighted, and recursive packing with diagnostics and progress guarantees <!-- t:u2b9 -->
 - [x] Expose require("chunking") through NativeModule, TypeScript, and xgoja provider registration <!-- t:ddwz -->
 - [x] Add JavaScript examples, jsverbs, API reference, user guide, README, and generated xgoja artifacts <!-- t:xpeb -->
-- [ ] Run unit, golden, fuzz, runtime, standalone, generated-host, smoke, and lint validation <!-- t:fogt -->
-- [ ] Complete diary, relations, changelog, ticket validation, closure, and reMarkable delivery <!-- t:yv4b -->
+- [x] Run unit, golden, fuzz, runtime, standalone, generated-host, smoke, and lint validation <!-- t:fogt -->
+- [x] Complete diary, relations, changelog, ticket validation, closure, and reMarkable delivery <!-- t:yv4b -->

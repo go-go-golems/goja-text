@@ -1,7 +1,7 @@
 ---
 Title: Source-Preserving Structure-Aware Chunking JavaScript API
 Ticket: GOJA-TEXT-006
-Status: active
+Status: complete
 Topics:
     - goja
     - goja-bindings
@@ -12,14 +12,25 @@ Topics:
 DocType: index
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://examples/js/chunking-demo.js
+      Note: Runnable generated-host demonstration
+    - Path: repo://pkg/chunking/module.go
+      Note: Public require("chunking") API
+    - Path: repo://pkg/chunking/pack.go
+      Note: Budgeted and weighted packing core
+    - Path: repo://pkg/chunking/recursive.go
+      Note: Ordered recursive fallback
 ExternalSources:
     - https://github.com/go-go-golems/goja-text/issues/9
+    - https://github.com/go-go-golems/go-go-goja/issues/92
 Summary: Design and implementation workspace for a source-preserving chunking native module exposed to JavaScript and generated xgoja applications.
-LastUpdated: 2026-07-10T13:09:36.073033733-04:00
+LastUpdated: 2026-07-10T15:23:18.984041627-04:00
 WhatFor: Track the architecture, implementation, verification, and delivery of exact text spans, structural segmenters, budgeted packing, recursive fallback, and the require("chunking") API.
 WhenToUse: Start here when implementing or reviewing GitHub issue 9, extending the chunking API, or validating source-coordinate and no-data-loss invariants.
 ---
+
+
 
 # Source-Preserving Structure-Aware Chunking JavaScript API
 
@@ -39,9 +50,9 @@ The defining invariant is losslessness: built-in segmenters must partition the o
 
 ## Status
 
-Current status: **active**
+Current status: **complete**
 
-The ticket and eight implementation tasks exist. Repository architecture and a clean `go test ./... -count=1` baseline have been captured; implementation is in progress.
+The exact Markdown ranges, source-preserving segmenters, greedy and weighted packers, recursive fallback, JavaScript module, TypeScript contract, xgoja provider, generated application, examples, verbs, help pages, intern guide, and diary are complete. Normal and standalone tests, golden coverage, two fuzz targets, generated-host regeneration, smoke commands, help, TypeScript output, build, and lint all pass.
 
 ## Topics
 

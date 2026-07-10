@@ -49,7 +49,7 @@ The workspace checkout was clean on branch `task/goja-text-chunking`. A baseline
 
 ### Prompt Context
 
-**User prompt (verbatim):** "Work in this workspace: /home/manuel/workspaces/2026-07-10/goja-text-chunking (docmgr is in goja-text/ttmp), and create a new ticket to work on the issue, and implement the new JS stuff. 
+**User prompt (verbatim):** "Work in this workspace: /home/manuel/workspaces/2026-07-10/goja-text-chunking (docmgr is in goja-text/ttmp), and create a new ticket to work on the issue, and implement the new JS stuff.
 
 Create  a detailed analysis / design / implementation guide that is for a new intern, explaining all the parts of the system needed to understand what it is, with prose paragraphs and bullet point sand pseudocode and diagrams and api references and file references. It should be very clear and technical. Store in the ticket and the nupload to remarkable."
 
@@ -387,3 +387,76 @@ I added the chunking module to the generated xgoja application and built the use
 - Run `./dist/goja-text run examples/js/chunking-demo.js`.
 - Run `./dist/goja-text chunking pack examples/markdown/chunking-sample.md --max-units 180 --output json` and inspect the oversized list row.
 - Run `./dist/goja-text types` and inspect the `chunking` declaration block.
+
+## Step 7: Run the final validation matrix
+
+I validated the pure library, JavaScript runtime, provider, generated host, documentation, examples, and commands from both workspace and standalone module modes. All final commands passed.
+
+### Commands and results
+
+```bash
+go fmt ./...
+go build ./...
+go test ./... -count=1
+GOWORK=off go test ./... -count=1
+GOWORK=off golangci-lint run -v
+```
+
+All commands exited zero. The linter reported zero issues.
+
+`TestMarkdownBlocksGolden` also passed against `pkg/chunking/testdata/markdown_blocks.golden.json`. The committed fixture locks block kinds, original syntax text, byte ranges, heading level, atomic status, and fenced-code language metadata.
+
+Focused fuzz validation:
+
+```bash
+go test ./pkg/chunking -run=^$ -fuzz=FuzzLinesPreserveSource -fuzztime=3s
+go test ./pkg/chunking -run=^$ -fuzz=FuzzPackPreservesAllSpansWithoutOverlap -fuzztime=3s
+```
+
+The line fuzz target executed 32,648 inputs and passed. The pack fuzz target executed 36,707 inputs and passed. Both targets retained their source-preservation and progress assertions.
+
+Generated product validation:
+
+```bash
+make check
+./dist/goja-text types
+./dist/goja-text help goja-text-chunking-user-guide
+./dist/goja-text help goja-text-chunking-api-reference
+```
+
+`make check` regenerated the xgoja host, built the binary, ran normal and standalone tests, executed all four module demos, loaded the chunking help page, and ran the root-mounted chunking, Markdown, sanitize, extract, and examples verbs. It exited zero.
+
+### What didn't work
+
+I initially started both fuzz targets concurrently, then accidentally started a duplicate line fuzz invocation while their separate Go builds were still compiling the transitive SQLite C dependency. The chunking fuzzers were not hung. I stopped the two duplicate Go processes, allowed one build to populate the cache, and ran the second target sequentially. Both actual fuzz runs then completed in approximately four seconds.
+
+### What I learned
+
+- Fuzz worker execution is fast after the transitive CGO dependency is built; concurrent cold builds add noise without improving this validation.
+- `make check` is the most representative final product command because it regenerates the committed host before executing the scripts and verbs.
+- The source-preservation contract is exercised at pure-Go, fuzz, runtime, demo, and generated-command levels.
+
+### Final review instructions
+
+Review in this order:
+
+1. `pkg/chunking/types.go`, `validate.go`, and `positions.go` for the public model and invariants.
+2. `segment_*.go` and `segment_test.go` for separator ownership and structural boundaries.
+3. `pack.go`, `recursive.go`, and `pack_test.go` for budget, overlap, oversized, and progress behavior.
+4. `module.go` and `module_test.go` for JavaScript codecs and Go-backed projection.
+5. `pkg/xgoja/providers/text/text.go` and `cmd/goja-text/xgoja.yaml` for provider/host composition.
+6. The chunking API reference, user guide, demo, fixture, and jsverbs for the public product surface.
+
+Then run:
+
+```bash
+make check
+GOWORK=off golangci-lint run -v
+```
+
+### Future follow-ups
+
+- Benchmark large Markdown documents before optimizing rune-prefix calculations.
+- Evaluate sentence segmentation separately with explicit Unicode and language requirements.
+- Add tokenizer adapters in downstream applications and call `packWeighted`; do not add model policy to goja-text.
+- Consider the richer structured TypeScript API proposed in go-go-goja issue #92.

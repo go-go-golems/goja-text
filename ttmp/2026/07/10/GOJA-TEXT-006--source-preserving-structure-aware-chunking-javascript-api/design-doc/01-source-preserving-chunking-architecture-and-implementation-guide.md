@@ -557,6 +557,7 @@ Files:
 - `pkg/chunking/segment_paragraphs.go` detects blank-line runs and implements explicit separator ownership.
 - `pkg/chunking/segment_markdown.go` implements top-level Markdown blocks, flat sections, heading paths, language metadata, and atomic kinds.
 - `pkg/chunking/segment_test.go` verifies preservation, Unicode, CRLF, structural metadata, invalid UTF-8, and fuzz seeds.
+- `pkg/chunking/testdata/markdown_blocks.golden.json` locks a compact syntax-and-metadata result independently of Go test construction.
 
 Line terminators and paragraph separators are never dropped. When `keepTerminators` is false, a CRLF terminator becomes one `lineTerminator` span containing both bytes. Paragraph mode changes ownership, not content.
 
@@ -687,6 +688,8 @@ make lint
 ```
 
 The exact fuzz command may be split per target because Go runs one fuzz target at a time.
+
+Final validation on 2026-07-10 passed all commands above. The line preservation fuzz target executed 32,648 inputs, the packing preservation/progress target executed 36,707 inputs, and `make check` regenerated and exercised the complete generated application.
 
 ## Testing and Validation Strategy
 
