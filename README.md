@@ -1,15 +1,16 @@
 # goja-text
 
-`goja-text` is a set of Go-backed text modules for [go-go-goja](../go-go-goja). It gives JavaScript scripts a practical way to parse Markdown, repair YAML and JSON, and extract structured-data snippets from larger documents while keeping the important domain logic in Go.
+`goja-text` is a set of Go-backed text modules for [go-go-goja](../go-go-goja). It gives JavaScript scripts a practical way to segment and pack source text, parse Markdown, repair YAML and JSON, and extract structured-data snippets from larger documents while keeping the important domain logic in Go.
 
 The project is designed for automation that sits at the boundary between prose and structure. That boundary shows up often: a Markdown file contains headings and links; a model response contains fenced JSON; a human-edited YAML file is almost valid but needs repair before downstream validation. `goja-text` provides the primitives for those cases without forcing every script to reimplement parsers in JavaScript.
 
 ## What the project provides
 
-The repository currently exposes three JavaScript modules:
+The repository exposes five JavaScript modules:
 
 | Module | Purpose | Typical first call |
 | --- | --- | --- |
+| `chunking` | Build exact source spans and pack them with deterministic or caller-provided budgets. | `chunking.markdownBlocks(input)` |
 | `markdown` | Parse Markdown, render HTML, walk a Go-backed Markdown AST, and collect text content. | `markdown.parse(input)` |
 | `sanitize` | Repair and inspect YAML or JSON syntax, with fix metadata and Go-backed option builders. | `sanitize.json.sanitize(input)` |
 | `extract` | Find structured-data candidates in Markdown, XML-like tags, frontmatter, or raw text. | `extract.all(input)` |
@@ -39,7 +40,7 @@ The `go:generate` directive uses `go tool xgoja build --work-dir . --dry-run` to
 
 The build includes:
 
-- `markdown`, `sanitize`, `extract`, and `template` from this repository.
+- `chunking`, `markdown`, `sanitize`, `extract`, and `template` from this repository.
 - Core `path` and `yaml` modules from go-go-goja.
 - Guarded host `fs` access for examples that read local files.
 - Provider-shipped Glazed help pages for every goja-text module.
@@ -50,6 +51,9 @@ The build includes:
 The generated binary includes user-facing Glazed help entries. They are written as a pair for each module: an API reference for quick lookup and a user guide for learning the intended workflow.
 
 ```bash
+./dist/goja-text help goja-text-chunking-user-guide
+./dist/goja-text help goja-text-chunking-api-reference
+
 ./dist/goja-text help goja-text-markdown-user-guide
 ./dist/goja-text help goja-text-markdown-api-reference
 
@@ -65,6 +69,27 @@ The generated binary includes user-facing Glazed help entries. They are written 
 ```
 
 The user guides include runnable examples, including `eval`, `run`, and bundled root-mounted JavaScript verb commands.
+
+## Chunking: preserve source, then apply a budget
+
+The chunking module separates boundary detection from packing. Segmenters return exact UTF-8 byte and rune ranges, and packers combine complete spans without reconstructing Markdown.
+
+```js
+const chunking = require("chunking");
+
+const blocks = chunking.markdownBlocks(source, {
+  atomic: ["fencedCodeBlock", "codeBlock", "htmlBlock"],
+});
+
+const packed = chunking.pack(blocks.Spans, {
+  maxUnits: 1200,
+  measure: "runes",
+  overlap: { unit: "spans", value: 1 },
+  oversized: "allow",
+});
+```
+
+Results are Go-backed, so JavaScript reads `blocks.Spans`, `span.StartByte`, and `packed.Chunks`. Options are lower-camel plain objects and reject unknown keys. Use `packWeighted` when the application has an exact model tokenizer; goja-text does not choose one.
 
 ## Markdown: parse once, query with walk
 
@@ -145,6 +170,7 @@ Extraction deliberately returns evidence rather than trusted parsed values. Scri
 The `examples/js` directory contains small scripts that use the host `fs` module to read fixtures from disk.
 
 ```bash
+./dist/goja-text run examples/js/chunking-demo.js
 ./dist/goja-text run examples/js/markdown-demo.js
 ./dist/goja-text run examples/js/sanitize-demo.js
 ./dist/goja-text run examples/js/extract-demo.js
@@ -161,6 +187,10 @@ The `cmd/goja-text/jsverbs` directory turns the same module patterns into Glazed
 ./dist/goja-text --help
 ./dist/goja-text examples tour
 ./dist/goja-text examples fixtures
+
+./dist/goja-text chunking blocks examples/markdown/chunking-sample.md
+./dist/goja-text chunking pack examples/markdown/chunking-sample.md --max-units 180
+./dist/goja-text chunking recursive examples/markdown/chunking-sample.md --max-units 140
 
 ./dist/goja-text markdown toc examples/markdown/sample.md
 ./dist/goja-text markdown links examples/markdown/sample.md
@@ -187,7 +217,7 @@ Use the repository Makefile for the normal validation path:
 make check
 ```
 
-The check target runs Go tests, builds the xgoja binary, and executes the smoke scripts for Markdown, sanitize, and extract.
+The check target runs Go tests, builds the xgoja binary, and executes the smoke scripts for chunking, Markdown, sanitize, extract, help, and bundled verbs.
 
 You can also run the test commands directly:
 
@@ -233,7 +263,7 @@ func main() {
 
 ## Design principles
 
-- Keep parsing, repair, and extraction semantics in Go when Go will later validate or consume the values.
+- Keep segmentation, packing, parsing, repair, and extraction semantics in Go when Go will later validate or consume the values.
 - Expose Go-backed domain objects to JavaScript rather than flattening everything into plain objects too early.
 - Use JavaScript for document-specific policies and queries, especially with primitives such as `markdown.walk()` and `extract.all()`.
 - Preserve evidence: source spans, wrapper metadata, fix lists, diagnostics, and confidence scores are part of the API because they make automation reviewable.

@@ -7,6 +7,7 @@ import (
 	"github.com/go-go-golems/go-go-goja/modules"
 	"github.com/go-go-golems/go-go-goja/pkg/tsgen/spec"
 	"github.com/go-go-golems/go-go-goja/pkg/xgoja/providerapi"
+	_ "github.com/go-go-golems/goja-text/pkg/chunking"
 	_ "github.com/go-go-golems/goja-text/pkg/extract"
 	_ "github.com/go-go-golems/goja-text/pkg/markdown"
 	_ "github.com/go-go-golems/goja-text/pkg/sanitize"
@@ -17,6 +18,7 @@ import (
 const PackageID = "goja-text"
 
 var textModuleNames = []string{
+	"chunking",
 	"markdown",
 	"sanitize",
 	"extract",
@@ -35,7 +37,7 @@ func Register(registry *providerapi.ProviderRegistry) error {
 	}
 	entries = append(entries, providerapi.HelpSource{
 		Name:        "runtime-api",
-		Description: "goja-text Markdown, sanitize, extract, and template JavaScript API help pages",
+		Description: "goja-text chunking, Markdown, sanitize, extract, and template JavaScript API help pages",
 		FS:          helpdoc.FS(),
 		Root:        ".",
 	})

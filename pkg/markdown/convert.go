@@ -3,6 +3,7 @@ package markdown
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 
 	goldast "github.com/yuin/goldmark/ast"
 )
@@ -14,10 +15,18 @@ func ConvertAST(source []byte, n goldast.Node) *MarkdownNode {
 	}
 
 	sourcePos := sourcePosition(n, source)
+	startByte, endByte := nodeSourceRange(n, source)
+	endLine, endColumn := byteOffsetLineColumn(source, endByte)
 	node := &MarkdownNode{
 		Type:        nodeType(n),
+		StartByte:   startByte,
+		EndByte:     endByte,
+		StartRune:   utf8.RuneCount(source[:startByte]),
+		EndRune:     utf8.RuneCount(source[:endByte]),
 		StartLine:   sourcePos[0],
 		StartColumn: sourcePos[1],
+		EndLine:     endLine,
+		EndColumn:   endColumn,
 		SourcePos:   sourcePos,
 	}
 

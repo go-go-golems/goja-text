@@ -3,6 +3,7 @@ package text
 import (
 	"testing"
 
+	"github.com/go-go-golems/go-go-goja/pkg/tsgen/validate"
 	"github.com/go-go-golems/go-go-goja/pkg/xgoja/providerapi"
 )
 
@@ -18,6 +19,9 @@ func TestRegisterExposesTypeScriptDescriptors(t *testing.T) {
 		}
 		if mod.TypeScript == nil {
 			t.Fatalf("expected module %s.%s to carry TypeScript descriptor", PackageID, name)
+		}
+		if err := validate.Module(mod.TypeScript); err != nil {
+			t.Fatalf("invalid TypeScript descriptor for %s.%s: %v", PackageID, name, err)
 		}
 	}
 }
