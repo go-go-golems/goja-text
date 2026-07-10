@@ -85,6 +85,9 @@ func refineSpan(parent Span, options RecursiveOptions, levelIndex int) ([]Span, 
 	translated := make([]Span, 0, len(result.Spans))
 	for _, child := range result.Spans {
 		child.Level = level
+		if len(child.HeadingPath) == 0 && len(parent.HeadingPath) > 0 {
+			child.HeadingPath = append([]string(nil), parent.HeadingPath...)
+		}
 		translated = append(translated, translateSpan(child, parent, len(translated)))
 	}
 	if len(translated) == 1 && translated[0].StartByte == parent.StartByte && translated[0].EndByte == parent.EndByte {

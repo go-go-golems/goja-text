@@ -1,6 +1,7 @@
 package chunking
 
 import (
+	"reflect"
 	"strings"
 	"testing"
 )
@@ -77,6 +78,30 @@ func TestPackWeightedUsesCallerWeights(t *testing.T) {
 	}
 }
 
+func TestPackWeightedOverlapRemainsContiguous(t *testing.T) {
+	items := []WeightedSpan{
+		{Span: Span{Ordinal: 0, Text: "a", StartByte: 0, EndByte: 1, EndRune: 1}, Weight: 1},
+		{Span: Span{Ordinal: 1, Text: "b", StartByte: 1, EndByte: 2, StartRune: 1, EndRune: 2}, Weight: 100},
+		{Span: Span{Ordinal: 2, Text: "c", StartByte: 2, EndByte: 3, StartRune: 2, EndRune: 3}, Weight: 1},
+		{Span: Span{Ordinal: 3, Text: "d", StartByte: 3, EndByte: 4, StartRune: 3, EndRune: 4}, Weight: 1},
+	}
+	result, err := PackWeighted(items, WeightedPackOptions{MaxWeight: 102, OverlapWeight: 2})
+	if err != nil {
+		t.Fatal(err)
+	}
+	if len(result.Chunks) != 2 {
+		t.Fatalf("chunks = %#v", result.Chunks)
+	}
+	second := result.Chunks[1]
+	wantOrdinals := []int{2, 3}
+	if !reflect.DeepEqual(second.SpanOrdinals, wantOrdinals) {
+		t.Fatalf("overlap ordinals = %v, want contiguous suffix %v", second.SpanOrdinals, wantOrdinals)
+	}
+	if second.Text != "cd" || second.StartByte != 2 || second.EndByte != 4 {
+		t.Fatalf("overlap chunk = %#v", second)
+	}
+}
+
 func TestPackRejectsForgedRanges(t *testing.T) {
 	_, err := Pack([]Span{{Ordinal: 0, Text: "abc", StartByte: 0, EndByte: 2, EndRune: 3}}, PackOptions{MaxUnits: 10})
 	if err == nil || !strings.Contains(err.Error(), "invalid_range") {
@@ -89,7 +114,7 @@ func TestRecursiveFallsBackToRuneWindowsWithAbsoluteRanges(t *testing.T) {
 	result, err := Recursive(source, RecursiveOptions{
 		MaxUnits: 8,
 		Measure:  "runes",
-		Levels:   []string{"markdownBlocks", "paragraphs", "lines", "runes"},
+		Levels:   []string{"markdownSections", "markdownBlocks", "paragraphs", "lines", "runes"},
 	})
 	if err != nil {
 		t.Fatalf("Recursive: %v", err)
@@ -100,6 +125,9 @@ func TestRecursiveFallsBackToRuneWindowsWithAbsoluteRanges(t *testing.T) {
 	for _, chunk := range result.Chunks {
 		if chunk.Weight > 8 || source[chunk.StartByte:chunk.EndByte] != chunk.Text {
 			t.Fatalf("invalid absolute chunk %#v", chunk)
+		}
+		if strings.Join(chunk.HeadingPath, "/") != "Heading" {
+			t.Fatalf("chunk lost heading path: %#v", chunk)
 		}
 	}
 }

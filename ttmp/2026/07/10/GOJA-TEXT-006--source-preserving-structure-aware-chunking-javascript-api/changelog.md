@@ -93,3 +93,12 @@ Finalized the intern implementation guide, complete diary, golden fixture, revie
 ## 2026-07-10
 
 Implementation, documentation, validation, and reMarkable delivery bundle complete.
+
+## 2026-07-10
+
+Addressed PR #10 review findings by enforcing contiguous weighted overlap and preserving section heading paths through recursive refinement.
+
+### Related Files
+
+- pkg/chunking/pack.go — Contiguous weighted overlap suffix selection
+- pkg/chunking/recursive.go — Inherited heading-path metadata

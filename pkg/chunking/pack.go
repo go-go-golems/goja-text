@@ -75,13 +75,18 @@ func packWeightedBudget(spans []Span, weights []int, options WeightedPackOptions
 		firstOrdinal := result.Chunks[i].SpanOrdinals[0]
 		overlap := make([]int, 0)
 		overlapWeight := 0
+		expectedOrdinal := firstOrdinal - 1
 		for j := len(prior.SpanOrdinals) - 1; j >= 0; j-- {
 			ordinal := prior.SpanOrdinals[j]
-			if ordinal >= firstOrdinal || weights[ordinal] > options.OverlapWeight-overlapWeight {
+			if ordinal > expectedOrdinal {
 				continue
+			}
+			if ordinal != expectedOrdinal || weights[ordinal] > options.OverlapWeight-overlapWeight {
+				break
 			}
 			overlap = append([]int{ordinal}, overlap...)
 			overlapWeight += weights[ordinal]
+			expectedOrdinal--
 		}
 		for len(overlap) > 0 && overlapWeight+result.Chunks[i].Weight > options.MaxWeight {
 			overlapWeight -= weights[overlap[0]]

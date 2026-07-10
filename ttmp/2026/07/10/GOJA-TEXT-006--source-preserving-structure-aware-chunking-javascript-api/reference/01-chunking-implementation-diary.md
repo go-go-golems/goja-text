@@ -460,3 +460,41 @@ GOWORK=off golangci-lint run -v
 - Evaluate sentence segmentation separately with explicit Unicode and language requirements.
 - Add tokenizer adapters in downstream applications and call `packWeighted`; do not add model policy to goja-text.
 - Consider the richer structured TypeScript API proposed in go-go-goja issue #92.
+
+## Step 8: Address PR #10 review findings
+
+The automated review on PR #10 identified two P2 correctness issues. Both findings were actionable and non-conflicting, so I implemented both with focused regression coverage.
+
+### Weighted overlap continuity
+
+The original weighted-overlap scan walked backward through a prior chunk and used `continue` when one trailing span exceeded the overlap allowance. That allowed the scan to skip the heavy span and select an older span, producing a non-contiguous ordinal list such as `[0, 2, 3]`. `PackedChunk.Text` then omitted span 1 while its byte range covered from span 0 through span 3.
+
+The scan now tracks the next expected source ordinal and stops at the first gap or overweight trailing span. It may skip ordinals already represented by a later chunk, but every selected overlap is a contiguous suffix immediately preceding the new chunk.
+
+`TestPackWeightedOverlapRemainsContiguous` uses weights `[1, 100, 1, 1]`, overlap allowance 2, and a prior chunk containing ordinals `[0, 1, 2]`. The correct second chunk is `[2, 3]`, with text `cd` and exact range `[2,4)`.
+
+### Recursive heading-path propagation
+
+`markdownSections` derives heading ancestry, but the next recursive segmentation level replaced its parent span with children whose `HeadingPath` was empty. Refined chunks therefore lost the section context that the first level had already computed.
+
+Recursive refinement now copies the parent heading path into a child only when the child did not derive a more specific path itself. The copy uses a new slice, preventing later mutation from aliasing the parent metadata.
+
+The recursive absolute-range test now starts at `markdownSections` and asserts that every refined chunk below `# Heading` retains `HeadingPath == ["Heading"]`.
+
+### Validation
+
+```bash
+go test ./pkg/chunking -run 'TestPackWeightedOverlapRemainsContiguous|TestRecursiveFallsBackToRuneWindowsWithAbsoluteRanges' -count=1
+```
+
+The focused regression tests pass. Full validation also passed:
+
+```bash
+go test ./... -count=1
+GOWORK=off go test ./... -count=1
+GOWORK=off golangci-lint run -v
+make logcopter-check
+go test ./pkg/chunking -run=^$ -fuzz=FuzzPackPreservesAllSpansWithoutOverlap -fuzztime=3s
+```
+
+The packing fuzz target executed 54,978 inputs and retained its no-loss, no-empty-chunk, and oversized-marking invariants.
