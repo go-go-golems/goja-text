@@ -22,3 +22,21 @@ Added exact Markdown byte/rune ranges and end positions with syntax-preserving G
 
 - /home/manuel/workspaces/2026-07-10/goja-text-chunking/goja-text/pkg/markdown/source_ranges.go — Exact range implementation
 
+
+## 2026-07-10
+
+Implemented lossless line, paragraph, Markdown block, and Markdown section segmentation.
+
+### Related Files
+
+- pkg/chunking/segment_markdown.go — Structure-aware source partitions and heading paths
+
+
+## 2026-07-10
+
+Implemented greedy, caller-weighted, and recursive packing with explicit oversized diagnostics.
+
+### Related Files
+
+- pkg/chunking/pack.go — Budget and overlap invariants
+

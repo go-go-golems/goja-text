@@ -13,6 +13,10 @@ DocType: reference
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: repo://pkg/chunking/recursive.go
+      Note: Recursive fallback and absolute range translation
+    - Path: repo://pkg/chunking/validate.go
+      Note: Lossless partition validator
     - Path: repo://pkg/markdown/source_ranges.go
       Note: Central exact Markdown source-range derivation
     - Path: repo://pkg/markdown/source_ranges_test.go
@@ -26,6 +30,7 @@ LastUpdated: 2026-07-10T13:09:36.237896447-04:00
 WhatFor: Reproduce the implementation, understand why contracts changed, and continue the work without rediscovering module and source-position constraints.
 WhenToUse: Read before resuming GOJA-TEXT-006, reviewing a checkpoint, diagnosing a failed invariant, or preparing the final delivery.
 ---
+
 
 
 
@@ -192,3 +197,92 @@ go test ./... -count=1
 ### Technical details
 
 Coordinate intervals are zero-based and half-open. Line/column positions remain one-based. For a heading `# H`, the node reports byte range `[0,3)` and end position `1:4`.
+
+## Step 3: Implement lossless segmenters
+
+I created `pkg/chunking` as a pure-Go domain package and implemented line, paragraph, Markdown-block, and Markdown-section segmenters. Every segmenter rejects invalid UTF-8, returns both byte and rune coordinates, and validates its own output before returning it.
+
+### What I did
+
+- Added the shared `Span`, `Diagnostic`, `StrategySpec`, and result types.
+- Added one source index responsible for byte, rune, line, and column coordinates.
+- Implemented LF and CRLF-aware line segmentation. When callers do not keep terminators on line spans, terminators remain present as explicit `lineTerminator` spans.
+- Implemented paragraph separator ownership modes: `trailing`, `separate`, and `leading`.
+- Implemented Markdown blocks by partitioning at consecutive top-level AST starts.
+- Implemented Markdown sections with preamble handling and heading-path metadata.
+- Added `ValidatePartition` and tests that slice the original source.
+
+### Why
+
+Separators cannot be discarded without invalidating source citations. A segmenter that reconstructs text from rendered Markdown also loses markers and exact whitespace. The implementation therefore assigns every input byte to exactly one span and treats derived heading paths as metadata.
+
+### What worked
+
+- LF, CRLF, Unicode, leading source whitespace, Markdown markers, fences, preambles, and nested heading paths pass focused tests.
+- A fuzz target checks the line segmenter's lossless partition invariant over arbitrary valid UTF-8 strings.
+- `go test ./pkg/chunking -count=1` passes.
+
+### What didn't work
+
+The first paragraph boundary draft compared the start of a blank run with the previous line end using a strict greater-than test. Those offsets are equal in the normal `paragraph + blank line` case, so the boundary would not have been emitted. I caught this during pre-test review, changed the boundary condition to distinguish leading whitespace from post-content blank runs, and then added an explicit `a\n\nb` ownership assertion.
+
+### What I learned
+
+- `keepTerminators: false` can remain source-preserving only if terminators become explicit spans.
+- Top-level Goldmark node starts are sufficient to define a deterministic block partition; node ends are intentionally not used because inter-block separators still need an owner.
+- A flat section partition and a hierarchical section tree are different APIs. This release returns a flat partition and records hierarchy in `HeadingPath`.
+
+### What warrants a second pair of eyes
+
+- Section boundaries start at every heading accepted by `maxHeadingLevel`; nested sections are represented as consecutive spans, not overlapping parent envelopes.
+- Whitespace-only input is represented as one ordinary span rather than an empty result.
+- Future sentence segmentation must preserve the same separator-ownership contract.
+
+### Code review instructions
+
+- Start with `pkg/chunking/validate.go` and `positions.go` to understand the invariant.
+- Review each `segment_*.go` file together with `segment_test.go`.
+- Run `go test ./pkg/chunking -count=1`.
+
+## Step 4: Implement greedy, caller-weighted, and recursive packing
+
+I implemented complete-span packing with byte, rune, or Unicode-whitespace word budgets. The regular packer supports a trailing whole-span overlap; the weighted packer accepts caller-computed nonnegative weights; and the recursive operation refines only oversized spans through an ordered sequence of segmenters.
+
+### What I did
+
+- Implemented budget validation and deterministic text measurement.
+- Implemented greedy packing, whole-span overlap, and explicit `allow`/`error` oversized policy.
+- Added stable oversized diagnostics at result and chunk scope.
+- Implemented caller-weighted packing without adding a tokenizer dependency.
+- Implemented recursive fallback with absolute coordinate translation and a final rune-window level.
+- Added focused tests for exact budgets, overlap, oversized behavior, caller weights, fallback progress, and source slices.
+
+### Why
+
+Chunking and tokenization have separate release cycles. Accepting weights lets a downstream application use its model's tokenizer while this library remains deterministic and model-independent. Recursive fallback preserves large structures when possible and only uses fixed windows after stronger boundaries fail.
+
+### What worked
+
+- Whole-span overlap produces the expected repeated span without splitting it.
+- An allowed oversized span is visibly marked and emits `span_exceeds_budget`; the error policy rejects it.
+- Recursive fallback retains absolute source offsets even though each nested segmenter operates on a substring.
+- `go test ./pkg/chunking -count=1` passes.
+
+### What didn't work
+
+The first core commit attempt passed all tests but the pre-commit linter reported `ineffassign` for `currentWeight = weight` in the oversized-span branch. `emit()` derives the emitted chunk weight from the immutable weight array, and the local accumulator is reset immediately afterward, so I removed the redundant assignment and reran lint before retrying the commit. During review, I also kept overlap removal in a loop so a large retained suffix can never prevent the next new span from being consumed.
+
+### What was tricky to build
+
+Nested segmenters naturally return coordinates relative to the substring they receive. `translateSpan` shifts byte, rune, line, and first-line column coordinates back into the original document before the recursive result is packed.
+
+### What warrants a second pair of eyes
+
+- Weighted overlap selects only complete trailing spans that fit both the overlap allowance and the next chunk budget.
+- Atomic Markdown kinds remain oversized instead of being recursively split.
+- Word measurement uses Go's Unicode whitespace fields and is not a model tokenizer.
+
+### Code review instructions
+
+- Review `pkg/chunking/pack.go` for the progress invariant and `recursive.go` for coordinate translation.
+- Run `go test ./pkg/chunking -count=1` and inspect `pack_test.go`.
