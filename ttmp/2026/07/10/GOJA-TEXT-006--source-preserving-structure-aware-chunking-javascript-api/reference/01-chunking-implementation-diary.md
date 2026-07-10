@@ -12,7 +12,13 @@ Topics:
 DocType: reference
 Intent: long-term
 Owners: []
-RelatedFiles: []
+RelatedFiles:
+    - Path: repo://pkg/markdown/source_ranges.go
+      Note: Central exact Markdown source-range derivation
+    - Path: repo://pkg/markdown/source_ranges_test.go
+      Note: Structural syntax and Unicode coordinate contracts
+    - Path: repo://ttmp/2026/07/10/GOJA-TEXT-006--source-preserving-structure-aware-chunking-javascript-api/scripts/01-inspect-goldmark-ranges.go
+      Note: Reproducible Goldmark source-position probe
 ExternalSources:
     - https://github.com/go-go-golems/goja-text/issues/9
 Summary: Chronological implementation evidence, failures, decisions, commands, and review instructions for the goja-text chunking module.
@@ -20,6 +26,9 @@ LastUpdated: 2026-07-10T13:09:36.237896447-04:00
 WhatFor: Reproduce the implementation, understand why contracts changed, and continue the work without rediscovering module and source-position constraints.
 WhenToUse: Read before resuming GOJA-TEXT-006, reviewing a checkpoint, diagnosing a failed invariant, or preparing the final delivery.
 ---
+
+
+
 
 # Chunking Implementation Diary
 
@@ -105,3 +114,81 @@ go test ./... -count=1
 ```
 
 Result: all current packages passed.
+
+## Step 2: Add exact Markdown byte, rune, and end positions
+
+I extended `MarkdownNode` so every parsed node carries a half-open UTF-8 byte range, rune range, and end line/column. The implementation preserves existing start-line/start-column behavior and does not change `markdown.parse()` error semantics.
+
+Goldmark does not expose all source ranges uniformly. The implementation uses exact segments for text and raw-HTML leaves, then uses the next sibling or ancestor sibling as the structural boundary for headings, paragraphs, lists, block quotes, code fences, HTML blocks, and thematic breaks. Trailing whitespace between blocks is excluded from the AST node range.
+
+### Prompt Context
+
+**User prompt (verbatim):** (see Step 1)
+
+**Assistant interpretation:** Implement the first accepted design phase and prove its source-coordinate semantics before building chunking algorithms.
+
+**Inferred user intent:** Ensure all later chunks can cite exact original text instead of approximate JavaScript indices.
+
+### What I did
+
+- Added a Goldmark range inspection program under the ticket `scripts/` directory.
+- Added `StartByte`, `EndByte`, `StartRune`, `EndRune`, `EndLine`, and `EndColumn` to `MarkdownNode`.
+- Added a central `nodeSourceRange` helper.
+- Updated Markdown TypeScript declarations.
+- Added pure-Go tests for structural syntax, Unicode, inline emphasis/link syntax, rune counts, and end positions.
+- Extended the runtime JavaScript test to read the new PascalCase fields.
+- Ran `go test ./pkg/markdown -count=1` and `go test ./... -count=1`.
+
+### Why
+
+- Markdown `Lines()` often contains only body content and excludes syntax such as heading markers and fences.
+- JavaScript UTF-16 indices cannot serve as byte or rune citations.
+- Structural chunkers need exact block starts and verified source slices.
+
+### What worked
+
+- The range probe showed stable `Pos()` values for block markers and direct segments for text leaves.
+- Tests confirm top-level ranges preserve heading, list, fenced-code, blockquote, HTML, and thematic-break syntax.
+- Unicode rune counts remain consistent with UTF-8 byte slices.
+- All existing module and provider tests still pass.
+
+### What didn't work
+
+- The first commit attempt was stopped by the pre-commit lint hook. `pkg/markdown/module.go` needed `gofmt`, and the inspection script called Goldmark's deprecated `Node.Text` method (`SA1019`). The production implementation and tests had passed; the failure was isolated to formatting and the ticket experiment. I removed the deprecated call, kept the probe focused on source coordinates, formatted both files, and reran the repository linter before retrying the commit.
+- The probe also demonstrated that a naive `Lines()`-only approach would have omitted syntax; that approach was rejected before production code was written.
+
+### What I learned
+
+- A block node's next structural sibling is a more reliable outer boundary than its content lines.
+- Inline nodes such as emphasis and links need surrounding Markdown markers, while leaf text nodes should keep their direct segment.
+- Trimming only trailing Unicode whitespace gives structural nodes useful syntax-preserving envelopes without claiming inter-block separators.
+
+### What was tricky to build
+
+The helper must find an end boundary even when the node is the last child of several nested containers. It walks outward through ancestors until it finds a next sibling, otherwise it uses source end. Direct text and raw-HTML segments bypass this structural rule.
+
+### What warrants a second pair of eyes
+
+- Uncommon Goldmark extension nodes may have source behavior not covered by core-node fixtures.
+- Trailing whitespace is intentionally excluded from AST node envelopes even though chunking segmenters will later partition separators losslessly.
+- Invalid UTF-8 remains accepted by the existing Markdown parser; only chunking entry points will reject it.
+
+### What should be done in the future
+
+- Add any newly introduced Goldmark extension nodes to the range fixture when extensions are enabled.
+- Keep range semantics documented in the Markdown API reference.
+
+### Code review instructions
+
+- Review `pkg/markdown/source_ranges.go` first.
+- Confirm `pkg/markdown/source_ranges_test.go` slices the original source rather than comparing rendered text.
+- Run:
+
+```bash
+go test ./pkg/markdown -count=1
+go test ./... -count=1
+```
+
+### Technical details
+
+Coordinate intervals are zero-based and half-open. Line/column positions remain one-based. For a heading `# H`, the node reports byte range `[0,3)` and end position `1:4`.

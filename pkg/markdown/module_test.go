@@ -19,10 +19,16 @@ func TestRequireMarkdownParseExposesGoFields(t *testing.T) {
 			const ast = markdown.parse("# Hello\n\nWorld");
 			({
 				type: ast.Type,
-				firstType: ast.Children[0].Type,
-				firstLevel: ast.Children[0].Level,
-				firstText: ast.Children[0].Children[0].Text,
-				lowercaseMissing: ast.type === undefined,
+					firstType: ast.Children[0].Type,
+					firstLevel: ast.Children[0].Level,
+					firstText: ast.Children[0].Children[0].Text,
+					firstStartByte: ast.Children[0].StartByte,
+					firstEndByte: ast.Children[0].EndByte,
+					firstStartRune: ast.Children[0].StartRune,
+					firstEndRune: ast.Children[0].EndRune,
+					firstEndLine: ast.Children[0].EndLine,
+					firstEndColumn: ast.Children[0].EndColumn,
+					lowercaseMissing: ast.type === undefined,
 			});
 		`)
 		if runErr != nil {
@@ -43,6 +49,18 @@ func TestRequireMarkdownParseExposesGoFields(t *testing.T) {
 	}
 	if got["firstLevel"] != int64(1) && got["firstLevel"] != int(1) && got["firstLevel"] != float64(1) {
 		t.Fatalf("firstLevel = %#v, want 1", got["firstLevel"])
+	}
+	for key, want := range map[string]int64{
+		"firstStartByte": 0,
+		"firstEndByte":   7,
+		"firstStartRune": 0,
+		"firstEndRune":   7,
+		"firstEndLine":   1,
+		"firstEndColumn": 8,
+	} {
+		if got[key] != want {
+			t.Fatalf("%s = %#v, want %d", key, got[key], want)
+		}
 	}
 }
 
