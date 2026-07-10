@@ -13,8 +13,12 @@ DocType: design-doc
 Intent: long-term
 Owners: []
 RelatedFiles:
+    - Path: repo://cmd/goja-text/jsverbs/chunking.js
+      Note: Generated app commands
     - Path: repo://cmd/goja-text/xgoja.yaml
       Note: Generated application module, jsverb, asset, and help composition
+    - Path: repo://examples/js/chunking-demo.js
+      Note: Runnable exploration entry point
     - Path: repo://pkg/chunking/module.go
       Note: JavaScript adapter and TypeScript contract
     - Path: repo://pkg/chunking/module_test.go
@@ -23,6 +27,8 @@ RelatedFiles:
       Note: Goldmark conversion and source-range extension point
     - Path: repo://pkg/markdown/module.go
       Note: Native module, TypeScript declaration, and runtime integration pattern
+    - Path: repo://pkg/xgoja/providers/text/doc/chunking-api-reference.md
+      Note: Runtime API reference
     - Path: repo://pkg/xgoja/providers/text/text.go
       Note: xgoja provider registration and help packaging
 ExternalSources:
@@ -32,6 +38,7 @@ LastUpdated: 2026-07-10T13:09:36.156617008-04:00
 WhatFor: Implement and maintain exact text spans, structure-aware segmenters, budgeted packing, recursive fallback, and the require("chunking") JavaScript module.
 WhenToUse: Read before changing Markdown source coordinates, chunking algorithms, JavaScript contracts, TypeScript declarations, xgoja provider registration, or chunking tests.
 ---
+
 
 
 
@@ -102,7 +109,7 @@ Out of scope:
 
 Those remain downstream responsibilities.
 
-## Current-State Architecture
+## Baseline Architecture Before This Ticket
 
 ### Native modules
 
@@ -150,7 +157,7 @@ console.log(ast.Type);
 console.log(ast.Children[0].Level);
 ```
 
-The current node includes `StartLine`, `StartColumn`, and `SourcePos`, but not exact byte/rune end ranges. `ConvertAST` derives content fields through a type switch and recursively converts child nodes.
+Before this ticket, the node included `StartLine`, `StartColumn`, and `SourcePos`, but not exact byte/rune end ranges. `ConvertAST` derived content fields through a type switch and recursively converted child nodes. The completed implementation adds the exact fields without changing the existing start-position contract.
 
 Goldmark source storage differs by node:
 
@@ -161,7 +168,7 @@ Goldmark source storage differs by node:
 - HTML blocks may include a closure line;
 - structural nodes such as thematic breaks may have no child text but still occupy source bytes.
 
-The implementation must centralize these cases in one helper.
+The completed implementation centralizes these cases in `pkg/markdown/source_ranges.go`.
 
 ### Generated application
 
@@ -180,7 +187,7 @@ cmd/goja-text/
 
 Changes to provider modules or jsverbs require regeneration and a build. Runtime help is embedded from `pkg/xgoja/providers/text/doc/*.md`.
 
-## Gap Analysis
+## Baseline Gap Analysis
 
 | Required capability | Current support | Gap |
 | --- | --- | --- |
@@ -197,7 +204,7 @@ Changes to provider modules or jsverbs require regeneration and a build. Runtime
 | Diagnostics | Module errors only | No per-result warning/error evidence |
 | Generated host | Four modules | `chunking` not registered or documented |
 
-## Proposed Solution
+## Implemented Solution
 
 ### Coordinate semantics
 
@@ -347,7 +354,7 @@ join(result.Spans[i].Text for i in ordinal order) == original source
 
 Line spans own their terminator. Paragraph spans own trailing blank-line separators. Markdown block spans use consecutive top-level node starts as boundaries: the first begins at byte zero, each ends at the next block start, and the final ends at source length. This assigns leading and inter-block whitespace deterministically without rendering or reconstructing Markdown.
 
-Markdown sections begin at headings. A section ends at the next heading of equal or shallower depth or at end of input. Content before the first heading becomes a preamble span. Heading paths are metadata and do not change `Text`.
+Markdown sections form a flat, non-overlapping partition. Every heading at or above the configured `maxHeadingLevel` starts a new section, and that section ends at the next accepted heading or at end of input. Content before the first accepted heading becomes a preamble span. Hierarchy is represented by `HeadingPath` metadata rather than overlapping parent ranges, so concatenating section text still reproduces the source exactly.
 
 ### Packing algorithm
 
@@ -474,9 +481,141 @@ Oversized content allowed by policy is a warning. Invalid ranges, unknown modes,
 - **Semantic chunking in this module:** requires embeddings and belongs in a higher-level experimental system.
 - **Backwards-compatibility aliases:** unnecessary because `chunking` is a new module.
 
-## Implementation Plan
+## End-to-End Runtime Flow
 
-### Phase 1: exact Markdown coordinates
+The completed runtime keeps structural decisions in pure Go and uses JavaScript as the composition layer. A JavaScript caller can choose a segmenter, inspect exact spans, obtain deterministic or model-specific weights, and choose a packing policy without changing the native module.
+
+```mermaid
+sequenceDiagram
+    participant JS as JavaScript experiment
+    participant Codec as module.go codecs
+    participant Segment as Go segmenter
+    participant Pack as Go packer
+    participant App as embedding/index application
+
+    JS->>Codec: markdownBlocks(source, options)
+    Codec->>Codec: reject unknown/mistyped options
+    Codec->>Segment: MarkdownBlocks(source, typed options)
+    Segment->>Segment: parse AST and partition source
+    Segment->>Segment: ValidatePartition(source, spans)
+    Segment-->>JS: Go-backed SegmentResult
+    JS->>JS: inspect spans or compute tokenizer weights
+    JS->>Codec: pack(spans, options) or packWeighted(items, options)
+    Codec->>Pack: validated spans and budget
+    Pack->>Pack: greedy complete-span packing
+    Pack-->>JS: Go-backed PackResult
+    JS->>App: text, exact ranges, strategy, diagnostics
+```
+
+The source itself is never rendered or normalized during this flow. Markdown parsing supplies boundaries and metadata only. `Span.Text` always comes from a byte slice of the original source.
+
+## Implemented File-by-File Guide
+
+This section is the recommended reading order for a new intern. Each layer has one responsibility, and the tests beside that layer state its externally visible contract.
+
+### Exact Markdown coordinates
+
+Files:
+
+- `pkg/markdown/types.go` defines the JavaScript-visible `MarkdownNode` fields.
+- `pkg/markdown/convert.go` converts Goldmark nodes and computes byte, rune, line, and column coordinates.
+- `pkg/markdown/source_ranges.go` derives syntax-preserving node envelopes from direct segments, block starts, siblings, and ancestors.
+- `pkg/markdown/source_ranges_test.go` verifies headings, emphasis, links, lists, fences, block quotes, HTML, thematic breaks, and Unicode.
+
+Goldmark exposes different source information for leaf and structural nodes. Text and raw HTML leaves have direct segments. Structural nodes use their own start and the next structural sibling boundary, walking through ancestors when the node has no direct next sibling. Trailing inter-block whitespace is removed from AST envelopes; the chunking block segmenter later assigns separators losslessly.
+
+### Domain types and position calculation
+
+Files:
+
+- `pkg/chunking/types.go` defines spans, diagnostics, strategy descriptions, options, and results.
+- `pkg/chunking/positions.go` creates spans and translates substring-relative recursive ranges to document-absolute ranges.
+- `pkg/chunking/validate.go` validates UTF-8, exact partitions, and packable span sequences.
+
+The coordinate code is deliberately centralized. A new segmenter should identify only byte boundaries, then call the source index to populate all coordinate systems. It should not independently count lines or runes.
+
+Pseudocode for a new segmenter:
+
+```text
+function segment(source, options):
+    index = validateUTF8AndCreateIndex(source)
+    boundaries = detectBoundaries(source, options)
+    spans = []
+
+    for each consecutive [start, end) in boundaries:
+        spans.append(index.span(start, end, ordinal, kind))
+
+    validatePartition(source, spans)
+    return SegmentResult(strategy, source sizes, spans)
+```
+
+### Segmenters
+
+Files:
+
+- `pkg/chunking/segment_lines.go` handles LF and CRLF and can expose terminators separately.
+- `pkg/chunking/segment_paragraphs.go` detects blank-line runs and implements explicit separator ownership.
+- `pkg/chunking/segment_markdown.go` implements top-level Markdown blocks, flat sections, heading paths, language metadata, and atomic kinds.
+- `pkg/chunking/segment_test.go` verifies preservation, Unicode, CRLF, structural metadata, invalid UTF-8, and fuzz seeds.
+
+Line terminators and paragraph separators are never dropped. When `keepTerminators` is false, a CRLF terminator becomes one `lineTerminator` span containing both bytes. Paragraph mode changes ownership, not content.
+
+Markdown blocks partition at top-level node starts. The first span starts at byte zero even when the first node begins after leading whitespace. The final span ends at source length. This rule assigns every leading, inter-block, and trailing byte deterministically.
+
+### Packing and recursive fallback
+
+Files:
+
+- `pkg/chunking/pack.go` implements measurement, span-sequence validation, greedy packing, overlap, weighted packing, and oversized diagnostics.
+- `pkg/chunking/recursive.go` refines oversized ranges through ordered segmenters and translates absolute coordinates.
+- `pkg/chunking/pack_test.go` covers budgets, overlap, oversized policy, forged ranges, caller weights, recursion, and fuzz seeds.
+
+The packer validates that each supplied span has a contiguous ordinal, that byte and rune lengths agree with `Text`, and that ranges are consecutive. This prevents a JavaScript caller from forging a plausible Go-shaped object with inconsistent citations.
+
+Oversized handling occurs before ordinary fit logic on every iteration. This ordering matters when an oversized span follows a full chunk: the previous chunk is emitted, then the oversized span is emitted alone with `Oversized: true` and `span_exceeds_budget`. A generated-host smoke test found this edge case, and `TestPackMarksOversizedSpanAfterFlushingCurrentChunk` prevents regression.
+
+### JavaScript adapter and TypeScript
+
+Files:
+
+- `pkg/chunking/module.go` implements `require("chunking")`, strict codecs, module documentation, and the TypeScript descriptor.
+- `pkg/chunking/module_test.go` runs the module inside a real go-go-goja runtime.
+- `pkg/xgoja/providers/text/text.go` publishes the module through the `goja-text` provider.
+- `pkg/xgoja/providers/text/text_test.go` resolves every provider module and validates its TypeScript descriptor.
+
+JavaScript option objects use lower-camel keys because they are script configuration. Go-backed returned values expose PascalCase fields because Goja projects exported Go fields and because existing goja-text modules use the same convention.
+
+The adapter treats `nil`, JavaScript `undefined`, and `null` as absent optional values. It rejects unknown keys, numeric strings, non-integral numeric values, and arrays with the wrong element type. Errors become JavaScript exceptions through `vm.NewGoError` or `vm.NewTypeError`.
+
+The pinned go-go-goja TypeScript API represents optional parameters with `spec.Param.Optional`, not an optional type wrapper. The module therefore declares:
+
+```go
+spec.Param{
+    Name: "options",
+    Type: spec.Named("LineOptions"),
+    Optional: true,
+}
+```
+
+The generated declaration is `options?: LineOptions`. A broader additive TypeScript-spec enhancement is tracked in go-go-goja issue #92, but this implementation has no dependency on it.
+
+### Generated application and documentation
+
+Files:
+
+- `cmd/goja-text/xgoja.yaml` selects the module, provider help, assets, and root-mounted jsverbs.
+- `cmd/goja-text/jsverbs/chunking.js` supplies `chunking blocks`, `chunking pack`, and `chunking recursive`.
+- `examples/js/chunking-demo.js` is the copyable exploration starting point.
+- `examples/markdown/chunking-sample.md` exercises headings, paragraphs, a fence, a list, and multiple sections.
+- `pkg/xgoja/providers/text/doc/chunking-api-reference.md` is the exhaustive runtime reference.
+- `pkg/xgoja/providers/text/doc/chunking-user-guide.md` teaches the intended exploration and tokenizer-integration workflow.
+- `Makefile` builds, regenerates, and smokes the product surfaces.
+
+`make build-xgoja` regenerates committed host artifacts and builds `dist/goja-text`. `goja-text types` prints the selected module declarations, and both help slugs are queryable through the generated Glazed help system.
+
+## Historical Implementation Sequence
+
+### Phase 1: exact Markdown coordinates — complete
 
 Files:
 
@@ -487,7 +626,7 @@ Files:
 
 Implement one internal source-range helper, add byte/rune/end fields, update TypeScript, and verify JS access.
 
-### Phase 2: core chunking package and segmenters
+### Phase 2: core chunking package and segmenters — complete
 
 Files:
 
@@ -500,7 +639,7 @@ Files:
 
 Implement coordinate indexing once and reuse it. Add lossless validators before Markdown segmenters so every later algorithm can assert its output.
 
-### Phase 3: packing
+### Phase 3: packing — complete
 
 Files:
 
@@ -510,7 +649,7 @@ Files:
 
 Implement simple packing first, then preweighted packing, then recursion. Do not combine all three before the basic coverage/progress tests pass.
 
-### Phase 4: JavaScript module and provider
+### Phase 4: JavaScript module and provider — complete
 
 Files:
 
@@ -521,7 +660,7 @@ Files:
 
 The loader must only decode options and wire exports. Domain algorithms remain callable from pure Go tests.
 
-### Phase 5: product surfaces
+### Phase 5: product surfaces — complete
 
 Files:
 
@@ -533,7 +672,7 @@ Files:
 - `Makefile` smoke target
 - regenerated `cmd/goja-text` artifacts
 
-### Phase 6: validation
+### Phase 6: validation — complete
 
 ```bash
 go fmt ./...
@@ -603,13 +742,14 @@ flowchart TD
     style Generated fill:#fef3c7,stroke:#d97706
 ```
 
-## Open Questions
+## Known Limitations and Future Work
 
-- Goldmark source ranges for every uncommon node type need empirical verification.
-- The first word-count definition must specify Unicode whitespace semantics.
-- Recursive output needs a compact field identifying the fallback level without turning every chunk into a deeply nested trace.
-- Performance should be measured on large Markdown documents after correctness is established.
-- A future release may add sentence segmentation, but this ticket should not select a language-specific sentence library without separate evaluation.
+- Goldmark extension nodes that are not enabled by the current parser need new source-range fixtures when an extension is introduced.
+- Word measurement uses `strings.Fields`, which defines words by Unicode whitespace. It is deterministic but is not linguistic segmentation or model tokenization.
+- `PackedChunk.Level` records one compact fallback level. The implementation intentionally does not return a deeply nested recursive trace.
+- The coordinate implementation favors correctness and recomputes some rune prefixes. Large-document benchmarks should determine whether a prefix index is needed before adding complexity.
+- The final `runes` fallback guarantees progress for byte and rune measurement. Word-budget recursion can still surface one oversized whitespace-free range and should use caller weights when exact model limits matter.
+- Sentence segmentation is not included. A future release should evaluate Unicode sentence-boundary behavior and language requirements separately.
 
 ## References
 

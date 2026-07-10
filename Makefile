@@ -1,4 +1,4 @@
-.PHONY: gifs logcopter-generate logcopter-check test test-standalone generate-xgoja build-xgoja smoke-markdown smoke-sanitize smoke-extract smoke-verbs smoke check
+.PHONY: gifs logcopter-generate logcopter-check test test-standalone generate-xgoja build-xgoja smoke-chunking smoke-markdown smoke-sanitize smoke-extract smoke-verbs smoke check
 
 all: gifs
 
@@ -44,6 +44,9 @@ build-xgoja: generate-xgoja
 smoke-markdown: build-xgoja
 	$(XGOJA_BINARY) run examples/js/markdown-demo.js
 
+smoke-chunking: build-xgoja
+	$(XGOJA_BINARY) run examples/js/chunking-demo.js
+
 smoke-sanitize: build-xgoja
 	$(XGOJA_BINARY) run examples/js/sanitize-demo.js
 
@@ -51,13 +54,15 @@ smoke-extract: build-xgoja
 	$(XGOJA_BINARY) run examples/js/extract-demo.js
 
 smoke-verbs: build-xgoja
+	$(XGOJA_BINARY) help goja-text-chunking-user-guide >/dev/null
+	$(XGOJA_BINARY) chunking pack examples/markdown/chunking-sample.md --max-units 180 --output json >/dev/null
 	$(XGOJA_BINARY) help goja-text-markdown-user-guide >/dev/null
 	$(XGOJA_BINARY) examples tour --output json >/dev/null
 	$(XGOJA_BINARY) markdown toc examples/markdown/sample.md --output json >/dev/null
 	$(XGOJA_BINARY) sanitize json examples/json/broken.json --output json >/dev/null
 	$(XGOJA_BINARY) extract validate examples/text/structured-data-sample.md --output json >/dev/null
 
-smoke: smoke-markdown smoke-sanitize smoke-extract smoke-verbs
+smoke: smoke-chunking smoke-markdown smoke-sanitize smoke-extract smoke-verbs
 
 check: test test-standalone build-xgoja smoke
 

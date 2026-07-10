@@ -31,6 +31,9 @@ func TestLinesWithoutTerminatorsEmitsExplicitSeparatorSpans(t *testing.T) {
 			t.Errorf("span %d kind = %q, want %q", i, result.Spans[i].Kind, want)
 		}
 	}
+	if result.Spans[0].Text != "one" || result.Spans[1].Text != "\r\n" {
+		t.Fatalf("CRLF ownership = %q, %q", result.Spans[0].Text, result.Spans[1].Text)
+	}
 	assertPartition(t, "one\r\ntwo", result.Spans)
 }
 

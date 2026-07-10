@@ -50,3 +50,23 @@ Added require("chunking"), strict JavaScript codecs, TypeScript descriptors, run
 - pkg/chunking/module.go — Native JavaScript API and TypeScript declaration
 - pkg/xgoja/providers/text/text.go — Provider registration
 
+
+## 2026-07-10
+
+Added the generated chunking app surface: demo, fixture, jsverbs, embedded help, README, TypeScript output, and smoke targets.
+
+### Related Files
+
+- cmd/goja-text/jsverbs/chunking.js — Root-mounted exploration commands
+- pkg/xgoja/providers/text/doc/chunking-user-guide.md — Operational tutorial
+
+
+## 2026-07-10
+
+Fixed oversized-span marking after a preceding chunk flush and corrected CRLF terminator ownership.
+
+### Related Files
+
+- pkg/chunking/pack.go — Oversized handling before fit logic
+- pkg/chunking/segment_lines.go — CRLF terminator integrity
+

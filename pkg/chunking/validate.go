@@ -3,10 +3,33 @@ package chunking
 import (
 	"fmt"
 	"strings"
+	"unicode/utf8"
 )
 
 func invalidUTF8Error() error {
 	return fmt.Errorf("chunking: invalid_utf8: source must be valid UTF-8")
+}
+
+func validatePackingSpans(spans []Span) error {
+	previousEndByte := 0
+	previousEndRune := 0
+	for i, span := range spans {
+		if span.Ordinal != i {
+			return fmt.Errorf("chunking: invalid_range: span %d has ordinal %d", i, span.Ordinal)
+		}
+		if !utf8.ValidString(span.Text) {
+			return fmt.Errorf("chunking: invalid_utf8: span %d text must be valid UTF-8", i)
+		}
+		if span.StartByte != previousEndByte || span.EndByte < span.StartByte || span.EndByte-span.StartByte != len(span.Text) {
+			return fmt.Errorf("chunking: invalid_range: span %d byte range [%d,%d) does not match its text or previous span", i, span.StartByte, span.EndByte)
+		}
+		if span.StartRune != previousEndRune || span.EndRune < span.StartRune || span.EndRune-span.StartRune != utf8.RuneCountInString(span.Text) {
+			return fmt.Errorf("chunking: invalid_range: span %d rune range [%d,%d) does not match its text or previous span", i, span.StartRune, span.EndRune)
+		}
+		previousEndByte = span.EndByte
+		previousEndRune = span.EndRune
+	}
+	return nil
 }
 
 // ValidatePartition verifies that spans form a gapless, exact source partition.

@@ -20,10 +20,14 @@ func Lines(source string, options LineOptions) (*SegmentResult, error) {
 		if options.KeepTerminators || terminatedEnd == end {
 			spans = append(spans, index.span(start, terminatedEnd, len(spans), "line"))
 		} else {
-			if start < end {
-				spans = append(spans, index.span(start, end, len(spans), "line"))
+			terminatorStart := end
+			if terminatorStart > start && source[terminatorStart-1] == '\r' {
+				terminatorStart--
 			}
-			spans = append(spans, index.span(end, terminatedEnd, len(spans), "lineTerminator"))
+			if start < terminatorStart {
+				spans = append(spans, index.span(start, terminatorStart, len(spans), "line"))
+			}
+			spans = append(spans, index.span(terminatorStart, terminatedEnd, len(spans), "lineTerminator"))
 		}
 		start = terminatedEnd
 	}

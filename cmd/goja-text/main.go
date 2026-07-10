@@ -42,6 +42,11 @@ const embeddedSpecJSON = `{
   "modules": [
     {
       "package": "goja-text",
+      "name": "chunking",
+      "as": "chunking"
+    },
+    {
+      "package": "goja-text",
       "name": "markdown",
       "as": "markdown"
     },

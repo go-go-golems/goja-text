@@ -11,6 +11,9 @@ func Pack(spans []Span, options PackOptions) (*PackResult, error) {
 	if err := validatePackOptions(options); err != nil {
 		return nil, err
 	}
+	if err := validatePackingSpans(spans); err != nil {
+		return nil, err
+	}
 	weights := make([]int, len(spans))
 	for i, span := range spans {
 		weight, err := measureText(span.Text, options.Measure)
@@ -49,6 +52,9 @@ func PackWeighted(items []WeightedSpan, options WeightedPackOptions) (*PackResul
 		}
 		spans[i] = item.Span
 		weights[i] = item.Weight
+	}
+	if err := validatePackingSpans(spans); err != nil {
+		return nil, err
 	}
 	return packWeightedBudget(spans, weights, options)
 }
@@ -107,9 +113,12 @@ func packWithWeights(spans []Span, weights []int, budget, overlap int, oversized
 		if weight < 0 {
 			return nil, fmt.Errorf("chunking: invalid_weight: span %d has negative weight", i)
 		}
-		if len(current) == 0 && weight > budget {
+		if weight > budget {
 			if oversized == "error" {
 				return nil, fmt.Errorf("chunking: span_exceeds_budget: span %d weighs %d, budget %d", i, weight, budget)
+			}
+			if len(current) > 0 {
+				emit()
 			}
 			current = []int{i}
 			emit()

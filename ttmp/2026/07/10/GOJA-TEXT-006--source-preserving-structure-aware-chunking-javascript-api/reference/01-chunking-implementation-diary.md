@@ -338,3 +338,52 @@ The JavaScript layer needs ergonomic plain objects while the returned values mus
 - Review `pkg/chunking/module.go` beside `module_test.go`.
 - Confirm provider registration in `pkg/xgoja/providers/text/text.go`.
 - Run `go test ./pkg/chunking ./pkg/xgoja/providers/text -count=1`.
+
+## Step 6: Build the generated application, help, examples, and verbs
+
+I added the chunking module to the generated xgoja application and built the user-facing surfaces that make it directly testable. The result is a real `dist/goja-text` application with a runnable script, structured commands, TypeScript output, and two embedded help pages.
+
+### What I did
+
+- Selected `chunking` in `cmd/goja-text/xgoja.yaml`.
+- Added `examples/js/chunking-demo.js` and a Markdown fixture.
+- Added root-mounted `chunking blocks`, `chunking pack`, and `chunking recursive` jsverbs.
+- Added an API reference and tutorial-style user guide with Glazed frontmatter, troubleshooting, and cross-references.
+- Updated the Markdown API reference for exact coordinate fields.
+- Updated README module lists, examples, commands, and validation text.
+- Added chunking smoke targets to the Makefile.
+- Regenerated committed xgoja files and built `dist/goja-text`.
+- Ran the demo, both help slugs, all three chunking commands, and `goja-text types`.
+
+### What worked
+
+- xgoja validated 20 composition checks and built a host selecting nine modules.
+- The demo reported `sourcePreserved: true` and printed block, packed, and recursive ranges.
+- Both help documents load through the generated Glazed help system.
+- All three jsverbs return structured output and accept Glazed output formats.
+- Generated TypeScript includes the complete `declare module "chunking"` block with optional option parameters.
+
+### What didn't work
+
+- The first `make build-xgoja` stopped before generation because the committed command submodule needed dependency normalization. Running `GOWORK=off go mod tidy` in `cmd/goja-text` updated it to the repository's pinned go-go-goja version; the next generation and build passed.
+- The first `chunking pack --max-units 180` smoke output exposed a 194-rune list chunk with `Oversized: false`. The packer handled oversized spans only when the current accumulator was empty at loop entry, not when an oversized span caused a prior chunk to flush. I moved oversized handling before ordinary fit logic, added `TestPackMarksOversizedSpanAfterFlushingCurrentChunk`, rebuilt the binary, and verified the command now reports `Oversized: true` with `span_exceeds_budget`.
+- A review of `keepTerminators: false` found that CRLF had been split into a line-ending carriage return and a one-byte terminator span. The line segmenter now emits `\r\n` as one `lineTerminator` span, with a regression assertion.
+
+### What I learned
+
+- Generated-host smoke tests exercise strategy combinations that narrow unit tests may not naturally select. Structured command output made the budget inconsistency immediately visible.
+- The generated nested command module must be tidied before its generator tool can start when pinned provider dependencies change.
+- Help and TypeScript output are product APIs and should be executed, not only inspected as source files.
+
+### What warrants a second pair of eyes
+
+- The command submodule moved from its older generated module name and go-go-goja version to the current generator output; this is expected generated state but should be reviewed with the remaining generated diff.
+- The fixture intentionally includes a list larger than the 180-rune smoke budget so the oversized diagnostic path remains visible.
+- The help guide describes embedding and indexing as downstream integration; no embedding provider is added to goja-text.
+
+### Code review instructions
+
+- Run `make build-xgoja` and then `./dist/goja-text --help`.
+- Run `./dist/goja-text run examples/js/chunking-demo.js`.
+- Run `./dist/goja-text chunking pack examples/markdown/chunking-sample.md --max-units 180 --output json` and inspect the oversized list row.
+- Run `./dist/goja-text types` and inspect the `chunking` declaration block.

@@ -266,7 +266,9 @@ Common fields include:
 - `Title` — link or image title.
 - `Alt` — image alternate text.
 - `Language`, `Info` — fenced-code metadata.
-- `StartLine`, `StartColumn` — 1-indexed source position for the node start when goldmark exposes it.
+- `StartByte`, `EndByte` — zero-based, half-open UTF-8 byte range in the original Markdown source.
+- `StartRune`, `EndRune` — zero-based, half-open Unicode code-point range.
+- `StartLine`, `StartColumn`, `EndLine`, `EndColumn` — one-based start and exclusive-end source positions.
 - `SourcePos` — compatibility/detail field containing the same `[line, column]` pair.
 
 Prefer checking `node.Type` and then reading the fields that are meaningful for that type.
