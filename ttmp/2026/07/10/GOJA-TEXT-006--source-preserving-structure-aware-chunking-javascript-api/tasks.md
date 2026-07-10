@@ -6,7 +6,7 @@
 - [x] Extend MarkdownNode with exact byte, rune, and end-position ranges <!-- t:qkrk -->
 - [x] Implement source-preserving line, paragraph, Markdown-block, and Markdown-section segmenters <!-- t:btf6 -->
 - [x] Implement budgeted, preweighted, and recursive packing with diagnostics and progress guarantees <!-- t:u2b9 -->
-- [ ] Expose require("chunking") through NativeModule, TypeScript, and xgoja provider registration <!-- t:ddwz -->
+- [x] Expose require("chunking") through NativeModule, TypeScript, and xgoja provider registration <!-- t:ddwz -->
 - [ ] Add JavaScript examples, jsverbs, API reference, user guide, README, and generated xgoja artifacts <!-- t:xpeb -->
 - [ ] Run unit, golden, fuzz, runtime, standalone, generated-host, smoke, and lint validation <!-- t:fogt -->
 - [ ] Complete diary, relations, changelog, ticket validation, closure, and reMarkable delivery <!-- t:yv4b -->

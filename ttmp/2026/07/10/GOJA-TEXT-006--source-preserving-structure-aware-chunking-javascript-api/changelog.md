@@ -40,3 +40,13 @@ Implemented greedy, caller-weighted, and recursive packing with explicit oversiz
 
 - pkg/chunking/pack.go — Budget and overlap invariants
 
+
+## 2026-07-10
+
+Added require("chunking"), strict JavaScript codecs, TypeScript descriptors, runtime tests, and xgoja provider registration.
+
+### Related Files
+
+- pkg/chunking/module.go — Native JavaScript API and TypeScript declaration
+- pkg/xgoja/providers/text/text.go — Provider registration
+

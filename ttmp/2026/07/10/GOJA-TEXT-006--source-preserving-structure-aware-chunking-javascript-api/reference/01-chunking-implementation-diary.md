@@ -286,3 +286,55 @@ Nested segmenters naturally return coordinates relative to the substring they re
 
 - Review `pkg/chunking/pack.go` for the progress invariant and `recursive.go` for coordinate translation.
 - Run `go test ./pkg/chunking -count=1` and inspect `pack_test.go`.
+
+## Step 5: Expose the chunking API to JavaScript and xgoja
+
+I added a native `require("chunking")` module, TypeScript declarations, strict JavaScript option decoders, runtime integration tests, and provider registration. The domain algorithms remain independent of Goja; `module.go` only validates JavaScript inputs and forwards them.
+
+### What I did
+
+- Implemented `modules.NativeModule` and `modules.TypeScriptDeclarer`.
+- Exported `lines`, `paragraphs`, `markdownBlocks`, `markdownSections`, `pack`, `packWeighted`, and `recursive`.
+- Added lower-camel plain-object decoders that reject unknown keys and incorrect primitive types.
+- Preserved PascalCase Go-backed result fields.
+- Registered `chunking` in the `goja-text` xgoja provider.
+- Added runtime tests for segmentation, regular packing, weighted packing, recursive fallback, missing defaults, and option errors.
+- Added provider-level validation for every TypeScript descriptor.
+- Opened [go-go-goja issue #92](https://github.com/go-go-golems/go-go-goja/issues/92) proposing additive declaration builders and richer structured TypeScript nodes. This ticket continues with the current API and does not depend on that enhancement.
+
+### Why
+
+The JavaScript layer needs ergonomic plain objects while the returned values must remain consistent with existing goja-text modules. Strict decoding catches misspelled strategy settings before they silently change chunk boundaries. Provider registration makes the module available to generated xgoja applications and TypeScript tooling.
+
+### What worked
+
+- JavaScript can pass `blocks.Spans` directly into `pack` without copying fields.
+- JavaScript can create `{ span, weight }` records for `packWeighted`.
+- Omitted option objects and nested overlap objects receive documented defaults.
+- The provider descriptor passes `tsgen/validate.Module`.
+- `go test ./pkg/chunking ./pkg/xgoja/providers/text -count=1` passes.
+
+### What didn't work
+
+- The first adapter compile attempted to forward a two-value Go return directly into a generic helper after another argument. Go requires explicit `result, err` assignments in that call shape, so each wrapper now names both values.
+- The initial TypeScript declaration used a nonexistent `spec.Optional(type)` helper. The pinned `go-go-goja` API represents declaration optionality as `spec.Param.Optional`; the declarations now use `Type: spec.Named(...)` with `Optional: true`.
+- The first runtime test exposed that absent Goja object properties may arrive as `nil`, not only the JavaScript `undefined` singleton. `missingValue` now handles `nil`, `undefined`, and `null` uniformly.
+- One runtime expectation asserted the parent heading path `Title`; the section under `## Detail` correctly returns the complete path `Title/Detail`. The test now verifies the documented hierarchical metadata.
+
+### What I learned
+
+- Optional declaration syntax and a union with `undefined` are different TypeScript contracts. The spec API correctly stores optionality on `Param` and `Field`.
+- Goja object decoders must treat a nil property value as absent before calling `ToObject` or `Export`.
+- Runtime integration tests are necessary because pure-Go option structs do not exercise JavaScript property projection and export conversion.
+
+### What warrants a second pair of eyes
+
+- The TypeScript interfaces are currently emitted through `RawDTS` while function signatures use structured descriptors; issue #92 proposes richer structured declaration support.
+- `packWeighted` manually decodes its records so JavaScript can use lower-camel `span` and `weight` keys.
+- Integer decoding intentionally rejects numeric strings and non-integral numbers.
+
+### Code review instructions
+
+- Review `pkg/chunking/module.go` beside `module_test.go`.
+- Confirm provider registration in `pkg/xgoja/providers/text/text.go`.
+- Run `go test ./pkg/chunking ./pkg/xgoja/providers/text -count=1`.

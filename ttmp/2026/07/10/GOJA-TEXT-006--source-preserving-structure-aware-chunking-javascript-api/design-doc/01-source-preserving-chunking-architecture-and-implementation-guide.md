@@ -15,6 +15,10 @@ Owners: []
 RelatedFiles:
     - Path: repo://cmd/goja-text/xgoja.yaml
       Note: Generated application module, jsverb, asset, and help composition
+    - Path: repo://pkg/chunking/module.go
+      Note: JavaScript adapter and TypeScript contract
+    - Path: repo://pkg/chunking/module_test.go
+      Note: Goja runtime integration coverage
     - Path: repo://pkg/markdown/convert.go
       Note: Goldmark conversion and source-range extension point
     - Path: repo://pkg/markdown/module.go
@@ -28,6 +32,7 @@ LastUpdated: 2026-07-10T13:09:36.156617008-04:00
 WhatFor: Implement and maintain exact text spans, structure-aware segmenters, budgeted packing, recursive fallback, and the require("chunking") JavaScript module.
 WhenToUse: Read before changing Markdown source coordinates, chunking algorithms, JavaScript contracts, TypeScript declarations, xgoja provider registration, or chunking tests.
 ---
+
 
 
 
@@ -609,6 +614,7 @@ flowchart TD
 ## References
 
 - [GitHub issue #9](https://github.com/go-go-golems/goja-text/issues/9)
+- [go-go-goja issue #92](https://github.com/go-go-golems/go-go-goja/issues/92) — proposed additive TypeScript declaration builders and structured type nodes; not required by this implementation.
 - `pkg/markdown/module.go` — native module, TypeScript, and runtime export conventions.
 - `pkg/markdown/types.go` — current Go-backed AST contract.
 - `pkg/markdown/convert.go` — Goldmark conversion and current source-position logic.
